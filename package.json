@@ -1,0 +1,21 @@
+{
+  "name": "leva",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "convert-csv-to-json": "^2.50.0",
+    "google-auth-library": "^9.15.0",
+    "google-spreadsheet": "^4.1.4",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/google-spreadsheet": "^3.3.2",
+    "@types/node": "^22.10.2"
+  }
+}

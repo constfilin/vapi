@@ -264,7 +264,7 @@
                         "+15305150897",
                         "+14088190823"
                     ],
-                    "description": "The destination phone number ofr the call transfer"
+                    "description": "The destination phone number for the call transfer"
                 }
             },
             "required": [

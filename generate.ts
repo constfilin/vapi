@@ -18,7 +18,7 @@ type Function = {
             destination : {
                 type        : 'string',
                 'enum'      : string[],
-                description : 'The destination phone number ofr the call transfer'
+                description : 'The destination phone number for the call transfer'
             }
         },
         required    : string[]
@@ -92,7 +92,7 @@ export const generate = async () => {
                         destination : {
                             type        : 'string',
                             'enum'      : [],
-                            description : 'The destination phone number ofr the call transfer'
+                            description : 'The destination phone number for the call transfer'
                         }
                     },
                     required    : [

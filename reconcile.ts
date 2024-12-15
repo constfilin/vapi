@@ -40,7 +40,7 @@ const system_prompt = async () : Promise<Record<string,string>> => {
 }
 
 const json_file = async () : Promise<Record<string,Record<string,any>>> => {
-    return import('/home/cf/Downloads/updated_transfer_call_function.json').then( json => {
+    return import('./updated_transfer_call_function.json').then( json => {
         if( !Array.isArray(json.destinations) )
             throw Error(`destinations is not an array`);
         if( !json['function'] )

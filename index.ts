@@ -1,8 +1,5 @@
-import reconcile from './reconcile';
-import generate from './generate';
+import reconcile    from './reconcile';
+import generate     from './generate';
 
-reconcile().then( warns => {
-    console.log(warns);
-}).catch( err => {
-    console.error(err);
-});
+const main = process.argv[2]==='reconcile' ? reconcile : generate; 
+main().then(console.log).catch(console.error);

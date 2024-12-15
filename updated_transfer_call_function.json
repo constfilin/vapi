@@ -1,0 +1,673 @@
+{
+    "type": "transferCall",
+    "destinations": [
+        {
+            "type": "number",
+            "number": "+14088748968",
+            "message": "I am forwarding your call to Sayra Alvarez. Please stay on the line",
+            "description": "Sayra Alvarez"
+        },
+        {
+            "type": "number",
+            "number": "+14083205509",
+            "message": "I am forwarding your call to Jeannine Alves. Please stay on the line",
+            "description": "Jeannine Alves"
+        },
+        {
+            "type": "number",
+            "number": "+14083769198",
+            "message": "I am forwarding your call to Gustavo Avila. Please stay on the line",
+            "description": "Gustavo Avila"
+        },
+        {
+            "type": "number",
+            "number": "+14087100381",
+            "message": "I am forwarding your call to Michael Camarena. Please stay on the line",
+            "description": "Michael Camarena"
+        },
+        {
+            "type": "number",
+            "number": "+17075707078",
+            "message": "I am forwarding your call to Seth Cherney. Please stay on the line",
+            "description": "Seth Cherney"
+        },
+        {
+            "type": "number",
+            "number": "+13175042662",
+            "message": "I am forwarding your call to Ana Dambrosio. Please stay on the line",
+            "description": "Ana Dambrosio"
+        },
+        {
+            "type": "number",
+            "number": "+17074082681",
+            "message": "I am forwarding your call to Marlina Eckel. Please stay on the line",
+            "description": "Marlina Eckel"
+        },
+        {
+            "type": "number",
+            "number": "+15105717835",
+            "message": "I am forwarding your call to Kimberly Emperador. Please stay on the line",
+            "description": "Kimberly Emperador"
+        },
+        {
+            "type": "number",
+            "number": "+14085086591",
+            "message": "I am forwarding your call to Marybeth Forcier. Please stay on the line",
+            "description": "Marybeth Forcier"
+        },
+        {
+            "type": "number",
+            "number": "+14082303463",
+            "message": "I am forwarding your call to Jeremy. Please stay on the line",
+            "description": "Jeremy"
+        },
+        {
+            "type": "number",
+            "number": "+14082066610",
+            "message": "I am forwarding your call to Michael Khesin. Please stay on the line",
+            "description": "Michael Khesin"
+        },
+        {
+            "type": "number",
+            "number": "+14084976564",
+            "message": "I am forwarding your call to Marina Khesina. Please stay on the line",
+            "description": "Marina Khesina"
+        },
+        {
+            "type": "number",
+            "number": "+14083911606",
+            "message": "I am forwarding your call to Eugene Korsunsky. Please stay on the line",
+            "description": "Eugene Korsunsky"
+        },
+        {
+            "type": "number",
+            "number": "+14088170026",
+            "message": "I am forwarding your call to Dan Kozakevich. Please stay on the line",
+            "description": "Dan Kozakevich"
+        },
+        {
+            "type": "number",
+            "number": "+14086889356",
+            "message": "I am forwarding your call to Leasing. Please stay on the line",
+            "description": "Leasing"
+        },
+        {
+            "type": "number",
+            "number": "+13179997987",
+            "message": "I am forwarding your call to Mary Lefevers. Please stay on the line",
+            "description": "Mary Lefevers"
+        },
+        {
+            "type": "number",
+            "number": "+14087678748",
+            "message": "I am forwarding your call to Alexis Martinez. Please stay on the line",
+            "description": "Alexis Martinez"
+        },
+        {
+            "type": "number",
+            "number": "+14638672027",
+            "message": "I am forwarding your call to Cesar Martinez. Please stay on the line",
+            "description": "Cesar Martinez"
+        },
+        {
+            "type": "number",
+            "number": "+14082228424",
+            "message": "I am forwarding your call to Shaun Mcclain. Please stay on the line",
+            "description": "Shaun Mcclain"
+        },
+        {
+            "type": "number",
+            "number": "+13179831736",
+            "message": "I am forwarding your call to Celene Mendoza. Please stay on the line",
+            "description": "Celene Mendoza"
+        },
+        {
+            "type": "number",
+            "number": "+14085109077",
+            "message": "I am forwarding your call to Alba Mirola. Please stay on the line",
+            "description": "Alba Mirola"
+        },
+        {
+            "type": "number",
+            "number": "+14083205509",
+            "message": "I am forwarding your call to Ofc. Please stay on the line",
+            "description": "Ofc"
+        },
+        {
+            "type": "number",
+            "number": "+13177552049",
+            "message": "I am forwarding your call to Ofc - Main Indy. Please stay on the line",
+            "description": "Ofc - Main Indy"
+        },
+        {
+            "type": "number",
+            "number": "+14088748968",
+            "message": "I am forwarding your call to Oncall - Weekday Text. Please stay on the line",
+            "description": "Oncall - Weekday Text"
+        },
+        {
+            "type": "number",
+            "number": "+14088748968",
+            "message": "I am forwarding your call to Oncall - Weekend Text. Please stay on the line",
+            "description": "Oncall - Weekend Text"
+        },
+        {
+            "type": "number",
+            "number": "+19547081680",
+            "message": "I am forwarding your call to Oncall Florida - Text. Please stay on the line",
+            "description": "Oncall Florida - Text"
+        },
+        {
+            "type": "number",
+            "number": "+13179603991",
+            "message": "I am forwarding your call to Oncall Indy - Text. Please stay on the line",
+            "description": "Oncall Indy - Text"
+        },
+        {
+            "type": "number",
+            "number": "+14086886271",
+            "message": "I am forwarding your call to Brandon Pargeon. Please stay on the line",
+            "description": "Brandon Pargeon"
+        },
+        {
+            "type": "number",
+            "number": "+14085109077",
+            "message": "I am forwarding your call to Ferdinand Pastrano. Please stay on the line",
+            "description": "Ferdinand Pastrano"
+        },
+        {
+            "type": "number",
+            "number": "+14082216755",
+            "message": "I am forwarding your call to Doug Raisch. Please stay on the line",
+            "description": "Doug Raisch"
+        },
+        {
+            "type": "number",
+            "number": "+13173392842",
+            "message": "I am forwarding your call to Aaron Reel. Please stay on the line",
+            "description": "Aaron Reel"
+        },
+        {
+            "type": "number",
+            "number": "+14086121382",
+            "message": "I am forwarding your call to Olen Rokhvarger. Please stay on the line",
+            "description": "Olen Rokhvarger"
+        },
+        {
+            "type": "number",
+            "number": "+14084299314",
+            "message": "I am forwarding your call to Elizabeth Simon. Please stay on the line",
+            "description": "Elizabeth Simon"
+        },
+        {
+            "type": "number",
+            "number": "+14087287343",
+            "message": "I am forwarding your call to Linda Svrcek. Please stay on the line",
+            "description": "Linda Svrcek"
+        },
+        {
+            "type": "number",
+            "number": "+15305150897",
+            "message": "I am forwarding your call to Courtney Treffkorn. Please stay on the line",
+            "description": "Courtney Treffkorn"
+        },
+        {
+            "type": "number",
+            "number": "+14088190823",
+            "message": "I am forwarding your call to Ricardo Tuckar. Please stay on the line",
+            "description": "Ricardo Tuckar"
+        }
+    ],
+    "function": {
+        "name": "combinedTransferCall",
+        "description": "Use this function to transfer the call to various contacts across different departments",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "destination": {
+                    "type": "string",
+                    "enum": [
+                        "+14088748968",
+                        "+14083205509",
+                        "+14083769198",
+                        "+14087100381",
+                        "+17075707078",
+                        "+13175042662",
+                        "+17074082681",
+                        "+15105717835",
+                        "+14085086591",
+                        "+14082303463",
+                        "+14082066610",
+                        "+14084976564",
+                        "+14083911606",
+                        "+14088170026",
+                        "+14086889356",
+                        "+13179997987",
+                        "+14087678748",
+                        "+14638672027",
+                        "+14082228424",
+                        "+13179831736",
+                        "+14085109077",
+                        "+14083205509",
+                        "+13177552049",
+                        "+14088748968",
+                        "+14088748968",
+                        "+19547081680",
+                        "+13179603991",
+                        "+14086886271",
+                        "+14085109077",
+                        "+14082216755",
+                        "+13173392842",
+                        "+14086121382",
+                        "+14084299314",
+                        "+14087287343",
+                        "+15305150897",
+                        "+14088190823"
+                    ],
+                    "description": "The destination phone number ofr the call transfer"
+                }
+            },
+            "required": [
+                "destination"
+            ]
+        }
+    },
+    "messages": [
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Sayra Alvarez. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14088748968"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Jeannine Alves. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14083205509"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Gustavo Avila. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14083769198"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Michael Camarena. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14087100381"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Seth Cherney. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+17075707078"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Ana Dambrosio. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+13175042662"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Marlina Eckel. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+17074082681"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Kimberly Emperador. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+15105717835"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Marybeth Forcier. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14085086591"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Jeremy. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14082303463"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Michael Khesin. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14082066610"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Marina Khesina. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14084976564"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Eugene Korsunsky. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14083911606"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Dan Kozakevich. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14088170026"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Leasing. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14086889356"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Mary Lefevers. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+13179997987"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Alexis Martinez. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14087678748"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Cesar Martinez. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14638672027"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Shaun Mcclain. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14082228424"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Celene Mendoza. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+13179831736"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Alba Mirola. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14085109077"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Ofc. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14083205509"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Ofc - Main Indy. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+13177552049"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Oncall - Weekday Text. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14088748968"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Oncall - Weekend Text. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14088748968"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Oncall Florida - Text. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+19547081680"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Oncall Indy - Text. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+13179603991"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Brandon Pargeon. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14086886271"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Ferdinand Pastrano. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14085109077"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Doug Raisch. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14082216755"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Aaron Reel. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+13173392842"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Olen Rokhvarger. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14086121382"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Elizabeth Simon. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14084299314"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Linda Svrcek. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14087287343"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Courtney Treffkorn. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+15305150897"
+                }
+            ]
+        },
+        {
+            "type": "request-start",
+            "content": "I am forwarding your call to Ricardo Tuckar. Please stay on the line",
+            "conditions": [
+                {
+                    "param": "destination",
+                    "operator": "eq",
+                    "value": "+14088190823"
+                }
+            ]
+        }
+    ]
+}

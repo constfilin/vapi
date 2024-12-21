@@ -67,14 +67,18 @@ export const generate = async () => {
             message     :   `I am forwarding your call to ${theName}. Please stay on the line`,
             description :   description ? `${theName} - ${description}` : theName
         });
-        acc.json['function'].parameters.properties.destination.enum.push(`+1${thePhone}`);
+        // TODO:
+        // Make the phone unique
+        const fullPhone = `+1${thePhone}`;
+        if( !acc.json['function'].parameters.properties.destination.enum.includes(fullPhone) )
+            acc.json['function'].parameters.properties.destination.enum.push(fullPhone);
         acc.json.messages.push({
             'type'      : 'request-start',
             content     : `I am forwarding your call to ${theName}. Please stay on the line`,
             conditions  : [{
                 param   : 'destination',
                 operator: 'eq',
-                value   : `+1${thePhone}`
+                value   : fullPhone
             }]
         });
         acc.prompt.push(`If the user asks for ${theName}, call combinedTransferCall with +1${thePhone}`);

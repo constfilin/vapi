@@ -130,38 +130,14 @@
         {
             "type": "number",
             "number": "+14083205509",
-            "message": "I am forwarding your call to Ofc. Please stay on the line",
-            "description": "Ofc"
+            "message": "I am forwarding your call to Office. Please stay on the line",
+            "description": "Office"
         },
         {
             "type": "number",
             "number": "+13177552049",
-            "message": "I am forwarding your call to Ofc - Main Indy. Please stay on the line",
-            "description": "Ofc - Main Indy"
-        },
-        {
-            "type": "number",
-            "number": "+14088748968",
-            "message": "I am forwarding your call to Oncall - Weekday Text. Please stay on the line",
-            "description": "Oncall - Weekday Text"
-        },
-        {
-            "type": "number",
-            "number": "+14088748968",
-            "message": "I am forwarding your call to Oncall - Weekend Text. Please stay on the line",
-            "description": "Oncall - Weekend Text"
-        },
-        {
-            "type": "number",
-            "number": "+19547081680",
-            "message": "I am forwarding your call to Oncall Florida - Text. Please stay on the line",
-            "description": "Oncall Florida - Text"
-        },
-        {
-            "type": "number",
-            "number": "+13179603991",
-            "message": "I am forwarding your call to Oncall Indy - Text. Please stay on the line",
-            "description": "Oncall Indy - Text"
+            "message": "I am forwarding your call to Idiana Office. Please stay on the line",
+            "description": "Idiana Office"
         },
         {
             "type": "number",
@@ -248,14 +224,8 @@
                         "+14082228424",
                         "+13179831736",
                         "+14085109077",
-                        "+14083205509",
                         "+13177552049",
-                        "+14088748968",
-                        "+14088748968",
-                        "+19547081680",
-                        "+13179603991",
                         "+14086886271",
-                        "+14085109077",
                         "+14082216755",
                         "+13173392842",
                         "+14086121382",
@@ -506,7 +476,7 @@
         },
         {
             "type": "request-start",
-            "content": "I am forwarding your call to Ofc. Please stay on the line",
+            "content": "I am forwarding your call to Office. Please stay on the line",
             "conditions": [
                 {
                     "param": "destination",
@@ -517,56 +487,12 @@
         },
         {
             "type": "request-start",
-            "content": "I am forwarding your call to Ofc - Main Indy. Please stay on the line",
+            "content": "I am forwarding your call to Idiana Office. Please stay on the line",
             "conditions": [
                 {
                     "param": "destination",
                     "operator": "eq",
                     "value": "+13177552049"
-                }
-            ]
-        },
-        {
-            "type": "request-start",
-            "content": "I am forwarding your call to Oncall - Weekday Text. Please stay on the line",
-            "conditions": [
-                {
-                    "param": "destination",
-                    "operator": "eq",
-                    "value": "+14088748968"
-                }
-            ]
-        },
-        {
-            "type": "request-start",
-            "content": "I am forwarding your call to Oncall - Weekend Text. Please stay on the line",
-            "conditions": [
-                {
-                    "param": "destination",
-                    "operator": "eq",
-                    "value": "+14088748968"
-                }
-            ]
-        },
-        {
-            "type": "request-start",
-            "content": "I am forwarding your call to Oncall Florida - Text. Please stay on the line",
-            "conditions": [
-                {
-                    "param": "destination",
-                    "operator": "eq",
-                    "value": "+19547081680"
-                }
-            ]
-        },
-        {
-            "type": "request-start",
-            "content": "I am forwarding your call to Oncall Indy - Text. Please stay on the line",
-            "conditions": [
-                {
-                    "param": "destination",
-                    "operator": "eq",
-                    "value": "+13179603991"
                 }
             ]
         },

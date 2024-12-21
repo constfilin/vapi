@@ -19,12 +19,8 @@ If the user asks for Cesar Martinez, call combinedTransferCall with +14638672027
 If the user asks for Shaun Mcclain, call combinedTransferCall with +14082228424
 If the user asks for Celene Mendoza, call combinedTransferCall with +13179831736
 If the user asks for Alba Mirola, call combinedTransferCall with +14085109077
-If the user asks for Ofc, call combinedTransferCall with +14083205509
-If the user asks for Ofc - Main Indy, call combinedTransferCall with +13177552049
-If the user asks for Oncall - Weekday Text, call combinedTransferCall with +14088748968
-If the user asks for Oncall - Weekend Text, call combinedTransferCall with +14088748968
-If the user asks for Oncall Florida - Text, call combinedTransferCall with +19547081680
-If the user asks for Oncall Indy - Text, call combinedTransferCall with +13179603991
+If the user asks for Office, call combinedTransferCall with +14083205509
+If the user asks for Idiana Office, call combinedTransferCall with +13177552049
 If the user asks for Brandon Pargeon, call combinedTransferCall with +14086886271
 If the user asks for Ferdinand Pastrano, call combinedTransferCall with +14085109077
 If the user asks for Doug Raisch, call combinedTransferCall with +14082216755

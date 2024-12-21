@@ -3,7 +3,7 @@ import * as consts          from './consts';
 import * as misc            from './misc';
 
 const original_file = async () : Promise<Record<string,{phones:string[],emails:string[]}>> => {
-    const sheet = await misc.getSheet(consts.apiKey,consts.spreadsheetId,0);
+    const sheet = await misc.getSheet(consts.apiKey,consts.spreadsheetId,1);
     return sheet.getRows({}).then( rows => {
         return rows.reduce( (acc,r,ndx) => {
             const name = r.get("Name");

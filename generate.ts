@@ -43,7 +43,7 @@ type JSONType = {
 }
 
 export const generate = async () => {
-    const sheet = await misc.getSheet(consts.apiKey,consts.spreadsheetId,0);
+    const sheet = await misc.getSheet(consts.apiKey,consts.spreadsheetId,1);
     const rows  =  await sheet.getRows({});
     const warns = [] as string[];
     const {json,prompt} = rows.reduce((acc,r,ndx) => {

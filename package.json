@@ -9,13 +9,16 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@vapi-ai/server-sdk": "^0.4.0",
     "convert-csv-to-json": "^2.50.0",
     "google-auth-library": "^9.15.0",
     "google-spreadsheet": "^4.1.4",
+    "jsonwebtoken": "^9.0.2",
     "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@types/google-spreadsheet": "^3.3.2",
+    "@types/jsonwebtoken": "^9.0.8",
     "@types/node": "^22.10.2"
   }
 }

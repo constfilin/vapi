@@ -1,35 +1,56 @@
-import util         from 'node:util';
-import reconcile    from './reconcile';
-import generate     from './generate';
-import * as tools   from './tools';
+import commandLineArgs  from 'command-line-args';
 
-const getMain = ( argv:string[] ) => {
-    const name = argv[2];
-    if( name==='reconcile' )
-        return reconcile;
-    if( name==='generate' )
-        return generate;
-    if( name==='createDispatchCall' )
-        return tools.createDispatchCall;
-    if( name==='createTransferCall' )
-        return tools.createTransferCall;
-    if( name==='updateDispatchCall' )
-        return tools.updateDispatchCall;
-    if( name==='updateTransferCall' )
-        return tools.updateTransferCall;
-    if( name==='getTool' )
-        return () => {
-            return tools.getById(argv[3]);
-        };
-    if( name==='getByName' )
-        return () => {
-            return tools.getByName(argv[3]);
-        };
-    if( name==='listTools' )
+import * as files       from './files';
+import * as tools       from './tools';
+import * as assistants  from './assistants';
+
+const getMain = ( argv:commandLineArgs.CommandLineOptions ) => {
+    const cmd = argv.cmd;
+    // Old commands (to be deleted)
+    if( cmd==='reconcileFile' )
+        return files.reconcile;
+    if( cmd==='generateFile' )
+        return files.generate;
+    // Commands to manage tools
+    if( cmd==='getToolById' )
+        return (() => tools.getById(argv.id));
+    if( cmd==='getToolByName' )
+        return (() => tools.getByName(argv.name));
+    if( cmd==='listTools' )
         return tools.list;
+    if( cmd==='createDispatchCallTool' )
+        return tools.createDispatchCall;
+    if( cmd==='createRedirectCallTool' )
+        return tools.createRedirectCall;
+    if( cmd==='updateDispatchCallTool' )
+        return tools.updateDispatchCall;
+    if( cmd==='updateRedirectCallTool' )
+        return tools.updateRedirectCall;
+    // Commands to manage assistants
+    if( cmd==='getAssistantById' )
+        return (() => assistants.getById(argv.id));
+    if( cmd==='getAssistantByName' )
+        return (() => assistants.getByName(argv.name));
+    if( cmd==='listAssistants' )
+        return assistants.list;
+    if( cmd==='createIntempusAssistant' )
+        return assistants.createIntempusAssistant;
+    if( cmd==='updateIntempusAssistant' )
+        return assistants.updateIntempusAssistant;
+    // Nothing is found
     return () => {
-        return Promise.reject(Error(`Unknown tool '${name}'`));
+        return Promise.reject(Error(`Unknown tool '${cmd}'`));
     }
 }
 
-getMain(process.argv)().then(console.log).catch(console.error);
+const argv = commandLineArgs([
+    { name : 'cmd'      , alias: 'c', type: String },
+    { name : 'id'       , alias: 'i', type: String },
+    { name : 'name'     , alias: 'n', type: String },
+    { name : 'stringify', alias: 's', type: Boolean },
+]);
+getMain(argv)().then( r => {
+    if( argv.stringify )
+        return console.log(JSON.stringify(r));
+    return console.log(r);
+}).catch(console.error);

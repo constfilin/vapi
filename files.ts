@@ -1,25 +1,18 @@
 import { promises as fs }   from 'node:fs';
-import * as consts          from './consts';
-import * as misc            from './misc';
 
-const original_file = async () : Promise<Record<string,{phones:string[],emails:string[]}>> => {
-    const sheet = await misc.getSheet(consts.apiKey,consts.spreadsheetId,1);
-    return sheet.getRows({}).then( rows => {
-        return rows.reduce( (acc,r,ndx) => {
-            const name = r.get("Name");
-            if( typeof name != 'string' )
-                throw Error(`Name is missing in row #${ndx}`);
-            const phones = r.get("Phones");
-            if( typeof phones != 'string' )
-                throw Error(`Phones is missing in row #${ndx}`);
-            const emails = r.get("Emails");
-            acc[misc.canonicalizePersonName(name)] = {
-                phones : phones.split(',').map(misc.canonicalizePhone),
-                emails : (emails||'').split(',').map(misc.canonicalizeEmail)
-            };
-            return acc;
-        },{});
-    });
+import * as misc            from './misc';
+import * as intempus        from './intempus';
+
+
+const original_file = async () : Promise<Record<string,misc.Contact>> => {
+    const warns = [] as string[];
+    const contacts = await misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts',warns);
+    if( warns.length>0 )
+        throw Error(warns.join(";"));
+    return contacts.reduce( (acc,r,ndx) => {
+        acc[r.name] = r;
+        return acc;
+    },{});
 }
 
 const system_prompt = async () : Promise<Record<string,string>> => {
@@ -57,7 +50,7 @@ const json_file = async () : Promise<Record<string,Record<string,any>>> => {
             phoneByName : {} as Record<string,string>,
             nameByPhone : {} as Record<string,string>
         })
-        const phones = json['function'].parameters.properties.destination.enum.reduce( (acc,p) => {
+        const phoneNumbers = json['function'].parameters.properties.destination.enum.reduce( (acc,p) => {
             const phone = misc.canonicalizePhone(p);
             //if( !destinations.nameByPhone[phone] )
             //    throw Error(`Phone '${phone}' does not exist in JSON file destinations`);
@@ -74,7 +67,7 @@ const json_file = async () : Promise<Record<string,Record<string,any>>> => {
         return {
             phoneByName : destinations.phoneByName,
             nameByPhone : destinations.nameByPhone,
-            phones,
+            phoneNumbers,
             messages
         };
     });
@@ -88,22 +81,22 @@ export const reconcile = () : Promise<string[]> => {
     ]).then( ([original,systemPrompt,json]) => {
         //return systemPrompt;
         return Object.entries(original).reduce( (warns,original,ndx) => {
-            const [name,{phones,emails}] = original;
+            const [name,contact] = original;
             if( !systemPrompt[name] ) {
                 warns.push(`Name '${name}' does not exist in system prompt`);
             }
-            else if( !phones.includes(systemPrompt[name]) ) {
-                warns.push(`For name '${name}' phone # in system prompt '${systemPrompt[name]}' does not match that in original file '${phones}'`);
+            else if( !contact.phoneNumbers.includes(systemPrompt[name]) ) {
+                warns.push(`For name '${name}' phone # in system prompt '${systemPrompt[name]}' does not match that in original file '${contact.phoneNumbers}'`);
             }
             if( !json.phoneByName[name] ) {
                 warns.push(`Name '${name}' does not exist in JSON file`);
             }
-            else if( !phones.includes(json.phoneByName[name]) ) {
-                warns.push(`For name '${name}' phone # in JSON file '${json.phoneByName[name]}' does not match that in original file '${phones}'`);
+            else if( !contact.phoneNumbers.includes(json.phoneByName[name]) ) {
+                warns.push(`For name '${name}' phone # in JSON file '${json.phoneByName[name]}' does not match that in original file '${contact.phoneNumbers}'`);
             }
             //console.log({
             //    name,
-            //    phones,
+            //    phoneNumbers,
             //    emails,
             //    systemPhone : systemPrompt[name],
             //    jsonPhone : json.phoneByName[name]
@@ -113,4 +106,18 @@ export const reconcile = () : Promise<string[]> => {
     });
 }
 
-export default reconcile;
+export const generate = async () => {
+    const warns = [] as string[];
+    const [
+        contacts,
+        tools
+    ] = await Promise.all([
+        misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts',warns),
+        misc.getVapiClient().tools.list()
+    ]);
+    await Promise.all([
+        fs.writeFile('./updated_transfer_call_function.json',JSON.stringify(intempus.getRedirectCallTool(contacts),null,4)),
+        fs.writeFile('./system_prompt.txt',intempus.getAssistant(contacts,tools).model!.messages![0]!.content!)
+    ]);
+    return warns;
+}

@@ -1,16 +1,10 @@
 import commandLineArgs  from 'command-line-args';
 
-import * as files       from './files';
 import * as tools       from './tools';
 import * as assistants  from './assistants';
 
 const getMain = ( argv:commandLineArgs.CommandLineOptions ) => {
     const cmd = argv.cmd;
-    // Old commands (to be deleted)
-    if( cmd==='reconcileFile' )
-        return files.reconcile;
-    if( cmd==='generateFile' )
-        return files.generate;
     // Commands to manage tools
     if( cmd==='getToolById' )
         return (() => tools.getById(argv.id));

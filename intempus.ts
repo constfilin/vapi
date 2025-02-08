@@ -90,7 +90,7 @@ export const getAssistant = (
     const sendEmailTool     = toolsByName['sendEmail']!;
     const dispatchCallTool  = toolsByName['dispatchCall']!;
     return contacts.reduce((acc,c,ndx) => {
-        acc.model!.messages![0].content += `If the user asks for ${c.name}, call combinedTransferCall with +1${c.phoneNumbers[0]}\n`;
+        acc.model!.messages![0].content += `If the user asks for ${c.name}, call dispatchCall with ${c.name}, wait for result and immediately do what this result asks you.\n`;
         return acc;
     },{
             name        : consts.assistantName,

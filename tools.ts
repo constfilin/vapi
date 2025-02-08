@@ -8,7 +8,7 @@ import * as consts  from './consts';
 import * as misc    from './misc';
 
 export const get_token = () => {
-    const payload = { orgId: (process.env.VAPI_ORG_ID||'52859bb9-27df-41ee-8c6d-c300c1c75bbd') };
+    const payload = { orgId: consts.vapiOrgId };
     const key     = process.env.VAPI_PRIVATE_KEY||'';
     const options = { expiresIn: '1h' };
     // @ts-expect-error

@@ -14,8 +14,7 @@ export const findByName = ( vapiClient:VapiClient, name?:string ) : Promise<Vapi
     })
 }
 
-export const update = ( payload:Vapi.CreateAssistantDto ) : Promise<Vapi.Assistant> => {
-    const vapiClient = misc.getVapiClient();
+export const update = ( vapiClient:VapiClient, payload:Vapi.CreateAssistantDto ) : Promise<Vapi.Assistant> => {
     return findByName(vapiClient,payload.name).then( a => {
         if( !a )
             throw Error(`Cannot find assistant with name '${payload.name}'`);
@@ -37,25 +36,27 @@ export const list = () => {
 }
 
 export const createIntempusAssistant = async () => {
+    const vapiClient = misc.getVapiClient();
     const [
         contacts,
         tools
     ] = await Promise.all([
         misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts'),
-        misc.getVapiClient().tools.list()
+        vapiClient.tools.list()
     ]);
-    return misc.getVapiClient().assistants.create(intempus.getAssistant(contacts,tools));
+    return vapiClient.assistants.create(intempus.getAssistant(contacts,tools));
 }
 
 export const updateIntempusAssistant = async () => {
+    const vapiClient = misc.getVapiClient();
     const [
         contacts,
         tools
     ] = await Promise.all([
         misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts'),
-        misc.getVapiClient().tools.list()
+        vapiClient.tools.list()
     ]);
-    return update(intempus.getAssistant(contacts,tools));
+    return update(vapiClient,intempus.getAssistant(contacts,tools));
 }
 
 export const getById = ( id?:string ) : Promise<Vapi.Assistant|undefined> => {

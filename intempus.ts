@@ -138,9 +138,9 @@ If the user has leasing  inquiries call redirectCall function with +14083339356.
 `
                     }
                 ],
-                "provider": "openai",
-                "maxTokens": 300,
-                "temperature": 0.7
+                "provider"      : "openai",
+                "maxTokens"     : 300,
+                "temperature"   : 0.7
             },
             recordingEnabled        : true,
             firstMessage            : "Hello, this is Intempus Realty voice answering system. How may I assist you today?",
@@ -150,6 +150,8 @@ If the user has leasing  inquiries call redirectCall function with +14083339356.
             transcriber             : {
                 "model"     : "nova-2",
                 "keywords"  : [
+                    // TODO:
+                    // Generate this programmatically instead of hardcoding
                     "Michael:30",
                     "Mike:30",
                     "Khesin:30",
@@ -178,9 +180,9 @@ If the user has leasing  inquiries call redirectCall function with +14083339356.
                     "office:30",
                     "HOA:30"
                 ],
-                "language": "en",
-                "provider": "deepgram",
-                "smartFormat": true
+                "language"      : "en",
+                "provider"      : "deepgram",
+                "smartFormat"   : true
             },
             clientMessages  : [
                 "conversation-update",

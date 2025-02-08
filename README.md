@@ -7,8 +7,6 @@
 ## RUNNING
 `VAPI_ORG_ID=... VAPI_PRIVATE_KEY=... npx tsx index.ts --cmd=... [--(id|name)=...] [--stringify]`
 1. `--cmd`:
-    1. `reconcileFile` - reads files `./system_prompt.txt` and `./updated_transfer_call_function.json` and reports about their differences with contacts listed in [Contacts Google Sheet](https://docs.google.com/spreadsheets/d/1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI/edit?gid=907085893#gid=907085893)
-    1. `generateFile` - creates files `./system_prompt.txt` and `./updated_transfer_call_function.json` based on the contacts in [Contacts Google Sheet](https://docs.google.com/spreadsheets/d/1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI/edit?gid=907085893#gid=907085893)
     1. `listTools` - lists tools in VAPI org defined by `VAPI_ORG_ID` environment variable
     1. `getToolById` - dumps information about VAPI tool identified by `--id` cmd param
     1. `getToolByName` - dumps information about VAPI tool identified by `--name` cmd param

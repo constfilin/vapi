@@ -1,7 +1,7 @@
 import * as GoogleSpreadsheet   from 'google-spreadsheet';
 import { JWT }                  from 'google-auth-library';
 
-export const getSheet = async ( apiKey:string, docId:string, sheetName:string ) : Promise<GoogleSpreadsheet.GoogleSpreadsheetWorksheet> => {
+export const getSheet = async ( apiKey:string, docId:string, sheetName:string ) : Promise<GoogleSpreadsheet.GoogleSpreadsheetWorksheet|undefined> => {
     const jwt = new JWT({
         //email   : auth.client_email,
         //key     : auth.private_key,
@@ -19,7 +19,7 @@ export const getSheet = async ( apiKey:string, docId:string, sheetName:string ) 
     });
 }
 
-export const canonicalizeName = ( s:string ) : string => {
+export const canonicalizePersonName = ( s:string ) : string => {
     const m = s.trim().match(/^([^,]+),\s+(.+)$/);
     // Convert `Lastname, firstname` into `firstname lastname` and remove quotes
     return (m ? `${m[2]} ${m[1]}` : s)

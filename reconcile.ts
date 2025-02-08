@@ -13,7 +13,7 @@ const original_file = async () : Promise<Record<string,{phones:string[],emails:s
             if( typeof phones != 'string' )
                 throw Error(`Phones is missing in row #${ndx}`);
             const emails = r.get("Emails");
-            acc[misc.canonicalizeName(name)] = {
+            acc[misc.canonicalizePersonName(name)] = {
                 phones : phones.split(',').map(misc.canonicalizePhone),
                 emails : (emails||'').split(',').map(misc.canonicalizeEmail)
             };
@@ -33,7 +33,7 @@ const system_prompt = async () : Promise<Record<string,string>> => {
                 //console.log({m});
                 if( !m )
                     return acc;
-                acc[misc.canonicalizeName(m[1])] = misc.canonicalizePhone(m[2]);
+                acc[misc.canonicalizePersonName(m[1])] = misc.canonicalizePhone(m[2]);
                 return acc;
             },{});
     });
@@ -48,7 +48,7 @@ const json_file = async () : Promise<Record<string,Record<string,any>>> => {
         if( !Array.isArray(json.messages) )
             throw Error(`messages is not an array`);
         const destinations = json.destinations.reduce( (acc,d) => {
-            const name = misc.canonicalizeName(d.message.replace(/^.+forwarding\s+your\s+call\s+to\s+([^.]+)\..+$/,"$1"));
+            const name = misc.canonicalizePersonName(d.message.replace(/^.+forwarding\s+your\s+call\s+to\s+([^.]+)\..+$/,"$1"));
             const phone = misc.canonicalizePhone(d.number);
             acc.phoneByName[name] = phone;
             acc.nameByPhone[phone] = name;
@@ -65,7 +65,7 @@ const json_file = async () : Promise<Record<string,Record<string,any>>> => {
             return acc;
         },{} as Record<string,boolean>);
         const messages = json.messages.reduce((acc,m) => {
-            const name = misc.canonicalizeName(m.content.replace(/^.+forwarding\s+your\s+call\s+to\s+([^.]+)\..+$/,"$1"));
+            const name = misc.canonicalizePersonName(m.content.replace(/^.+forwarding\s+your\s+call\s+to\s+([^.]+)\..+$/,"$1"));
             //if( !destinations.phoneByName[name] )
             //    throw Error(`Name '${name}' does not exist in JSON file destinations`);
             acc[name] = misc.canonicalizePhone(m.conditions[0].value);

@@ -10,19 +10,23 @@ const getMain = ( argv:string[] ) => {
     if( name==='generate' )
         return generate;
     if( name==='createDispatchCall' )
-        return tools.create_dispatch_call;
+        return tools.createDispatchCall;
     if( name==='createTransferCall' )
-        return tools.create_transfer_call;
+        return tools.createTransferCall;
     if( name==='updateDispatchCall' )
-        return tools.update_dispatch_call;
+        return tools.updateDispatchCall;
     if( name==='updateTransferCall' )
-        return tools.update_transfer_call;
+        return tools.updateTransferCall;
     if( name==='getTool' )
         return () => {
-            return tools.get(argv[3]);
+            return tools.getById(argv[3]);
+        };
+    if( name==='getByName' )
+        return () => {
+            return tools.getByName(argv[3]);
         };
     if( name==='listTools' )
-        return tools.list_tools;
+        return tools.list;
     return () => {
         return Promise.reject(Error(`Unknown tool '${name}'`));
     }

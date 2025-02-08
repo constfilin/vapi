@@ -7,19 +7,16 @@ import {
 import * as consts  from './consts';
 import * as misc    from './misc';
 
-export const get_token = () => {
+export const getVapiClient = () => {
     const payload = { orgId: consts.vapiOrgId };
     const key     = process.env.VAPI_PRIVATE_KEY||'';
     const options = { expiresIn: '1h' };
     // @ts-expect-error
-    return jwt.sign(payload,key,options);
+    const token = jwt.sign(payload,key,options);
+    return (new VapiClient({ token }));
 }
 
-export const get_vapi_client = () => {
-    return (new VapiClient({ token: get_token() }));
-}
-
-export const get_dispatch_call_payload = () : Vapi.ToolsCreateRequest => {
+export const getDispatchCallPayload = () : Vapi.CreateFunctionToolDto => {
     return {
         'type'     : 'function',
         'async'     : false,
@@ -61,12 +58,15 @@ export const get_dispatch_call_payload = () : Vapi.ToolsCreateRequest => {
     }
 }
 
-export const get_transfer_call_payload = async () : Promise<{
+export const getTransferCallPayload = async () : Promise<{
     json    : Vapi.CreateFunctionToolDto,
     prompt  : string[],
     warns   : string[]
 }> => {
-    const sheet = await misc.getSheet(consts.apiKey,consts.spreadsheetId,'Contacts');
+    const sheetName = process.env.CONTACTS_SHEET_NAME||'Contacts';
+    const sheet = await misc.getSheet(consts.apiKey,consts.spreadsheetId,sheetName);
+    if( !sheet )
+        throw Error(`Cannot find sheet '${sheetName}'`);
     const rows  = await sheet.getRows({});
     return rows.reduce((acc,r,ndx) => {
         const name = r.get("Name");
@@ -75,7 +75,7 @@ export const get_transfer_call_payload = async () : Promise<{
         const phones = r.get("Phone");
         if( typeof phones != 'string' )
             throw Error(`Phones is missing in row #${ndx}`);
-        const theName  = misc.canonicalizeName(name);
+        const theName  = misc.canonicalizePersonName(name);
         // Separate the phone numbers by ;, space or new lines
         const thePhone = misc.canonicalizePhone(phones.split(/[;,\s\n\r]/)[0]);
         if( thePhone.length<1 ) {
@@ -136,7 +136,7 @@ export const get_transfer_call_payload = async () : Promise<{
     });
 }
 
-export const find_tool_by_name = ( vapi_client:VapiClient, name:string ) : Promise<Vapi.ToolsListResponseItem|undefined> => {
+export const findByName = ( vapi_client:VapiClient, name?:string ) : Promise<Vapi.ToolsListResponseItem|undefined> => {
     if( !name )
         throw Error(`name should be provided`);
     return vapi_client.tools.list().then( tools => {
@@ -144,8 +144,19 @@ export const find_tool_by_name = ( vapi_client:VapiClient, name:string ) : Promi
     })
 }
 
-export const list_tools = () => {
-    return get_vapi_client().tools.list().then( tools => {
+export const updateTool = ( payload:Vapi.CreateFunctionToolDto ) : Promise<Vapi.ToolsUpdateResponse> => {
+    const vapi_client   = getVapiClient();
+    return findByName(vapi_client,payload['function']?.name).then( t => {
+        if( !t )
+            throw Error(`Cannot find tool with name '${payload['function']!.name}'`);
+        // @ts-expect-error
+        delete payload.type;
+        return vapi_client.tools.update(t.id,payload)
+    });
+} 
+
+export const list = () => {
+    return getVapiClient().tools.list().then( tools => {
         return tools.map( t => {
             return {
                 id : t.id,
@@ -155,41 +166,35 @@ export const list_tools = () => {
     });
 }
 
-export const create_transfer_call = () => {
-    return get_transfer_call_payload().then( payload => {
-        return get_vapi_client().tools.create(payload.json);
+export const createTransferCall = () => {
+    return getTransferCallPayload().then( payload => {
+        return getVapiClient().tools.create(payload.json);
     });
 }
 
-export const create_dispatch_call = () => {
-    return get_vapi_client().tools.create(get_dispatch_call_payload());
+export const createDispatchCall = () => {
+    return getVapiClient().tools.create(getDispatchCallPayload());
 }
 
-export const update_transfer_call = () => {
-    return get_transfer_call_payload().then( payload => {
-        const vapi_client = get_vapi_client();
-        return find_tool_by_name(vapi_client,payload['function']!.name).then( t => {
-            if( !t )
-                throw Error(`Cannot find tool with name '${payload['function']!.name}'`);
-            // @ts-expect-error
-            delete payload.type;
-            return vapi_client.tools.update(t.id,payload.json)
-        });
+export const updateTransferCall = () => {
+    return getTransferCallPayload().then( payload => {
+        return updateTool(payload.json);
     });
 }
 
-export const update_dispatch_call = () => {
-    const vapi_client   = get_vapi_client();
-    const payload       = get_dispatch_call_payload() as Vapi.ToolsUpdateRequest;
-    return find_tool_by_name(vapi_client,payload['function']!.name).then( t => {
-        if( !t )
-            throw Error(`Cannot find tool with name '${payload['function']!.name}'`);
-        // @ts-expect-error
-        delete payload.type;
-        return vapi_client.tools.update(t.id,payload)
-    });
+export const updateDispatchCall = () => {
+    return updateTool(getDispatchCallPayload());
 }
 
-export const get = ( id:string ) : Promise<Vapi.ToolsGetResponse> => {
-    return get_vapi_client().tools.get(id);
+export const getById = ( id?:string ) : Promise<Vapi.ToolsGetResponse> => {
+    if( !id )
+        throw Error(`Id is required`);
+    return getVapiClient().tools.get(id);
 }
+
+export const getByName = ( name?:string ) : Promise<Vapi.ToolsListResponseItem|undefined> => {
+    if( !name )
+        throw Error(`name should be provided`);
+    return findByName(getVapiClient(),name);
+}
+

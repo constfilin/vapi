@@ -9,12 +9,20 @@ const getMain = ( argv:string[] ) => {
         return reconcile;
     if( name==='generate' )
         return generate;
-    if( name==='createTool' )
-        return tools.create;
+    if( name==='createDispatchCall' )
+        return tools.create_dispatch_call;
+    if( name==='createTransferCall' )
+        return tools.create_transfer_call;
+    if( name==='updateDispatchCall' )
+        return tools.update_dispatch_call;
+    if( name==='updateTransferCall' )
+        return tools.update_transfer_call;
     if( name==='getTool' )
-        return tools.get;
+        return () => {
+            return tools.get(argv[3]);
+        };
     if( name==='listTools' )
-        return tools.list;
+        return tools.list_tools;
     return () => {
         return Promise.reject(Error(`Unknown tool '${name}'`));
     }

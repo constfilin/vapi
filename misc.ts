@@ -1,7 +1,7 @@
 import * as GoogleSpreadsheet   from 'google-spreadsheet';
 import { JWT }                  from 'google-auth-library';
 
-export const getSheet = async ( apiKey:string, docId:string, sheetNdx:number=0 ) : Promise<GoogleSpreadsheet.GoogleSpreadsheetWorksheet> => {
+export const getSheet = async ( apiKey:string, docId:string, sheetName:string ) : Promise<GoogleSpreadsheet.GoogleSpreadsheetWorksheet> => {
     const jwt = new JWT({
         //email   : auth.client_email,
         //key     : auth.private_key,
@@ -13,7 +13,10 @@ export const getSheet = async ( apiKey:string, docId:string, sheetNdx:number=0 )
     });
     const doc = new GoogleSpreadsheet.GoogleSpreadsheet(docId,jwt);
     await doc.loadInfo();
-    return doc.sheetsByIndex[sheetNdx];
+    sheetName = sheetName.toLowerCase();
+    return doc.sheetsByIndex.find(ws => {
+        return ws.title.toLowerCase()===sheetName;
+    });
 }
 
 export const canonicalizeName = ( s:string ) : string => {
@@ -21,6 +24,7 @@ export const canonicalizeName = ( s:string ) : string => {
     // Convert `Lastname, firstname` into `firstname lastname` and remove quotes
     return (m ? `${m[2]} ${m[1]}` : s)
         .replace(/'/g,'')
+        .replace(/\s+/g,' ')
         .toLowerCase()
         .split(' ')
         // Capitalize the fist letter

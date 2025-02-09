@@ -103,33 +103,43 @@ export const getAssistant = (
         acc.model!.messages![0].content += `If the user asks for ${c.name}, call dispatchCall with ${c.name}, wait for result and immediately follow the instructions of the result.\n`;
         return acc;
     },{
-            name        : consts.assistantName,
-            voice       : {
-                "voiceId"               : "luna",
-                "provider"              : "deepgram",
-                "fillerInjectionEnabled": false,
-                "inputPunctuationBoundaries": [
-                    "."
-                ]
-            },
-            model       : {
-                "model": "gpt-4o-mini",
-                "toolIds": [
-                    redirectCallTool.id,
-                    sendEmailTool.id,
-                    dispatchCallTool.id
-                ],
-                "messages": [
-                    {
-                        "role"   : "system",
-                        "content": `You are an AI voice bot representing **Intempus Realty**. Your role is to assist callers promptly, efficiently, and courteously with their inquiries. You will handle a variety of requests, including rental property questions, property management services, HOA services, maintenance requests, billing issues, lockouts, call transfers, and emailing. You will also request or clarify geographic information when relevant (e.g., Santa Clara County, Alameda, Contra Costa).
+        name        : consts.assistantName,
+        voice       : {
+            "voiceId"               : "luna",
+            "provider"              : "deepgram",
+            "fillerInjectionEnabled": false,
+            "inputPunctuationBoundaries": [
+                "."
+            ]
+        },
+        voicemailDetection: {
+            provider: "twilio",
+            voicemailDetectionTypes: [
+              "machine_start",
+              "machine_end_beep",
+              "unknown"
+            ],
+            enabled: true,
+            machineDetectionTimeout: 15
+        },
+        model       : {
+            "model": "gpt-4o-mini",
+            "toolIds": [
+                redirectCallTool.id,
+                sendEmailTool.id,
+                dispatchCallTool.id
+            ],
+            "messages": [
+                {
+                    "role"   : "system",
+                    "content": `You are an AI voice bot representing **Intempus Realty**. Your role is to assist callers promptly, efficiently, and courteously with their inquiries. You will handle a variety of requests, including rental property questions, property management services, HOA services, maintenance requests, billing issues, lockouts, call transfers, and emailing. You will also request or clarify geographic information when relevant (e.g., Santa Clara County, Alameda, Contra Costa).
 
 General Guidelines:
-    - always listen to the caller needs.
-    - Be polite, professional, and efficient at all times.  
-    - If the caller's requested department or service is unclear, ask for clarification by offering the list of available departments.  
-    - If a transfer or email cannot be completed after attempts to clarify, end the call politely.  
-    - Always prioritize the caller's needs and attempt to resolve their inquiry before ending the call.  
+- always listen to the caller needs.
+- Be polite, professional, and efficient at all times.
+- If the caller's requested department or service is unclear, ask for clarification by offering the list of available departments.
+- If a transfer or email cannot be completed after attempts to clarify, end the call politely.
+- Always prioritize the caller's needs and attempt to resolve their inquiry before ending the call.
 
 Pronunciation Directive:
 - Always pronounce names of people and departments directly without spelling them. Ensure proper pronunciation to maintain a natural conversational tone.
@@ -146,70 +156,71 @@ If the user has billing inquiries call redirectCall with +13055556712.
 If the user has leasing  inquiries call redirectCall with +14083339356.
 
 `
-                    }
-                ],
-                "provider"      : "openai",
-                "maxTokens"     : 300,
-                "temperature"   : 0.7
-            },
-            recordingEnabled        : true,
-            firstMessage            : "Hello, this is Intempus Realty voice answering system. How may I assist you today?",
-            voicemailMessage        : "Hey, this is Vasa. Could you please call me back when you're free?",
-            endCallFunctionEnabled  : true,
-            endCallMessage          : "Thank you for contacting us. Have a great day!",
-            transcriber             : {
-                "model"     : "nova-2",
-                "keywords"  : [
-                    // TODO:
-                    // Generate this programmatically instead of hardcoding
-                    "Michael:30",
-                    "Mike:30",
-                    "Khesin:30",
-                    "Camarena:30",
-                    "Eugene:30",
-                    "Korsunsky:30",
-                    "Marybeth:30",
-                    "Forcier:30",
-                    "Galina:30",
-                    "Kuterhina:30",
-                    "Eric:30",
-                    "Burris:30",
-                    "Kimberly:30",
-                    "Emperador:30",
-                    "Dan:30",
-                    "Kozakevich:30",
-                    "Doug:30",
-                    "Raisch:30",
-                    "Brenda:30",
-                    "Fisher:30",
-                    "leasing:30",
-                    "billing:30",
-                    "maintenance:30",
-                    "finance:30",
-                    "accounting:30",
-                    "office:30",
-                    "HOA:30"
-                ],
-                "language"      : "en",
-                "provider"      : "deepgram",
-                "smartFormat"   : true
-            },
-            clientMessages  : [
-                "conversation-update",
-                "function-call"
+                }
             ],
-            serverMessages  : [
-                "hang",
-                "model-output"
+            "provider"      : "openai",
+            "maxTokens"     : 300,
+            "temperature"   : 0.7,
+            "tools": [{ type: "voicemail" }]
+        },
+        recordingEnabled        : true,
+        firstMessage            : "Hello, this is Intempus Realty voice answering system. How may I assist you today?",
+        voicemailMessage        : "Hey, this is Vasa. Could you please call me back when you're free?",
+        endCallFunctionEnabled  : true,
+        endCallMessage          : "Thank you for contacting us. Have a great day!",
+        transcriber             : {
+            "model"     : "nova-2",
+            "keywords"  : [
+                // TODO:
+                // Generate this programmatically instead of hardcoding
+                "Michael:30",
+                "Mike:30",
+                "Khesin:30",
+                "Camarena:30",
+                "Eugene:30",
+                "Korsunsky:30",
+                "Marybeth:30",
+                "Forcier:30",
+                "Galina:30",
+                "Kuterhina:30",
+                "Eric:30",
+                "Burris:30",
+                "Kimberly:30",
+                "Emperador:30",
+                "Dan:30",
+                "Kozakevich:30",
+                "Doug:30",
+                "Raisch:30",
+                "Brenda:30",
+                "Fisher:30",
+                "leasing:30",
+                "billing:30",
+                "maintenance:30",
+                "finance:30",
+                "accounting:30",
+                "office:30",
+                "HOA:30"
             ],
-            endCallPhrases  : [
-                "goodbye"
-            ],
-            backchannelingEnabled: false,
-            backgroundDenoisingEnabled: false,
-            startSpeakingPlan: {
-                "smartEndpointingEnabled": true
-            },
-            isServerUrlSecretSet: false
+            "language"      : "en",
+            "provider"      : "deepgram",
+            "smartFormat"   : true
+        },
+        clientMessages  : [
+            "conversation-update",
+            "function-call"
+        ],
+        serverMessages  : [
+            "hang",
+            "model-output"
+        ],
+        endCallPhrases  : [
+            "goodbye"
+        ],
+        backchannelingEnabled: false,
+        backgroundDenoisingEnabled: false,
+        startSpeakingPlan: {
+            "smartEndpointingEnabled": true
+        },
+        isServerUrlSecretSet: false
     } as Vapi.CreateAssistantDto);
 }

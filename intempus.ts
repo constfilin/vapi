@@ -7,7 +7,7 @@ import * as consts  from './consts';
 import * as misc    from './misc';
 
 export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunctionToolDto => {
-    return contacts.reduce((acc,c,ndx) => {
+    const result = contacts.reduce((acc,c,ndx) => {
         // @ts-expect-error
         acc.destinations.push({
             'type'      :   'number',
@@ -34,7 +34,11 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
             }
         });
         // TODO:
-        // Make the phone unique
+        // The same phone number can be listed in the contacts multiple times
+        // In this case VAPI will produce the _first_ message in `messages` array
+        // that match the phone number. If a specific message needs to be listed
+        // then the contact for this message needs to be listed first in the Contacts
+        // spreadsheet
         const fullPhone     = `+1${c.phoneNumbers[0]}`;
         const theFunction   = acc['function']!;
         if( !theFunction.parameters!.properties!.destination!.enum!.includes(fullPhone) )
@@ -73,6 +77,12 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
         },
         messages        : [],
     } as Vapi.CreateFunctionToolDto);
+    // In case if the call is forwarded to unknown contact
+    result.messages!.push({
+        'type'      : 'request-start',
+        content     : `I am forwarding your call...`,
+    });
+    return result;
 }
 
 export const getAssistant = ( 
@@ -90,7 +100,7 @@ export const getAssistant = (
     const sendEmailTool     = toolsByName['sendEmail']!;
     const dispatchCallTool  = toolsByName['dispatchCall']!;
     return contacts.reduce((acc,c,ndx) => {
-        acc.model!.messages![0].content += `If the user asks for ${c.name}, call dispatchCall with ${c.name}, wait for result and immediately do what this result asks you.\n`;
+        acc.model!.messages![0].content += `If the user asks for ${c.name}, call dispatchCall with ${c.name}, wait for result and immediately follow the instructions of the result.\n`;
         return acc;
     },{
             name        : consts.assistantName,

@@ -12,7 +12,7 @@ export const getDispatchCallPayload = () : Vapi.CreateFunctionToolDto => {
         'async'     : false,
         'function' : {
             name        : 'dispatchCall',
-            description : "API, которое получает имя человека (или департамента), потом делает lookup в Google Spreadsheet, проверяет текущее время в тайм зоне человека и возвращает что с этим звонком надо делать.",
+            description : "API gets a person name, looks up spreadsheet contacts, checks current time and return instructions how to dispatch the call",
             parameters  : {
                 'type' : 'object',
                 properties : {

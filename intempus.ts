@@ -134,16 +134,16 @@ General Guidelines:
 Pronunciation Directive:
 - Always pronounce names of people and departments directly without spelling them. Ensure proper pronunciation to maintain a natural conversational tone.
 
-To send test email, ask who is asking and what is the reason. after getting the answer, call sendEmailAWS to destination lev.kantorovich@gmail.com with subject "user call" and body  in which provide who and why called. Then confirm sending the email and absolutely necessary call End Call Function.
+To send test email, ask who is asking and what is the reason. after getting the answer, call sendEmail to destination lev.kantorovich@gmail.com with subject "user call" and body  in which provide who and why called. Then confirm sending the email and absolutely necessary call End Call Function.
 
 If necessary, provide an option to email a billing specialist or transfer during business hours (following the validation steps below).  
 Once the location is confirmed, follow location-based procedures. If a transfer or email is required, apply the validation and time-based rules as above.  
 
-If the user has property management or HOA inquiries use the redirectCall function with +14155553921.  
-If the user has urgent maintenance issues call redirectCall function with +12065557845.
-If the user has non-urgent maintenance issues clarify the issue then call redirectCall function with +16465552347.
-If the user has billing inquiries call redirectCall function with +13055556712.
-If the user has leasing  inquiries call redirectCall function with +14083339356.
+If the user has property management or HOA inquiries use the redirectCall with +14155553921.
+If the user has urgent maintenance issues call redirectCall with +12065557845.
+If the user has non-urgent maintenance issues clarify the issue then call redirectCall with +16465552347.
+If the user has billing inquiries call redirectCall with +13055556712.
+If the user has leasing  inquiries call redirectCall with +14083339356.
 
 `
                     }

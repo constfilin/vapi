@@ -86,10 +86,30 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
 }
 
 export const getAssistant = ( 
-    contacts: misc.Contact[],
-    tools   : Vapi.ToolsListResponseItem[]
+    contacts            : misc.Contact[],
+    existingAssistant   : (Vapi.Assistant|undefined),
+    existingTools       : Vapi.ToolsListResponseItem[]
  ) : Vapi.CreateAssistantDto => {
-    const toolsByName = tools.reduce( (acc,t) => {
+
+    // let's look at existing assistant
+    const firstSystemMessageContent = existingAssistant?.model?.messages?.find( m => {
+        return m.role==='system'
+    })?.content;
+    const systemPromptHeader = firstSystemMessageContent?.split(/Ensure.+conversational\s+tone\./)?.at(0) ||
+        `You are an AI voice bot representing **Intempus Realty**. Your role is to assist callers promptly, efficiently, and courteously with their inquiries. You will handle a variety of requests, including rental property questions, property management services, HOA services, maintenance requests, billing issues, lockouts, call transfers, and emailing. You will also request or clarify geographic information when relevant (e.g., Santa Clara County, Alameda, Contra Costa).
+
+General Guidelines:
+- always listen to the caller needs.
+- Be polite, professional, and efficient at all times.
+- If the caller's requested department or service is unclear, ask for clarification by offering the list of available departments.
+- If a transfer or email cannot be completed after attempts to clarify, end the call politely.
+- Always prioritize the caller's needs and attempt to resolve their inquiry before ending the call.
+
+Pronunciation Directive:
+- Always pronounce names of people and departments directly without spelling them.`;
+
+    // let's look at existing tools
+    const toolsByName = existingTools.reduce( (acc,t) => {
         acc[t['function']!.name] = t;
         return acc;
     },{} as Record<string,Vapi.ToolsListResponseItem>);    
@@ -99,6 +119,7 @@ export const getAssistant = (
     const redirectCallTool  = toolsByName['redirectCall']!;
     const sendEmailTool     = toolsByName['sendEmail']!;
     const dispatchCallTool  = toolsByName['dispatchCall']!;
+
     return contacts.reduce((acc,c,ndx) => {
         acc.model!.messages![0].content += `If the user asks for ${c.name}, call dispatchCall with ${c.name}, wait for result and immediately follow the instructions of the result.\n`;
         return acc;
@@ -132,17 +153,7 @@ export const getAssistant = (
             "messages": [
                 {
                     "role"   : "system",
-                    "content": `You are an AI voice bot representing **Intempus Realty**. Your role is to assist callers promptly, efficiently, and courteously with their inquiries. You will handle a variety of requests, including rental property questions, property management services, HOA services, maintenance requests, billing issues, lockouts, call transfers, and emailing. You will also request or clarify geographic information when relevant (e.g., Santa Clara County, Alameda, Contra Costa).
-
-General Guidelines:
-- always listen to the caller needs.
-- Be polite, professional, and efficient at all times.
-- If the caller's requested department or service is unclear, ask for clarification by offering the list of available departments.
-- If a transfer or email cannot be completed after attempts to clarify, end the call politely.
-- Always prioritize the caller's needs and attempt to resolve their inquiry before ending the call.
-
-Pronunciation Directive:
-- Always pronounce names of people and departments directly without spelling them. Ensure proper pronunciation to maintain a natural conversational tone.
+                    "content": `${systemPromptHeader}Ensure proper pronunciation to maintain a natural conversational tone.
 
 To send test email, ask who is asking and what is the reason. after getting the answer, call sendEmail to destination lev.kantorovich@gmail.com with subject "user call" and body  in which provide who and why called. Then confirm sending the email and absolutely necessary call End Call Function.
 

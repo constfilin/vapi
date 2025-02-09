@@ -3,6 +3,7 @@ import {
     VapiClient
 }                       from '@vapi-ai/server-sdk';
 
+import * as consts      from './consts';
 import * as misc        from './misc';
 import * as intempus    from './intempus';
 
@@ -39,24 +40,28 @@ export const createIntempusAssistant = async () => {
     const vapiClient = misc.getVapiClient();
     const [
         contacts,
-        tools
+        intempusAssistant,
+        existingTools,
     ] = await Promise.all([
         misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts'),
-        vapiClient.tools.list()
+        findByName(vapiClient,consts.assistantName),
+        vapiClient.tools.list(),
     ]);
-    return vapiClient.assistants.create(intempus.getAssistant(contacts,tools));
+    return vapiClient.assistants.create(intempus.getAssistant(contacts,intempusAssistant,existingTools));
 }
 
 export const updateIntempusAssistant = async () => {
     const vapiClient = misc.getVapiClient();
     const [
         contacts,
-        tools
+        intempusAssistant,
+        existingTools
     ] = await Promise.all([
         misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts'),
+        findByName(vapiClient,consts.assistantName),
         vapiClient.tools.list()
     ]);
-    return update(vapiClient,intempus.getAssistant(contacts,tools));
+    return update(vapiClient,intempus.getAssistant(contacts,intempusAssistant,existingTools));
 }
 
 export const getById = ( id?:string ) : Promise<Vapi.Assistant|undefined> => {

@@ -1,7 +1,10 @@
 import commandLineArgs  from 'command-line-args';
 
+import * as consts      from './consts';
+import * as misc        from './misc';
 import * as tools       from './tools';
 import * as assistants  from './assistants';
+import * as intempus    from './intempus';
 
 const getMain = ( argv:commandLineArgs.CommandLineOptions ) => {
     const cmd = argv.cmd;
@@ -31,6 +34,23 @@ const getMain = ( argv:commandLineArgs.CommandLineOptions ) => {
         return assistants.createIntempusAssistant;
     if( cmd==='updateIntempusAssistant' )
         return assistants.updateIntempusAssistant;
+    if( cmd==='updateIntempusAssistantAndRedirectCallTool' )
+        return (async () => {
+            const vapiClient = misc.getVapiClient();
+            const [
+                contacts,
+                intempusAssistant,
+                existingTools
+            ] = await Promise.all([
+                misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts'),
+                assistants.findByName(vapiClient,consts.assistantName),
+                vapiClient.tools.list()
+            ]);
+            return Promise.all([
+                assistants.update(vapiClient,intempus.getAssistant(contacts,intempusAssistant,existingTools)),
+                tools.update(vapiClient,intempus.getRedirectCallTool(contacts))
+            ]);
+        });
     // Nothing is found
     return () => {
         return Promise.reject(Error(`Unknown tool '${cmd}'`));

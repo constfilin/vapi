@@ -56,8 +56,7 @@ export const findByName = ( vapiClient:VapiClient, name?:string ) : Promise<Vapi
     })
 }
 
-export const update = ( payload:Vapi.CreateFunctionToolDto ) : Promise<Vapi.ToolsUpdateResponse> => {
-    const vapiClient   = misc.getVapiClient();
+export const update = ( vapiClient:VapiClient, payload:Vapi.CreateFunctionToolDto ) : Promise<Vapi.ToolsUpdateResponse> => {
     return findByName(vapiClient,payload['function']?.name).then( t => {
         if( !t )
             throw Error(`Cannot find tool with name '${payload['function']!.name}'`);
@@ -87,11 +86,17 @@ export const createDispatchCall = () => {
 }
 
 export const updateRedirectCall = async () => {
-    return update(intempus.getRedirectCallTool(await misc.getContacts(process.env.CONTACTS_SHEET_NAME)));
+    return update(
+        misc.getVapiClient(),
+        intempus.getRedirectCallTool(await misc.getContacts(process.env.CONTACTS_SHEET_NAME))
+    );
 }
 
 export const updateDispatchCall = () => {
-    return update(getDispatchCallPayload());
+    return update(
+        misc.getVapiClient(),
+        getDispatchCallPayload()
+    );
 }
 
 export const getById = ( id?:string ) : Promise<Vapi.ToolsGetResponse|undefined> => {

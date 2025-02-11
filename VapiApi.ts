@@ -66,5 +66,5 @@ export class VapiApi extends VapiClient {
         }
         return assistants;
     }
-} 
+}
 

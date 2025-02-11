@@ -15,11 +15,12 @@ const getMain = ( argv:commandLineArgs.CommandLineOptions ) => {
     const assistants    = vapiApi.getAssistants();
 
     // Commands to manage tools
-    if( cmd==='getToolById' )
+    switch( argv.cmd ) {
+    case 'getToolById':
         return (() => tools.get(argv.id));
-    if( cmd==='getToolByName' )
+    case 'getToolByName':
         return (() => tools.getByName(argv.name));
-    if( cmd==='listTools' )
+    case 'listTools':
         return (async () => {
             return (await tools.list()).map( t => {
                 return {
@@ -28,28 +29,19 @@ const getMain = ( argv:commandLineArgs.CommandLineOptions ) => {
                 }
             });
         });
-    if( cmd==='createDispatchCallTool' )
-        return  (() => {
-            return tools.create(intempus.getDispatchCallPayload());
+    case 'createToolByName':
+        return  (async () => {
+            return tools.create(await intempus.getToolByName(argv.name));
         });
-    if( cmd==='createRedirectCallTool' )
-        return (async () => {
-            return tools.create(intempus.getRedirectCallTool(await misc.getContacts(process.env.CONTACTS_SHEET_NAME)));
+    case 'updateToolByName':
+        return  (async () => {
+            return tools.updateByName(await intempus.getToolByName(argv.name));
         });
-    if( cmd==='updateDispatchCallTool' )
-        return (() => {
-            return tools.updateByName(intempus.getDispatchCallPayload());
-        });
-    if( cmd==='updateRedirectCallTool' )
-        return (async () => {
-            return tools.updateByName(intempus.getRedirectCallTool(await misc.getContacts(process.env.CONTACTS_SHEET_NAME)));
-        });
-    // Commands to manage assistants
-    if( cmd==='getAssistantById' )
+    case 'getAssistantById':
         return (() => assistants.get(argv.id));
-    if( cmd==='getAssistantByName' )
+    case 'getAssistantByName':
         return (() => assistants.getByName(argv.name));
-    if( cmd==='listAssistants' )
+    case 'listAssistants':
         return (async () => {
             return (await assistants.list()).map( a => {
                 return {
@@ -58,48 +50,47 @@ const getMain = ( argv:commandLineArgs.CommandLineOptions ) => {
                 }
             });
         });
-    if( cmd==='createIntempusAssistant' )
-        return (async () => {
+    case 'createAssistantByName':
+        return  (async () => {
             const [
-                contacts,
                 existingAssistant,
                 existingTools,
             ] = await Promise.all([
-                misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts'),
                 assistants.getByName(consts.assistantName),
                 tools.list(),
             ]);
-            return assistants.create(intempus.getAssistant(contacts,existingAssistant,existingTools));
+            return assistants.create(await intempus.getAssistantByName(argv.name,existingAssistant,existingTools));
         });
-    if( cmd==='updateIntempusAssistant' )
-        return (async () => {
+    case 'updateAssistantByName':
+        return  (async () => {
             const [
-                contacts,
                 existingAssistant,
                 existingTools,
             ] = await Promise.all([
-                misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts'),
                 assistants.getByName(consts.assistantName),
                 tools.list(),
             ]);
-            return assistants.updateByName(intempus.getAssistant(contacts,existingAssistant,existingTools));
+            return assistants.updateByName(await intempus.getAssistantByName(argv.name,existingAssistant,existingTools));
         });
-    if( cmd==='updateIntempusAssistantAndRedirectCallTool' )
+    case 'updateAll':
         return (async () => {
             const [
                 contacts,
                 existingAssistant,
                 existingTools
             ] = await Promise.all([
-                misc.getContacts(process.env.CONTACTS_SHEET_NAME||'Contacts'),
+                misc.getCachedContacts(),
                 assistants.getByName(consts.assistantName),
                 tools.list()
             ]);
             return Promise.all([
                 assistants.updateByName(intempus.getAssistant(contacts,existingAssistant,existingTools)),
-                tools.updateByName(intempus.getRedirectCallTool(contacts))
+                tools.updateByName(intempus.getRedirectCallTool(contacts)),
+                tools.updateByName(intempus.getDispatchCallTool()),
+                tools.updateByName(intempus.getSendEmailTool())
             ]);
         });
+    }
     // Nothing is found
     return () => {
         return Promise.reject(Error(`Unknown tool '${cmd}'`));

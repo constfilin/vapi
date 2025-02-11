@@ -7,8 +7,31 @@ import * as consts  from './consts';
 import * as misc    from './misc';
 
 export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunctionToolDto => {
-    const result = contacts.reduce((acc,c,ndx) => {
-        acc.destinations.push({
+    const tool = {
+        type            : "transferCall",
+        async           : false,
+        destinations    : [] as Vapi.TransferDestinationNumber[],
+        'function'      : {
+            name        : "redirectCall",
+            description : "Use this function to transfer the call to various contacts across different departments",
+            parameters      : {
+                type        : "object",
+                properties  : {
+                    destination : {
+                        type        : 'string',
+                        description : 'The destination phone number for the call transfer',
+                        'enum'      : [] as string[],
+                    }
+                },
+                required    : [
+                    "destination"
+                ]
+            },
+        },
+        messages        : [] as Vapi.ToolMessageStart[],
+    };
+    contacts.forEach( c => {
+        tool.destinations.push({
             'type'      :   'number',
             number      :   `+1${c.phoneNumbers[0]}`,
             message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
@@ -39,10 +62,10 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
         // then the contact for this message needs to be listed first in the Contacts
         // spreadsheet
         const fullPhone     = `+1${c.phoneNumbers[0]}`;
-        const theFunction   = acc['function']!;
+        const theFunction   = tool['function']!;
         if( !theFunction.parameters!.properties!.destination!.enum!.includes(fullPhone) )
             theFunction.parameters!.properties!.destination!.enum!.push(fullPhone);
-        acc.messages!.push({
+        tool.messages!.push({
             'type'      : 'request-start',
             content     : `I am forwarding your call to ${c.name}. Please stay on the line`,
             conditions  : [{
@@ -52,39 +75,16 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
                 value   : fullPhone
             }]
         });
-        return acc;
-    },{
-        type            : "transferCall" as "function", // This is a typescript hack
-        async           : false,
-        destinations    : [] as Vapi.TransferDestinationNumber[],
-        'function'      : {
-            name        : "redirectCall",
-            description : "Use this function to transfer the call to various contacts across different departments",
-            parameters      : {
-                type        : "object",
-                properties  : {
-                    destination : {
-                        type        : 'string',
-                        description : 'The destination phone number for the call transfer',
-                        'enum'      : [] as string[],
-                    }
-                },
-                required    : [
-                    "destination"
-                ]
-            },
-        },
-        messages        : [] as Vapi.ToolMessageStart[],
-    } );
+    });
     // In case if the call is forwarded to unknown contact
-    result.messages!.push({
+    tool.messages!.push({
         'type'      : 'request-start',
         content     : `I am forwarding your call...`,
     });
-    return result as Vapi.CreateFunctionToolDto;
+    return tool as Vapi.CreateFunctionToolDto;
 }
 
-export const getDispatchCallPayload = () : Vapi.CreateFunctionToolDto => {
+export const getDispatchCallTool = () : Vapi.CreateFunctionToolDto => {
     return {
         'type'     : 'function',
         'async'     : false,
@@ -119,14 +119,65 @@ export const getDispatchCallPayload = () : Vapi.CreateFunctionToolDto => {
             }
         ],
         server : {
-            "url"            : "https://demo.tectransit.com/api/vapi/dispatch",
+            "url"            : "https://demo.tectransit.com/api/vapi/tool",
             "timeoutSeconds" : 30,
-            "secret"         : process.env.X_VAPI_SECRET||'ZZnxVey4U2UL'
+            "secret"         : consts.vapiToolSecret
         }
     }
 }
 
-export const getAssistant = ( 
+export const getSendEmailTool = () : Vapi.CreateFunctionToolDto => {
+    const tool = {
+        'type'      : "function",
+        "async"     : false,
+        'function'  : {
+            "name"          : "sendEmail",
+            "description"   : "Sending Email",
+            "parameters"    : {
+                "type"      :"object",
+                properties  : {
+                    "to":{
+                        "type":"string"
+                    },
+                    "text":{
+                        "type":"string"
+                    },
+                    "subject":{
+                        "type":"string"
+                    },
+                },
+                required: [
+                    "to",
+                    "text",
+                    "subject"
+                ]
+            }
+        },
+        messages    :[
+            {
+                "type":"request-response-delayed",
+                "content":"Sending email is taking a bit longer to respond"
+            },
+            {
+                "role":"assistant",
+                "type":"request-complete",
+                "content":"."
+            },
+            {
+                "type":"request-failed",
+                "content":"Cannot send email"
+            }
+        ],
+        server  : {
+            "url"            : "https://demo.tectransit.com/api/vapi/tool",
+            "timeoutSeconds" : 30,
+            "secret"         : consts.vapiToolSecret
+        }
+    };
+    return tool as Vapi.CreateFunctionToolDto;
+}
+
+export const getAssistant = (
     contacts            : misc.Contact[],
     existingAssistant   : (Vapi.Assistant|undefined),
     existingTools       : Vapi.ToolsListResponseItem[]
@@ -153,7 +204,7 @@ Pronunciation Directive:
     const toolsByName = existingTools.reduce( (acc,t) => {
         acc[t['function']!.name] = t;
         return acc;
-    },{} as Record<string,Vapi.ToolsListResponseItem>);    
+    },{} as Record<string,Vapi.ToolsListResponseItem>);
     const missingToolName = ['redirectCall','sendEmail','dispatchCall'].find(n=>!(n in toolsByName));
     if( missingToolName )
         throw Error(`Cannot find tool '${missingToolName}'`);
@@ -192,10 +243,10 @@ Pronunciation Directive:
                     "role"   : "system",
                     "content": `${systemPromptHeader}Ensure proper pronunciation to maintain a natural conversational tone.
 
-To send test email, ask who is asking and what is the reason. after getting the answer, call sendEmail to destination lev.kantorovich@gmail.com with subject "user call" and body  in which provide who and why called. Then confirm sending the email and absolutely necessary call End Call Function.
+To send test email, ask who is asking and what is the reason. after getting the answer, call sendEmail to destination constfilin@gmail.com with subject "user call" and body  in which provide who and why called. Then confirm sending the email and absolutely necessary call End Call Function.
 
-If necessary, provide an option to email a billing specialist or transfer during business hours (following the validation steps below).  
-Once the location is confirmed, follow location-based procedures. If a transfer or email is required, apply the validation and time-based rules as above.  
+If necessary, provide an option to email a billing specialist or transfer during business hours (following the validation steps below).
+Once the location is confirmed, follow location-based procedures. If a transfer or email is required, apply the validation and time-based rules as above.
 
 If the user has property management or HOA inquiries use the redirectCall with +14155553921.
 If the user has urgent maintenance issues call redirectCall with +12065557845.
@@ -209,7 +260,9 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
             "provider"      : "openai",
             "maxTokens"     : 300,
             "temperature"   : 0.7,
-            "tools": [{ type: "voicemail" }]
+            "tools": [
+                { type: "voicemail" }
+            ]
         },
         recordingEnabled        : true,
         firstMessage            : "Hello, this is Intempus Realty voice answering system. How may I assist you today?",
@@ -258,8 +311,9 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
             "function-call"
         ],
         serverMessages  : [
-            "hang",
-            "model-output"
+            //"hang",
+            //"model-output",
+            "end-of-call-report"
         ],
         endCallPhrases  : [
             "goodbye"
@@ -269,7 +323,11 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
         startSpeakingPlan: {
             "smartEndpointingEnabled": true
         },
-        isServerUrlSecretSet: false
+        server  : {
+            "url"            : "https://demo.tectransit.com/api/vapi/assistant",
+            "timeoutSeconds" : 30,
+            "secret"         : consts.vapiToolSecret
+        }
     } as Vapi.CreateAssistantDto;
 
     assistant.model!.messages![0].content += contacts
@@ -277,6 +335,30 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
             return `If the user asks for ${c.name}, call dispatchCall with ${c.name}, wait for result and immediately follow the instructions of the result.`;
         })
         .join("\n");
-    
+
     return assistant;
+}
+
+export const getToolByName = async (
+    name    : string
+) : Promise<Vapi.CreateFunctionToolDto> => {
+    switch( name ) {
+    case 'redirectCall':
+        return getRedirectCallTool(await misc.getCachedContacts());
+    case 'dispatchCall':
+        return getDispatchCallTool();
+    case 'sendEmail':
+        return getSendEmailTool();
+    }
+    throw Error(`Tool '${name}' s not known`);
+}
+
+export const getAssistantByName = async (
+    name                : string,
+    existingAssistant   : (Vapi.Assistant|undefined),
+    existingTools       : Vapi.ToolsListResponseItem[]
+) : Promise<Vapi.CreateAssistantDto> => {
+    if( name===consts.assistantName )
+        return getAssistant(await misc.getCachedContacts(),existingAssistant,existingTools);
+    throw Error(`Assistant '${name}' s not known`);
 }

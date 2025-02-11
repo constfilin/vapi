@@ -51,10 +51,10 @@ export interface Contact {
 }
 
 export const getContacts = async (
-    sheetName   : (string|undefined),
-    warns?      : string[]
+    warns?  : string[]
  ) : Promise<Contact[]> => {
-    const sheet = await getSheet(consts.apiKey,consts.spreadsheetId,sheetName||'Contacts');
+    const sheetName = process.env.CONTACTS_SHEET_NAME||'Contacts';
+    const sheet = await getSheet(consts.googleApiKey,consts.spreadsheetId,sheetName);
     if( !sheet )
         throw Error(`Cannot find sheet '${sheetName}'`);
     if( !warns )
@@ -84,4 +84,13 @@ export const getContacts = async (
             return acc;
         },[] as Contact[]);
     });
+}
+
+export let cachedContacts = undefined as (Contact[]|undefined);
+export const getCachedContacts = async (
+    warns?  : string[]
+) : Promise<Contact[]> => {
+    if( !cachedContacts )
+        cachedContacts = await getContacts(warns);
+    return cachedContacts;
 }

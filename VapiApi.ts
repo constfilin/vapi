@@ -10,7 +10,7 @@ import * as consts              from './consts';
 const dummyVapiClient = {} as VapiClient;
 type MyTools = (typeof dummyVapiClient.tools) & {
     getByName( name?:string ) : Promise<Vapi.ToolsListResponseItem|undefined>;
-    updateByName( payload:Vapi.CreateFunctionToolDto ) : Promise<Vapi.ToolsUpdateResponse>;
+    updateByName( payload:Vapi.ToolsCreateRequest ) : Promise<Vapi.ToolsUpdateResponse>;
 }
 type MyAssistants = (typeof dummyVapiClient.assistants) & {
     getByName( name?:string ) : Promise<Vapi.Assistant|undefined>;

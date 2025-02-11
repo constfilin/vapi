@@ -6,7 +6,7 @@ import {
 import * as consts  from './consts';
 import * as misc    from './misc';
 
-export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunctionToolDto => {
+export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateTransferCallToolDto => {
     const tool = {
         type            : "transferCall",
         async           : false,
@@ -29,6 +29,11 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
             },
         },
         messages        : [] as Vapi.ToolMessageStart[],
+        server : {
+            "url"            : "https://demo.tectransit.com/api/vapi/tool",
+            "timeoutSeconds" : 30,
+            "secret"         : consts.vapiToolSecret
+        }
     };
     contacts.forEach( c => {
         tool.destinations.push({
@@ -36,7 +41,7 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
             number      :   `+1${c.phoneNumbers[0]}`,
             message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
             description :   c.description ? `${c.name} - ${c.description}` : c.name,
-            //callerId    :   `+17254446330`,
+            callerId    :   `+17254446330`,
             transferPlan : {
                 mode        : 'warm-transfer-wait-for-operator-to-speak-first-and-then-say-message',
                 //sipVerb     : 'refer',
@@ -82,7 +87,7 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
         'type'      : 'request-start',
         content     : `I am forwarding your call...`,
     });
-    return tool as Vapi.CreateFunctionToolDto;
+    return tool as Vapi.CreateTransferCallToolDto;
 }
 
 export const getDispatchCallTool = () : Vapi.CreateFunctionToolDto => {
@@ -224,14 +229,17 @@ Pronunciation Directive:
         },
         voicemailDetection: {
             provider: "twilio",
+            enabled : true,
             voicemailDetectionTypes: [
               "machine_start",
               "machine_end_beep",
               "unknown"
             ],
-            enabled: true,
             machineDetectionTimeout: 15
         },
+        // Note:
+        // This seems to be ineffective
+        voicemailMessage : "Call is going to voicemail",
         model       : {
             "model": "gpt-4o-mini",
             "toolIds": [
@@ -261,13 +269,19 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
             "provider"      : "openai",
             "maxTokens"     : 300,
             "temperature"   : 0.7,
-            "tools": [
-                { type: "voicemail" }
+            "tools"         : [
+                // TODO:
+                // This set of tools allows registrations of tool callbacks _immediately_ with registration
+                // of the assistant. The type of the entries in `tools` array is `Vapi.OpenAiModelToolsItem`
+                // We just need to fill this array out
+                {
+                    async : false,
+                    type  : "voicemail"
+                }
             ]
         },
         recordingEnabled        : true,
         firstMessage            : "Hello, this is Intempus Realty voice answering system. How may I assist you today?",
-        voicemailMessage        : "Hey, this is Vasa. Could you please call me back when you're free?",
         endCallFunctionEnabled  : true,
         endCallMessage          : "Thank you for contacting us. Have a great day!",
         transcriber             : {
@@ -291,12 +305,15 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
             "smartFormat"   : true
         },
         clientMessages  : [
-            "conversation-update",
-            "function-call"
+        //    "conversation-update",
+        //    "function-call"
         ],
         serverMessages  : [
-            //"hang",
+            "hang",
             //"model-output",
+            "tool-calls",
+            "transfer-destination-request",
+            "transfer-update",
             "end-of-call-report"
         ],
         endCallPhrases  : [
@@ -325,7 +342,7 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
 
 export const getToolByName = async (
     name    : string
-) : Promise<Vapi.CreateFunctionToolDto> => {
+) : Promise<Vapi.ToolsCreateRequest> => {
     switch( name ) {
     case 'redirectCall':
         return getRedirectCallTool(await misc.getCachedContacts());

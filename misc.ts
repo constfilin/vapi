@@ -1,9 +1,5 @@
 import * as GoogleSpreadsheet   from 'google-spreadsheet';
 import { JWT }                  from 'google-auth-library';
-import {
-    VapiClient
-}                               from '@vapi-ai/server-sdk';
-import jwt                      from 'jsonwebtoken';
 
 import * as consts              from './consts';
 
@@ -27,15 +23,6 @@ export const canonicalizePhone = ( s:string ) : string => {
 
 export const canonicalizeEmail = ( s:string ) : string => {
     return s.trim().toLowerCase();
-}
-
-export const getVapiClient = () : VapiClient => {
-    const payload = { orgId: consts.vapiOrgId };
-    const key     = consts.vapiPrivateKey;
-    const options = { expiresIn: '1h' };
-    // @ts-expect-error
-    const token = jwt.sign(payload,key,options);
-    return new VapiClient({ token });
 }
 
 export const getSheet = async ( apiKey:string, docId:string, sheetName:string ) : Promise<GoogleSpreadsheet.GoogleSpreadsheetWorksheet|undefined> => {

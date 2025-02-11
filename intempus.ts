@@ -8,7 +8,6 @@ import * as misc    from './misc';
 
 export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunctionToolDto => {
     const result = contacts.reduce((acc,c,ndx) => {
-        // @ts-expect-error
         acc.destinations.push({
             'type'      :   'number',
             number      :   `+1${c.phoneNumbers[0]}`,
@@ -16,7 +15,7 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
             description :   c.description ? `${c.name} - ${c.description}` : c.name,
             transferPlan : {
                 mode        : 'warm-transfer-say-summary',
-                sipVerb     : 'refer',
+                //sipVerb     : 'refer',
                 summaryPlan : {
                     enabled : true,
                     messages : [
@@ -32,7 +31,7 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
                     ]
                 }
             }
-        });
+        } as Vapi.TransferDestinationNumber);
         // TODO:
         // The same phone number can be listed in the contacts multiple times
         // In this case VAPI will produce the _first_ message in `messages` array
@@ -57,7 +56,7 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
     },{
         type            : "transferCall" as "function", // This is a typescript hack
         async           : false,
-        destinations    : [],
+        destinations    : [] as Vapi.TransferDestinationNumber[],
         'function'      : {
             name        : "redirectCall",
             description : "Use this function to transfer the call to various contacts across different departments",
@@ -67,7 +66,7 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
                     destination : {
                         type        : 'string',
                         description : 'The destination phone number for the call transfer',
-                        'enum'      : [],
+                        'enum'      : [] as string[],
                     }
                 },
                 required    : [
@@ -75,14 +74,56 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
                 ]
             },
         },
-        messages        : [],
-    } as Vapi.CreateFunctionToolDto);
+        messages        : [] as Vapi.ToolMessageStart[],
+    } );
     // In case if the call is forwarded to unknown contact
     result.messages!.push({
         'type'      : 'request-start',
         content     : `I am forwarding your call...`,
     });
-    return result;
+    return result as Vapi.CreateFunctionToolDto;
+}
+
+export const getDispatchCallPayload = () : Vapi.CreateFunctionToolDto => {
+    return {
+        'type'     : 'function',
+        'async'     : false,
+        'function' : {
+            name        : 'dispatchCall',
+            description : "API gets a person name, looks up spreadsheet contacts, checks current time and return instructions how to dispatch the call",
+            parameters  : {
+                'type' : 'object',
+                properties : {
+                    name : {
+                        'type' : 'string'
+                    }
+                },
+                required : [
+                    "name"
+                ]
+            }
+        },
+        messages : [
+            {
+                "type": "request-response-delayed",
+                "content": "Dispatching call is taking a bit longer"
+            },
+            {
+                "role": "system",
+                "type": "request-complete",
+                "content": "."
+            },
+            {
+                "type": "request-failed",
+                "content": "Cannot dispatch call"
+            }
+        ],
+        server : {
+            "url"            : "https://demo.tectransit.com/api/vapi/dispatch",
+            "timeoutSeconds" : 30,
+            "secret"         : process.env.X_VAPI_SECRET||'ZZnxVey4U2UL'
+        }
+    }
 }
 
 export const getAssistant = ( 
@@ -119,11 +160,7 @@ Pronunciation Directive:
     const redirectCallTool  = toolsByName['redirectCall']!;
     const sendEmailTool     = toolsByName['sendEmail']!;
     const dispatchCallTool  = toolsByName['dispatchCall']!;
-
-    return contacts.reduce((acc,c,ndx) => {
-        acc.model!.messages![0].content += `If the user asks for ${c.name}, call dispatchCall with ${c.name}, wait for result and immediately follow the instructions of the result.\n`;
-        return acc;
-    },{
+    const assistant         = {
         name        : consts.assistantName,
         voice       : {
             "voiceId"               : "luna",
@@ -233,5 +270,13 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
             "smartEndpointingEnabled": true
         },
         isServerUrlSecretSet: false
-    } as Vapi.CreateAssistantDto);
+    } as Vapi.CreateAssistantDto;
+
+    assistant.model!.messages![0].content += contacts
+        .map( c => {
+            return `If the user asks for ${c.name}, call dispatchCall with ${c.name}, wait for result and immediately follow the instructions of the result.`;
+        })
+        .join("\n");
+    
+    return assistant;
 }

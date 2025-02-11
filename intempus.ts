@@ -36,8 +36,9 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateFunc
             number      :   `+1${c.phoneNumbers[0]}`,
             message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
             description :   c.description ? `${c.name} - ${c.description}` : c.name,
+            //callerId    :   `+17254446330`,
             transferPlan : {
-                mode        : 'warm-transfer-say-summary',
+                mode        : 'warm-transfer-wait-for-operator-to-speak-first-and-then-say-message',
                 //sipVerb     : 'refer',
                 summaryPlan : {
                     enabled : true,
@@ -271,37 +272,20 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
         endCallMessage          : "Thank you for contacting us. Have a great day!",
         transcriber             : {
             "model"     : "nova-2",
-            "keywords"  : [
-                // TODO:
-                // Generate this programmatically instead of hardcoding
-                "Michael:30",
-                "Mike:30",
-                "Khesin:30",
-                "Camarena:30",
-                "Eugene:30",
-                "Korsunsky:30",
-                "Marybeth:30",
-                "Forcier:30",
-                "Galina:30",
-                "Kuterhina:30",
-                "Eric:30",
-                "Burris:30",
-                "Kimberly:30",
-                "Emperador:30",
-                "Dan:30",
-                "Kozakevich:30",
-                "Doug:30",
-                "Raisch:30",
-                "Brenda:30",
-                "Fisher:30",
-                "leasing:30",
-                "billing:30",
-                "maintenance:30",
-                "finance:30",
-                "accounting:30",
-                "office:30",
-                "HOA:30"
-            ],
+            "keywords"  : Object.values(contacts
+                .map(c=>c.name.split(/\s+/))
+                .flat()
+                .reduce((acc,n) => {
+                    // Remove anything that is not a letter
+                    n = n.replace(/[^a-zA-Z]/g,'');
+                    // throw out the common words
+                    const lower = n.toLowerCase();
+                    if( ["a","an","the","for","to","oncall","by","of","main"].includes(lower) )
+                        return acc;
+                    // Remove anything that is not a letter
+                    acc[lower] = n;
+                    return acc;
+                },{} as Record<string,string>)).map(n=>`${n}:30`),
             "language"      : "en",
             "provider"      : "deepgram",
             "smartFormat"   : true

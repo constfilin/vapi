@@ -34,16 +34,29 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateTran
             "timeoutSeconds" : 30,
             "secret"         : consts.vapiToolSecret
         }
-    };
+    } as Vapi.CreateTransferCallToolDto;
+    const destinationEnums = tool['function']!.parameters!.properties!.destination!.enum!;
     contacts.forEach( c => {
-        tool.destinations.push({
+        // TODO:
+        // The same phone number can be listed in the contacts multiple times
+        // In this case VAPI will produce the _first_ message in `messages` array
+        // that match the phone number. If a specific message needs to be listed
+        // then the contact for this message needs to be listed first in the Contacts
+        // spreadsheet
+        const fullPhone     = `+1${c.phoneNumbers[0]}`;
+        if( !destinationEnums.includes(fullPhone) )
+            destinationEnums.push(fullPhone);
+        tool.destinations!.push({
             'type'      :   'number',
-            number      :   `+1${c.phoneNumbers[0]}`,
+            number      :   fullPhone,
             message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
             description :   c.description ? `${c.name} - ${c.description}` : c.name,
+            // Testing is requesting an extension will make VAPI wait for the other party to answer
+            extension   :   `111`,
             callerId    :   `+17254446330`,
             transferPlan : {
-                mode        : 'warm-transfer-wait-for-operator-to-speak-first-and-then-say-message',
+                mode        : 'warm-transfer-wait-for-operator-to-speak-first-and-then-say-summary',
+                message     : 'Incoming call from Intempus',
                 //sipVerb     : 'refer',
                 summaryPlan : {
                     enabled : true,
@@ -61,16 +74,6 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateTran
                 }
             }
         } as Vapi.TransferDestinationNumber);
-        // TODO:
-        // The same phone number can be listed in the contacts multiple times
-        // In this case VAPI will produce the _first_ message in `messages` array
-        // that match the phone number. If a specific message needs to be listed
-        // then the contact for this message needs to be listed first in the Contacts
-        // spreadsheet
-        const fullPhone     = `+1${c.phoneNumbers[0]}`;
-        const theFunction   = tool['function']!;
-        if( !theFunction.parameters!.properties!.destination!.enum!.includes(fullPhone) )
-            theFunction.parameters!.properties!.destination!.enum!.push(fullPhone);
         tool.messages!.push({
             'type'      : 'request-start',
             content     : `I am forwarding your call to ${c.name}. Please stay on the line`,
@@ -80,13 +83,16 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateTran
                 // @ts-expect-error
                 value   : fullPhone
             }]
-        });
+        } /*as Vapi.CreateTransferCallToolDtoMessagesItem*/);
     });
     // In case if the call is forwarded to unknown contact
     tool.messages!.push({
         'type'      : 'request-start',
         content     : `I am forwarding your call...`,
     });
+    //tool.destinations = [];
+    //tool.messages = [];
+    //delete tool['function']?.parameters;
     return tool as Vapi.CreateTransferCallToolDto;
 }
 
@@ -314,6 +320,8 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
             "tool-calls",
             "transfer-destination-request",
             "transfer-update",
+            //"phone-call-control",
+            //"function-call",
             "end-of-call-report"
         ],
         endCallPhrases  : [

@@ -4,7 +4,7 @@ import {
 }                               from '@vapi-ai/server-sdk';
 import jwt                      from 'jsonwebtoken';
 
-import * as consts              from './consts';
+import * as Config              from './Config';
 
 
 const dummyVapiClient = {} as VapiClient;
@@ -19,8 +19,9 @@ type MyAssistants = (typeof dummyVapiClient.assistants) & {
 
 export class VapiApi extends VapiClient {
     constructor() {
-        const payload = { orgId: consts.vapiOrgId };
-        const key     = consts.vapiPrivateKey;
+        const config  = Config.get();
+        const payload = { orgId: config.vapiOrgId };
+        const key     = config.vapiPrivateKey;
         const options = { expiresIn: '1h' };
         // @ts-expect-error
         const token = jwt.sign(payload,key,options);

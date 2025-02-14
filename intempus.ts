@@ -1,12 +1,12 @@
-import * as GoogleSpreadsheet   from 'google-spreadsheet';
 import {
     Vapi
-}                   from '@vapi-ai/server-sdk';
+}                       from '@vapi-ai/server-sdk';
 
-import * as consts  from './consts';
-import * as misc    from './misc';
+import * as Config      from './Config';
+import * as Contacts    from './Contacts';
 
-export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateTransferCallToolDto => {
+export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateTransferCallToolDto => {
+    const config = Config.get();
     const tool = {
         type            : "transferCall",
         async           : false,
@@ -30,9 +30,9 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateTran
         },
         messages        : [] as Vapi.ToolMessageStart[],
         server : {
-            "url"            : "https://demo.tectransit.com/api/vapi/tool",
+            "url"            : `${config.publicUrl}/tool`,
             "timeoutSeconds" : 30,
-            "secret"         : consts.vapiToolSecret
+            "secret"         : config.vapiToolSecret
         }
     } as Vapi.CreateTransferCallToolDto;
     const destinationEnums = tool['function']!.parameters!.properties!.destination!.enum!;
@@ -97,6 +97,7 @@ export const getRedirectCallTool = ( contacts:misc.Contact[] ) : Vapi.CreateTran
 }
 
 export const getDispatchCallTool = () : Vapi.CreateFunctionToolDto => {
+    const config = Config.get();
     return {
         'type'     : 'function',
         'async'     : false,
@@ -131,14 +132,15 @@ export const getDispatchCallTool = () : Vapi.CreateFunctionToolDto => {
             }
         ],
         server : {
-            "url"            : "https://demo.tectransit.com/api/vapi/tool",
+            "url"            : `${config.publicUrl}/tool`,
             "timeoutSeconds" : 30,
-            "secret"         : consts.vapiToolSecret
+            "secret"         : config.vapiToolSecret
         }
     }
 }
 
 export const getSendEmailTool = () : Vapi.CreateFunctionToolDto => {
+    const config = Config.get();
     const tool = {
         'type'      : "function",
         "async"     : false,
@@ -181,19 +183,21 @@ export const getSendEmailTool = () : Vapi.CreateFunctionToolDto => {
             }
         ],
         server  : {
-            "url"            : "https://demo.tectransit.com/api/vapi/tool",
+            "url"            : `${config.publicUrl}/tool`,
             "timeoutSeconds" : 30,
-            "secret"         : consts.vapiToolSecret
+            "secret"         : config.vapiToolSecret
         }
     };
     return tool as Vapi.CreateFunctionToolDto;
 }
 
 export const getAssistant = (
-    contacts            : misc.Contact[],
+    contacts            : Contacts.Contact[],
     existingAssistant   : (Vapi.Assistant|undefined),
     existingTools       : Vapi.ToolsListResponseItem[]
  ) : Vapi.CreateAssistantDto => {
+
+    const config = Config.get();
 
     // let's look at existing assistant
     const firstSystemMessageContent = existingAssistant?.model?.messages?.find( m => {
@@ -224,7 +228,7 @@ Pronunciation Directive:
     const sendEmailTool     = toolsByName['sendEmail']!;
     const dispatchCallTool  = toolsByName['dispatchCall']!;
     const assistant         = {
-        name        : consts.assistantName,
+        name        : config.assistantName,
         voice       : {
             "voiceId"               : "luna",
             "provider"              : "deepgram",
@@ -333,9 +337,9 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
             "smartEndpointingEnabled": true
         },
         server  : {
-            "url"            : "https://demo.tectransit.com/api/vapi/assistant",
+            "url"            : `${config.publicUrl}/assistant`,
             "timeoutSeconds" : 30,
-            "secret"         : consts.vapiToolSecret
+            "secret"         : config.vapiToolSecret
         }
     } as Vapi.CreateAssistantDto;
 
@@ -353,7 +357,7 @@ export const getToolByName = async (
 ) : Promise<Vapi.ToolsCreateRequest> => {
     switch( name ) {
     case 'redirectCall':
-        return getRedirectCallTool(await misc.getCachedContacts());
+        return getRedirectCallTool(await Contacts.get());
     case 'dispatchCall':
         return getDispatchCallTool();
     case 'sendEmail':
@@ -367,7 +371,8 @@ export const getAssistantByName = async (
     existingAssistant   : (Vapi.Assistant|undefined),
     existingTools       : Vapi.ToolsListResponseItem[]
 ) : Promise<Vapi.CreateAssistantDto> => {
-    if( name===consts.assistantName )
-        return getAssistant(await misc.getCachedContacts(),existingAssistant,existingTools);
+    const config = Config.get();
+    if( name===config.assistantName )
+        return getAssistant(await Contacts.get(),existingAssistant,existingTools);
     throw Error(`Assistant '${name}' s not known`);
 }

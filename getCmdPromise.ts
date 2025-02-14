@@ -16,18 +16,8 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
     case 'listContacts':
         return (async () => {
             const warns = [] as string[];
-            const contacts = await Contacts.getRaw(warns);
             return {
-                contacts : Object.values(contacts
-                    .map(c=>c.name.split(/\s+/))
-                    .flat()
-                    .reduce((acc,n) => {
-                        const lower = n.toLowerCase();
-                        if( ["a","an","the","for","to","on-call","by","of","main"].includes(lower) )
-                            return acc;
-                        acc[lower] = n;
-                        return acc;
-                    },{} as Record<string,string>)).map(n=>`${n}:30`),
+                contacts : await Contacts.getRaw(warns),
                 warns,
             };
         });

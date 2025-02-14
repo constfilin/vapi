@@ -133,12 +133,5 @@ export default () => {
             return getCmdPromise(req.body as Record<string,any>)();
         });
     });
-    router.get('/contacts',(req:expressCore.Request,res:expressCore.Response) => {
-        return sendResponse(req,res,() => {
-            if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
-                throw Error(`Access denied`);
-            return server.getContacts();
-        });
-    });
     return router;
 };

@@ -5,8 +5,9 @@
 1. `npm i`
 
 ## RUNNING
-`VAPI_ORG_ID=... VAPI_PRIVATE_KEY=... npx tsx index.ts --cmd=... [--(id|name)=...] [--stringify]`
+`VAPI_ORG_ID=... VAPI_PRIVATE_KEY=... npx tsx cmd.ts --cmd=... [--(id|name)=...] [--stringify]`
 1. `--cmd`:
+    1. `listContacts` - list contacts from [Contacts Spreadsheet](https://docs.google.com/spreadsheets/d/1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI/edit?gid=907085893#gid=907085893)
     1. `listTools` - lists tools in VAPI org defined by `VAPI_ORG_ID` environment variable
     1. `getToolById` - dumps information about VAPI tool identified by `--id` cmd param
     1. `getToolByName` - dumps information about VAPI tool identified by `--name` cmd param

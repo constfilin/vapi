@@ -71,9 +71,11 @@ export default class Server {
         });
         if( !contact )
             return `Cannot find name '${name}' in ${this.config.worksheetName}`;
-        const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles')
+        const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
+        if( [0,6].includes(djs.day()) )
+            return `Call sendEmail with ${contact.emailAddresses[0]}`;
         const hour = djs.hour();
-        if( (hour<(this.config.web.business_start_hour??9)) || (hour>=(this.config.web.business_end_hour??18)) )
+        if( (hour<(this.config.web.business_start_hour??8)) || (hour>=(this.config.web.business_end_hour??17)) )
             return `Call sendEmail with ${contact.emailAddresses[0]}`
         return `Call redirectCall with +1${contact.phoneNumbers[0]}`;
     }

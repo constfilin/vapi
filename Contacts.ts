@@ -5,11 +5,13 @@ import * as Config              from './Config';
 import * as misc                from './misc';
 
 export interface Contact {
-    name            : string;
-    description     : (string|undefined);
-    timeZone        : (string|undefined);
-    phoneNumbers    : string[];
-    emailAddresses  : string[];
+    name                : string;
+    description         : (string|undefined);
+    timeZone            : (string|undefined);
+    phoneNumbers        : string[];
+    emailAddresses      : string[];
+    businessStartHour   : number;
+    businessEndHour     : number;
 }
 
 export const getSheet = async ( apiKey:string, docId:string, sheetName:string ) : Promise<GoogleSpreadsheet.GoogleSpreadsheetWorksheet|undefined> => {
@@ -38,6 +40,7 @@ export const getFromRows = (
 ) => {
     if( !warns )
         warns = [];
+    const config    = Config.get();
     return rows.reduce( (acc,r,ndx)  => {
         const name = r.get("Name");
         if( typeof name != 'string' ) {
@@ -54,11 +57,13 @@ export const getFromRows = (
         const emails = r.get("EmailAddresses")||'';
         const emailAddresses = emails.split(/[;,\s\n\r]/).map(misc.canonicalizeEmail);
         acc.push({
-            name         : misc.canonicalizePersonName(name),
-            description  : r.get("Description"),
-            timeZone     : r.get("TimeZone"),
+            name                : misc.canonicalizePersonName(name),
+            description         : r.get("Description"),
+            timeZone            : r.get("TimeZone"),
             phoneNumbers,
-            emailAddresses
+            emailAddresses,
+            businessStartHour   : misc.toNumber(r.get("Business Start Hour"),config.web.business_start_hour??8),
+            businessEndHour     : misc.toNumber(r.get("Business End Hour"),config.web.business_end_hour??17),
         });
         return acc;
     },[] as Contact[]);

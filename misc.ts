@@ -19,3 +19,7 @@ export const canonicalizePhone = ( s:string ) : string => {
 export const canonicalizeEmail = ( s:string ) : string => {
     return s.trim().toLowerCase();
 }
+
+export const toNumber = ( s:any, dflt:number ) : number => {
+    return isNaN(s) ? dflt : Number(s);
+}

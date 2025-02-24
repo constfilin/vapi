@@ -90,6 +90,7 @@ export default () => {
                             };
                         }
                         return server.sendEmail(args as {to:string,subject:string,text:string}).then(() => {
+                            server.module_log(module.filename,1,`Handled '${tc['function'].name}'`,args);
                             return {
                                 toolCallId  : tc.id,
                                 result      : `ok`
@@ -103,6 +104,7 @@ export default () => {
                             };
                         }
                         return server.dispatchCall(args.name as string).then( result => {
+                            server.module_log(module.filename,1,`Handled '${tc['function'].name}'`,args,result);
                             return {
                                 toolCallId  : tc.id,
                                 result      : result

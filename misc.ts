@@ -21,5 +21,5 @@ export const canonicalizeEmail = ( s:string ) : string => {
 }
 
 export const toNumber = ( s:any, dflt:number ) : number => {
-    return isNaN(s) ? dflt : Number(s);
+    return ((s=='') || isNaN(s)) ? dflt : Number(s);
 }

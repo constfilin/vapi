@@ -77,6 +77,6 @@ export default class Server {
         const hour = djs.hour();
         if( (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
             return `Call sendEmail with ${contact.emailAddresses[0]}`
-        return `Call redirectCall with +1${contact.phoneNumbers[0]}`;
+        return `say "I am forwarding your call to ${name}" and call redirectCall with +1${contact.phoneNumbers[0]}`;
     }
 }

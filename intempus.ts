@@ -74,6 +74,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 }
             }
         } as Vapi.TransferDestinationNumber);
+        /*
         tool.messages!.push({
             'type'      : 'request-start',
             content     : `I am forwarding your call to ${c.name}. Please stay on the line`,
@@ -83,13 +84,16 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 // @ts-expect-error
                 value   : fullPhone
             }]
-        } /*as Vapi.CreateTransferCallToolDtoMessagesItem*/);
+        }); //as Vapi.CreateTransferCallToolDtoMessagesItem
+        */
     });
     // In case if the call is forwarded to unknown contact
+    /*
     tool.messages!.push({
         'type'      : 'request-start',
         content     : `I am forwarding your call...`,
     });
+    */
     //tool.destinations = [];
     //tool.messages = [];
     //delete tool['function']?.parameters;

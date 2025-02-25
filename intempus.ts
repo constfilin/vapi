@@ -51,11 +51,9 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
             number      :   fullPhone,
             message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
             description :   c.description ? `${c.name} - ${c.description}` : c.name,
-            // Testing is requesting an extension will make VAPI wait for the other party to answer
-            extension   :   `111`,
             callerId    :   `+17254446330`,
             transferPlan : {
-                mode        : 'warm-transfer-wait-for-operator-to-speak-first-and-then-say-summary',
+                mode        : 'warm-transfer-say-message',
                 message     : 'Incoming call from Intempus',
                 //sipVerb     : 'refer',
                 summaryPlan : {

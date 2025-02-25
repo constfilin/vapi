@@ -270,12 +270,6 @@ To send test email, ask who is asking and what is the reason. after getting the 
 If necessary, provide an option to email a billing specialist or transfer during business hours (following the validation steps below).
 Once the location is confirmed, follow location-based procedures. If a transfer or email is required, apply the validation and time-based rules as above.
 
-If the user has property management or HOA inquiries use the redirectCall with +14082066610.
-If the user has urgent maintenance issues call redirectCall with +14089131082.
-If the user has non-urgent maintenance issues clarify the issue then call redirectCall with +14154267937.
-If the user has billing inquiries call redirectCall with +14089131082.
-If the user has leasing  inquiries call redirectCall with +14089131082.
-
 `
                 }
             ],

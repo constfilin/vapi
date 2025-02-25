@@ -73,10 +73,10 @@ export default class Server {
             return `Cannot find name '${name}' in ${this.config.worksheetName}`;
         const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
         if( [0,6].includes(djs.day()) )
-            return `say "I am sending email to ${name} and call sendEmail with ${contact.emailAddresses[0]}`;
+            return `say "I am sending email to ${name}, call sendEmail with ${contact.emailAddresses[0]}, say "Thank you for calling Intempus Realy" and hang up.`;
         const hour = djs.hour();
         if( (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
-            return `say "I am sending email to ${name} and call sendEmail with ${contact.emailAddresses[0]}`;
+            return `say "I am sending email to ${name}, call sendEmail with ${contact.emailAddresses[0]}, say "Thank you for calling Intempus Realy" and hang up.`;
         return `say "I am forwarding your call to ${name}" and call redirectCall with +1${contact.phoneNumbers[0]}`;
     }
 }

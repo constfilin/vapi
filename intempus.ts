@@ -72,7 +72,6 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 }
             }
         } as Vapi.TransferDestinationNumber);
-        /*
         tool.messages!.push({
             'type'      : 'request-start',
             content     : `I am forwarding your call to ${c.name}. Please stay on the line`,
@@ -83,7 +82,6 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 value   : fullPhone
             }]
         }); //as Vapi.CreateTransferCallToolDtoMessagesItem
-        */
     });
     // In case if the call is forwarded to unknown contact
     /*
@@ -124,6 +122,7 @@ export const getDispatchCallTool = () : Vapi.CreateFunctionToolDto => {
                 "content": "Dispatching call is taking a bit longer"
             },
             {
+                // https://docs.vapi.ai/api-reference/tools/create#request.body.function.messages.request-complete.role
                 "role": "system",
                 "type": "request-complete",
                 "content": "."
@@ -177,7 +176,7 @@ export const getSendEmailTool = () : Vapi.CreateFunctionToolDto => {
             {
                 "role":"assistant",
                 "type":"request-complete",
-                "content":"."
+                "content":"Email is sent"
             },
             {
                 "type":"request-failed",

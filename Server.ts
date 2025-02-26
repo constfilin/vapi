@@ -74,7 +74,7 @@ export default class Server {
         const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
         const hour = djs.hour();
         if( [0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
-            return `say "I am sending email to ${name}", call sendEmail with ${contact.emailAddresses[0]}, say "Thank you for calling Intempus Realty" and hang up.`;
-        return `say "I am forwarding your call to ${name}" and call redirectCall with +1${contact.phoneNumbers[0]}`;
+            return `Say "I am sending email to ${name}", call sendEmail with ${contact.emailAddresses[0]}, say "Thank you for calling Intempus Realty" and hang up.`;
+        return `Say "I am forwarding your call to ${name}" and call redirectCall with +1${contact.phoneNumbers[0]}`;
     }
 }

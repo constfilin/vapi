@@ -93,7 +93,7 @@ export default () => {
                             server.module_log(module.filename,1,`Handled '${tc['function'].name}'`,args);
                             return {
                                 toolCallId  : tc.id,
-                                result      : `ok`
+                                result      : `Email is sent to ${args.to}`
                             }
                         });
                     case 'dispatchCall':

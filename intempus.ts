@@ -17,20 +17,14 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
             parameters      : {
                 type        : "object",
                 properties  : {
-                    destination : {
+                    to : {
                         type        : 'string',
                         description : 'The destination phone number for the call transfer',
                         'enum'      : [] as string[],
                     },
-                    name : {
-                        type        : 'string',
-                        description : 'The name of the person to transfer the call to',
-                        'enum'      : [] as string[]
-                    }
                 },
                 required    : [
-                    "destination",
-                    "name"
+                    "to"
                 ]
             },
         },
@@ -41,8 +35,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
             "secret"         : config.vapiToolSecret
         }
     } as Vapi.CreateTransferCallToolDto;
-    const destinationEnums  = tool['function']!.parameters!.properties!.destination!.enum!;
-    const nameEnums         = tool['function']!.parameters!.properties!.name!.enum!;
+    const toEnums  = tool['function']!.parameters!.properties!.to!.enum!;
     contacts.forEach( c => {
         // TODO:
         // The same phone number can be listed in the contacts multiple times
@@ -51,10 +44,8 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
         // then the contact for this message needs to be listed first in the Contacts
         // spreadsheet
         const fullPhone     = `+1${c.phoneNumbers[0]}`;
-        if( !destinationEnums.includes(fullPhone) )
-            destinationEnums.push(fullPhone);
-        if( !nameEnums.includes(c.name) )
-            nameEnums.push(c.name);
+        if( !toEnums.includes(fullPhone) )
+            toEnums.push(fullPhone);
         tool.destinations!.push({
             'type'      :   'number',
             number      :   fullPhone,
@@ -81,6 +72,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 }
             }
         } as Vapi.TransferDestinationNumber);
+        /*
         tool.messages!.push({
             'type'      : 'request-start',
             content     : `I am forwarding your call to ${c.name}. Please stay on the line`,
@@ -90,6 +82,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 value   : c.name as unknown as Record<string,unknown>
             }]
         } as Vapi.CreateTransferCallToolDtoMessagesItem);
+         */
     });
     // In case if the call is forwarded to unknown contact
     /*
@@ -128,7 +121,6 @@ export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 "type": "request-response-delayed",
                 "content": "Dispatching call is taking a bit longer"
             },
-            /*
             ...contacts.map( c => {
                 return {
                     // https://docs.vapi.ai/api-reference/tools/create#request.body.function.messages.request-complete.role
@@ -141,12 +133,7 @@ export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                         value   : c.name as unknown as Record<string,unknown>
                     }]
                 } as Vapi.CreateTransferCallToolDtoMessagesItem;
-            }),*/
-            {
-                "role"      : "system",
-                "type"      : "request-complete",
-                "content"   : "."
-            },
+            }),
             {
                 "type": "request-failed",
                 "content": "Cannot dispatch call"
@@ -171,11 +158,6 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
             "parameters"    : {
                 "type"      :"object",
                 properties  : {
-                    "name"  : {
-                        "type"      : "string",
-                        description : 'The name of the person to send the email to',
-                        'enum'      : [] as string[]
-                    },
                     "emailAddress"    : {
                         "type"      :"string",
                         description : 'The email address',
@@ -189,7 +171,6 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
                     },
                 },
                 required: [
-                    "name",
                     "emailAddress",
                     "text",
                     "subject"
@@ -202,9 +183,9 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
                 "content"   : "Sending email is taking a bit longer to respond"
             },
             {
-                "role"      : "assistant",
+                "role"      : "system",
                 "type"      : "request-complete",
-                "content"   : "Email is sent"
+                "content"   : "Hangup"
             },
             {
                 "type"      : "request-failed",
@@ -217,7 +198,6 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
             "secret"         : config.vapiToolSecret
         }
     } as Vapi.CreateFunctionToolDto;
-    const nameEnums          = tool['function']!.parameters!.properties!.name!.enum!;
     const emailAddressEnums  = tool['function']!.parameters!.properties!.emailAddress!.enum!;
     contacts.forEach( c => {
         // TODO:
@@ -228,8 +208,6 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
         // spreadsheet
         if( !c.emailAddresses[0] )
             return;
-        if( !nameEnums.includes(c.name) )
-            nameEnums.push(c.name);
         if( !emailAddressEnums.includes(c.emailAddresses[0]) )
             emailAddressEnums.push(c.emailAddresses[0]);
         tool.messages!.push({

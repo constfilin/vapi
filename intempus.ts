@@ -7,7 +7,7 @@ import * as Contacts    from './Contacts';
 
 export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFunctionToolDto => {
     const config = Config.get();
-    return {
+    const result =  {
         'type'     : 'function',
         'async'    : false,
         'function' : {
@@ -32,20 +32,18 @@ export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 "type": "request-response-delayed",
                 "content": "Dispatching call is taking a bit longer"
             },
-            /*
             ...contacts.map( c => {
                 return {
                     // https://docs.vapi.ai/api-reference/tools/create#request.body.function.messages.request-complete.role
                     "type"      : "request-start",
-                    "role"      : "assistant",
                     "content"   : `Dispatching your call to ${c.name}`,
                     conditions  : [{
                         param   : 'name',
                         operator: 'eq', 
                         value   : c.name as unknown as Record<string,unknown>
                     }]
-                } as Vapi.CreateTransferCallToolDtoMessagesItem;
-            }),*/
+                } as Vapi.ToolMessageStart;
+            }),
             {
                 "role"   : "system",
                 "type"   : "request-complete",
@@ -55,13 +53,14 @@ export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 "type": "request-failed",
                 "content": "Cannot dispatch call"
             }
-        ],
+        ] as Vapi.CreateFunctionToolDtoMessagesItem[],
         server : {
             "url"            : `${config.publicUrl}/tool`,
             "timeoutSeconds" : 30,
             "secret"         : config.vapiToolSecret
         }
-    }
+    } as Vapi.CreateFunctionToolDto;
+    return result;
 }
 
 export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateTransferCallToolDto => {
@@ -76,14 +75,14 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
             parameters      : {
                 type        : "object",
                 properties  : {
-                    to : {
+                    destination : {
                         type        : 'string',
                         description : 'The destination phone number for the call transfer',
                         'enum'      : [] as string[],
                     },
                 },
                 required    : [
-                    "to"
+                    "destination"
                 ]
             },
         },
@@ -94,7 +93,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
             "secret"         : config.vapiToolSecret
         }
     } as Vapi.CreateTransferCallToolDto;
-    const toEnums  = tool['function']!.parameters!.properties!.to!.enum!;
+    const destinationEnums  = tool['function']!.parameters!.properties!.destination!.enum!;
     contacts.forEach( c => {
         // TODO:
         // The same phone number can be listed in the contacts multiple times
@@ -103,8 +102,8 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
         // then the contact for this message needs to be listed first in the Contacts
         // spreadsheet
         const fullPhone     = `+1${c.phoneNumbers[0]}`;
-        if( !toEnums.includes(fullPhone) )
-            toEnums.push(fullPhone);
+        if( !destinationEnums.includes(fullPhone) )
+            destinationEnums.push(fullPhone);
         tool.destinations!.push({
             'type'      :   'number',
             number      :   fullPhone,
@@ -154,7 +153,8 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
 }
 
 export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFunctionToolDto => {
-    const config = Config.get();
+    const config    = Config.get();
+    const toArgName = 'to';
     const tool = {
         'type'      : "function",
         "async"     : false,
@@ -164,7 +164,7 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
             "parameters"    : {
                 "type"      :"object",
                 properties  : {
-                    "to"    : {
+                    [toArgName]    : {
                         "type"      :"string",
                         description : 'The email address',
                         'enum'      : [] as string[],
@@ -177,7 +177,7 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
                     },
                 },
                 required: [
-                    "to",
+                    toArgName,
                     "text",
                     "subject"
                 ]
@@ -204,7 +204,7 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
             "secret"         : config.vapiToolSecret
         }
     } as Vapi.CreateFunctionToolDto;
-    const toEnums  = tool['function']!.parameters!.properties!.to!.enum!;
+    const toEnums  = tool['function']!.parameters!.properties![toArgName]!.enum;
     contacts.forEach( c => {
         // TODO:
         // The same phone number can be listed in the contacts multiple times
@@ -214,8 +214,9 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
         // spreadsheet
         if( !c.emailAddresses[0] )
             return;
-        if( !toEnums.includes(c.emailAddresses[0]) )
+        if( toEnums && !toEnums.includes(c.emailAddresses[0]) )
             toEnums.push(c.emailAddresses[0]);
+        /*
         tool.messages!.push({
             'type'      : 'request-start',
             content     : `I am sending email to ${c.name}. Please stay on the line`,
@@ -225,6 +226,7 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
                 value   : c.name as unknown as Record<string,unknown>
             }]
         } as Vapi.CreateTransferCallToolDtoMessagesItem);
+        */
     });
 
     return tool;
@@ -359,7 +361,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             //"model-output",
             "tool-calls",
             "transfer-destination-request",
-            "transfer-update",
+            //"transfer-update",
             //"phone-call-control",
             //"function-call",
             "end-of-call-report"

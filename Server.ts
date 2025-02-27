@@ -43,12 +43,12 @@ export default class Server {
         }
         return this;
     }    
-    sendEmail(args:{ emailAddress:string, subject:string, text:string }) : Promise<void> {
+    sendEmail(args:{ to:string, subject:string, text:string }) : Promise<void> {
         if( !this.nm_transport )
             throw Error(`Transport is not initialized`);
         return this.nm_transport.sendMail({
             from    : this.config.nm.from,
-            to      : args.emailAddress,
+            to      : args.to,
             subject : args.subject,
             text    : args.text
         });
@@ -74,7 +74,7 @@ export default class Server {
         const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
         const hour = djs.hour();
         if( [0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
-            return `call sendEmail with ${contact.emailAddresses[0]} and hang up.`;
+            return `call sendEmail with ${contact.emailAddresses[0]}`;
         return `call redirectCall with +1${contact.phoneNumbers[0]}`;
     }
 }

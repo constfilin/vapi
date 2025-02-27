@@ -92,7 +92,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 assistants.updateByName(intempus.getAssistant(contacts,existingAssistant,existingTools)),
                 tools.updateByName(intempus.getRedirectCallTool(contacts)),
                 tools.updateByName(intempus.getDispatchCallTool()),
-                tools.updateByName(intempus.getSendEmailTool())
+                tools.updateByName(intempus.getSendEmailTool(contacts))
             ]);
         });
     }

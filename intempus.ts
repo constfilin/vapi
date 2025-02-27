@@ -82,7 +82,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 value   : c.name as unknown as Record<string,unknown>
             }]
         } as Vapi.CreateTransferCallToolDtoMessagesItem);
-         */
+        */
     });
     // In case if the call is forwarded to unknown contact
     /*
@@ -98,7 +98,7 @@ export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
     const config = Config.get();
     return {
         'type'     : 'function',
-        'async'     : false,
+        'async'    : false,
         'function' : {
             name        : 'dispatchCall',
             description : "API gets a person name, looks up spreadsheet contacts, checks current time and return instructions how to dispatch the call",
@@ -158,7 +158,7 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
             "parameters"    : {
                 "type"      :"object",
                 properties  : {
-                    "emailAddress"    : {
+                    "to"    : {
                         "type"      :"string",
                         description : 'The email address',
                         'enum'      : [] as string[],
@@ -171,7 +171,7 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
                     },
                 },
                 required: [
-                    "emailAddress",
+                    "to",
                     "text",
                     "subject"
                 ]
@@ -198,7 +198,7 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
             "secret"         : config.vapiToolSecret
         }
     } as Vapi.CreateFunctionToolDto;
-    const emailAddressEnums  = tool['function']!.parameters!.properties!.emailAddress!.enum!;
+    const toEnums  = tool['function']!.parameters!.properties!.to!.enum!;
     contacts.forEach( c => {
         // TODO:
         // The same phone number can be listed in the contacts multiple times
@@ -208,8 +208,8 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
         // spreadsheet
         if( !c.emailAddresses[0] )
             return;
-        if( !emailAddressEnums.includes(c.emailAddresses[0]) )
-            emailAddressEnums.push(c.emailAddresses[0]);
+        if( !toEnums.includes(c.emailAddresses[0]) )
+            toEnums.push(c.emailAddresses[0]);
         tool.messages!.push({
             'type'      : 'request-start',
             content     : `I am sending email to ${c.name}. Please stay on the line`,

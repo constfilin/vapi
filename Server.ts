@@ -74,7 +74,7 @@ export default class Server {
         const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
         const hour = djs.hour();
         if( [0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
-            return `call sendEmail with name '${canonicalName}' and emailAddress ${contact.emailAddresses[0]} and hang up.`;
+            return `call sendEmail with name equal to '${canonicalName}' and emailAddress equal to ${contact.emailAddresses[0]} and hang up.`;
         return `call redirectCall with name equal to '${canonicalName}' and destination equal to +1${contact.phoneNumbers[0]}`;
     }
 }

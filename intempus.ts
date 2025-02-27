@@ -101,7 +101,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
     return tool as Vapi.CreateTransferCallToolDto;
 }
 
-export const getDispatchCallTool = () : Vapi.CreateFunctionToolDto => {
+export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFunctionToolDto => {
     const config = Config.get();
     return {
         'type'     : 'function',
@@ -113,7 +113,9 @@ export const getDispatchCallTool = () : Vapi.CreateFunctionToolDto => {
                 'type' : 'object',
                 properties : {
                     name : {
-                        'type' : 'string'
+                        type        : 'string',
+                        description : 'The name of the person to dispatch the call to',
+                        'enum'      : contacts.map(c=>c.name)
                     }
                 },
                 required : [
@@ -126,11 +128,24 @@ export const getDispatchCallTool = () : Vapi.CreateFunctionToolDto => {
                 "type": "request-response-delayed",
                 "content": "Dispatching call is taking a bit longer"
             },
+            /*
+            ...contacts.map( c => {
+                return {
+                    // https://docs.vapi.ai/api-reference/tools/create#request.body.function.messages.request-complete.role
+                    "type"      : "request-complete",
+                    "role"      : "assistant",
+                    "content"   : `Dispatching your call to ${c.name}`,
+                    conditions  : [{
+                        param   : 'name',
+                        operator: 'eq', 
+                        value   : c.name as unknown as Record<string,unknown>
+                    }]
+                } as Vapi.CreateTransferCallToolDtoMessagesItem;
+            }),*/
             {
-                // https://docs.vapi.ai/api-reference/tools/create#request.body.function.messages.request-complete.role
-                "role": "system",
-                "type": "request-complete",
-                "content": "."
+                "role"      : "system",
+                "type"      : "request-complete",
+                "content"   : "."
             },
             {
                 "type": "request-failed",
@@ -396,7 +411,7 @@ export const getToolByName = async (
     case 'redirectCall':
         return getRedirectCallTool(await Contacts.get());
     case 'dispatchCall':
-        return getDispatchCallTool();
+        return getDispatchCallTool(await Contacts.get());
     case 'sendEmail':
         return getSendEmailTool(await Contacts.get());
     }

@@ -83,17 +83,21 @@ export default () => {
                     const args = tc['function'].arguments;
                     switch( tc['function'].name ) {
                     case 'sendEmail':
-                        if( !args?.to || !args?.subject || !args?.text ) {
+                        if( !args || !(args.to||args.destination) || !args.subject || !args.text ) {
                             return {
                                 toolCallId  : tc.id,
                                 result      : `No args found in function name '${tc['function'].name}'`
                             };
                         }
-                        return server.sendEmail(args as {to:string,subject:string,text:string}).then(() => {
+                        return server.sendEmail({
+                            to      :   (args.to||args.destination) as string,
+                            subject :   args.subject as string,
+                            text    :   args.text as string
+                        }).then(() => {
                             server.module_log(module.filename,2,`Handled '${tc['function'].name}'`,args);
                             return {
                                 toolCallId  : tc.id,
-                                result      : `Email is sent to ${args.to}`
+                                result      : `Email is sent to ${args.to||args.destination}`
                             }
                         });
                     case 'dispatchCall':

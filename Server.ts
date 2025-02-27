@@ -43,12 +43,12 @@ export default class Server {
         }
         return this;
     }    
-    sendEmail(args:{ to:string, subject:string, text:string }) : Promise<void> {
+    sendEmail(args:{ emailAddress:string, subject:string, text:string }) : Promise<void> {
         if( !this.nm_transport )
             throw Error(`Transport is not initialized`);
         return this.nm_transport.sendMail({
             from    : this.config.nm.from,
-            to      : args.to,
+            to      : args.emailAddress,
             subject : args.subject,
             text    : args.text
         });

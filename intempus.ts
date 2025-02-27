@@ -107,7 +107,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
         tool.destinations!.push({
             'type'      :   'number',
             number      :   fullPhone,
-            message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
+            //message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
             description :   c.description ? `${c.name} - ${c.description}` : c.name,
             callerId    :   `+17254446330`,
             transferPlan : {

@@ -306,9 +306,6 @@ Pronunciation Directive:
             "messages": [
                 {
                     "role"   : "system",
-                    // TODO:
-                    // Take all these hardcoded phone numbers from the contacts spreadsheet
-                    // Remove the hardcoding
                     "content": `${systemPromptHeader}Ensure proper pronunciation to maintain a natural conversational tone.
 
 To send test email, ask who is asking and what is the reason. after getting the answer, call sendEmail to destination constfilin@gmail.com with subject "user call" and body  in which provide who and why called. Then confirm sending the email and absolutely necessary call End Call Function.

@@ -1,11 +1,11 @@
 export default {
     // common params
-    spreadsheetId                   : (process.env.SPREADSHEETID||'1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI'),
-    googleApiKey                    : (process.env.APIKEY||'AIzaSyCT8aFJSkW441NeZcm-4ZJrE3jT0iIkzgo'),
+    spreadsheetId                   : (process.env.SPREADSHEETID||'[hidden]'),
+    googleApiKey                    : (process.env.APIKEY||'[hidden]'),
     worksheetName                   : (process.env.WORKSHEET_NAME||'Contacts'),
-    vapiOrgId                       : (process.env.VAPI_ORG_ID||'52859bb9-27df-41ee-8c6d-c300c1c75bbd'),
+    vapiOrgId                       : (process.env.VAPI_ORG_ID||'[hidden]'),
     vapiPrivateKey                  : (process.env.VAPI_PRIVATE_KEY||''),
-    vapiToolSecret                  : (process.env.VAPI_TOOLS_SECRET||'ZZnxVey4U2UL'),
+    vapiToolSecret                  : (process.env.VAPI_TOOLS_SECRET||'[hidden]'),
     assistantName                   : (process.env.ASSISTANT_NAME||'IntempusBot'),
     publicUrl                       : (process.env.PUBLIC_URL||'http://127.0.0.1:9876/api'),                          // https://demo.tectransit.com/api/vapi
     // web server

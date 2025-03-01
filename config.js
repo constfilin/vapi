@@ -7,7 +7,7 @@ export default {
     vapiPrivateKey                  : (process.env.VAPI_PRIVATE_KEY||''),
     vapiToolSecret                  : (process.env.VAPI_TOOLS_SECRET||'ZZnxVey4U2UL'),
     assistantName                   : (process.env.ASSISTANT_NAME||'IntempusBot'),
-    publicUrl                       : 'http://127.0.0.1:9876/api',                          // https://demo.tectransit.com/api/vapi
+    publicUrl                       : (process.env.PUBLIC_URL||'http://127.0.0.1:9876/api'),                          // https://demo.tectransit.com/api/vapi
     // web server
     web                             : {
         path        : __dirname,

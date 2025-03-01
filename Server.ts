@@ -72,11 +72,9 @@ export default class Server {
         if( !contact )
             return `Cannot find name '${name}' in ${this.config.worksheetName}`;
         const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
-        if( [0,6].includes(djs.day()) )
-            return `Call sendEmail with ${contact.emailAddresses[0]}`;
         const hour = djs.hour();
-        if( (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
-            return `Call sendEmail with ${contact.emailAddresses[0]}`
-        return `Call redirectCall with +1${contact.phoneNumbers[0]}`;
+        if( [0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
+            return `call sendEmail with ${contact.emailAddresses[0]}`;
+        return `call redirectCall with +1${contact.phoneNumbers[0]}`;
     }
 }

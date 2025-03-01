@@ -5,6 +5,64 @@ import {
 import * as Config      from './Config';
 import * as Contacts    from './Contacts';
 
+export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFunctionToolDto => {
+    const config = Config.get();
+    const result =  {
+        'type'     : 'function',
+        'async'    : false,
+        'function' : {
+            name        : 'dispatchCall',
+            description : "API gets a person name, looks up spreadsheet contacts, checks current time and return instructions how to dispatch the call",
+            parameters  : {
+                'type' : 'object',
+                properties : {
+                    name : {
+                        type        : 'string',
+                        description : 'The name of the person to dispatch the call to',
+                        'enum'      : contacts.map(c=>c.name)
+                    }
+                },
+                required : [
+                    "name"
+                ]
+            }
+        },
+        messages : [
+            {
+                "type": "request-response-delayed",
+                "content": "Dispatching call is taking a bit longer"
+            },
+            ...contacts.map( c => {
+                return {
+                    // https://docs.vapi.ai/api-reference/tools/create#request.body.function.messages.request-complete.role
+                    "type"      : "request-start",
+                    "content"   : `Dispatching your call to ${c.name}`,
+                    conditions  : [{
+                        param   : 'name',
+                        operator: 'eq', 
+                        value   : c.name as unknown as Record<string,unknown>
+                    }]
+                } as Vapi.ToolMessageStart;
+            }),
+            {
+                "role"   : "system",
+                "type"   : "request-complete",
+                "content": "."
+            },
+            {
+                "type": "request-failed",
+                "content": "Cannot dispatch call"
+            }
+        ] as Vapi.CreateFunctionToolDtoMessagesItem[],
+        server : {
+            "url"            : `${config.publicUrl}/tool`,
+            "timeoutSeconds" : 30,
+            "secret"         : config.vapiToolSecret
+        }
+    } as Vapi.CreateFunctionToolDto;
+    return result;
+}
+
 export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateTransferCallToolDto => {
     const config = Config.get();
     const tool = {
@@ -21,7 +79,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                         type        : 'string',
                         description : 'The destination phone number for the call transfer',
                         'enum'      : [] as string[],
-                    }
+                    },
                 },
                 required    : [
                     "destination"
@@ -35,7 +93,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
             "secret"         : config.vapiToolSecret
         }
     } as Vapi.CreateTransferCallToolDto;
-    const destinationEnums = tool['function']!.parameters!.properties!.destination!.enum!;
+    const destinationEnums  = tool['function']!.parameters!.properties!.destination!.enum!;
     contacts.forEach( c => {
         // TODO:
         // The same phone number can be listed in the contacts multiple times
@@ -49,13 +107,11 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
         tool.destinations!.push({
             'type'      :   'number',
             number      :   fullPhone,
-            message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
+            //message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
             description :   c.description ? `${c.name} - ${c.description}` : c.name,
-            // Testing is requesting an extension will make VAPI wait for the other party to answer
-            extension   :   `111`,
             callerId    :   `+17254446330`,
             transferPlan : {
-                mode        : 'warm-transfer-wait-for-operator-to-speak-first-and-then-say-summary',
+                mode        : 'warm-transfer-say-message',
                 message     : 'Incoming call from Intempus',
                 //sipVerb     : 'refer',
                 summaryPlan : {
@@ -74,73 +130,31 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 }
             }
         } as Vapi.TransferDestinationNumber);
+        /*
         tool.messages!.push({
             'type'      : 'request-start',
             content     : `I am forwarding your call to ${c.name}. Please stay on the line`,
             conditions  : [{
-                param   : 'destination',
+                param   : 'name',
                 operator: 'eq',
-                // @ts-expect-error
-                value   : fullPhone
+                value   : c.name as unknown as Record<string,unknown>
             }]
-        } /*as Vapi.CreateTransferCallToolDtoMessagesItem*/);
+        } as Vapi.CreateTransferCallToolDtoMessagesItem);
+        */
     });
     // In case if the call is forwarded to unknown contact
+    /*
     tool.messages!.push({
         'type'      : 'request-start',
         content     : `I am forwarding your call...`,
     });
-    //tool.destinations = [];
-    //tool.messages = [];
-    //delete tool['function']?.parameters;
+    */
     return tool as Vapi.CreateTransferCallToolDto;
 }
 
-export const getDispatchCallTool = () : Vapi.CreateFunctionToolDto => {
-    const config = Config.get();
-    return {
-        'type'     : 'function',
-        'async'     : false,
-        'function' : {
-            name        : 'dispatchCall',
-            description : "API gets a person name, looks up spreadsheet contacts, checks current time and return instructions how to dispatch the call",
-            parameters  : {
-                'type' : 'object',
-                properties : {
-                    name : {
-                        'type' : 'string'
-                    }
-                },
-                required : [
-                    "name"
-                ]
-            }
-        },
-        messages : [
-            {
-                "type": "request-response-delayed",
-                "content": "Dispatching call is taking a bit longer"
-            },
-            {
-                "role": "system",
-                "type": "request-complete",
-                "content": "."
-            },
-            {
-                "type": "request-failed",
-                "content": "Cannot dispatch call"
-            }
-        ],
-        server : {
-            "url"            : `${config.publicUrl}/tool`,
-            "timeoutSeconds" : 30,
-            "secret"         : config.vapiToolSecret
-        }
-    }
-}
-
-export const getSendEmailTool = () : Vapi.CreateFunctionToolDto => {
-    const config = Config.get();
+export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFunctionToolDto => {
+    const config    = Config.get();
+    const toArgName = 'to';
     const tool = {
         'type'      : "function",
         "async"     : false,
@@ -150,18 +164,20 @@ export const getSendEmailTool = () : Vapi.CreateFunctionToolDto => {
             "parameters"    : {
                 "type"      :"object",
                 properties  : {
-                    "to":{
-                        "type":"string"
+                    [toArgName]    : {
+                        "type"      :"string",
+                        description : 'The email address',
+                        'enum'      : [] as string[],
                     },
-                    "text":{
-                        "type":"string"
+                    "text"  : {
+                        "type"      : "string"
                     },
-                    "subject":{
-                        "type":"string"
+                    "subject": {
+                        "type"      : "string"
                     },
                 },
                 required: [
-                    "to",
+                    toArgName,
                     "text",
                     "subject"
                 ]
@@ -169,17 +185,17 @@ export const getSendEmailTool = () : Vapi.CreateFunctionToolDto => {
         },
         messages    :[
             {
-                "type":"request-response-delayed",
-                "content":"Sending email is taking a bit longer to respond"
+                "type"      : "request-response-delayed",
+                "content"   : "Sending email is taking a bit longer to respond"
             },
             {
-                "role":"assistant",
-                "type":"request-complete",
-                "content":"."
+                "role"      : "system",
+                "type"      : "request-complete",
+                "content"   : "Hangup"
             },
             {
-                "type":"request-failed",
-                "content":"Cannot send email"
+                "type"      : "request-failed",
+                "content"   : "Cannot send email"
             }
         ],
         server  : {
@@ -187,8 +203,33 @@ export const getSendEmailTool = () : Vapi.CreateFunctionToolDto => {
             "timeoutSeconds" : 30,
             "secret"         : config.vapiToolSecret
         }
-    };
-    return tool as Vapi.CreateFunctionToolDto;
+    } as Vapi.CreateFunctionToolDto;
+    const toEnums  = tool['function']!.parameters!.properties![toArgName]!.enum;
+    contacts.forEach( c => {
+        // TODO:
+        // The same phone number can be listed in the contacts multiple times
+        // In this case VAPI will produce the _first_ message in `messages` array
+        // that match the phone number. If a specific message needs to be listed
+        // then the contact for this message needs to be listed first in the Contacts
+        // spreadsheet
+        if( !c.emailAddresses[0] )
+            return;
+        if( toEnums && !toEnums.includes(c.emailAddresses[0]) )
+            toEnums.push(c.emailAddresses[0]);
+        /*
+        tool.messages!.push({
+            'type'      : 'request-start',
+            content     : `I am sending email to ${c.name}. Please stay on the line`,
+            conditions  : [{
+                param   : 'name',
+                operator: 'eq',
+                value   : c.name as unknown as Record<string,unknown>
+            }]
+        } as Vapi.CreateTransferCallToolDtoMessagesItem);
+        */
+    });
+
+    return tool;
 }
 
 export const getAssistant = (
@@ -207,7 +248,7 @@ export const getAssistant = (
         `You are an AI voice bot representing **Intempus Realty**. Your role is to assist callers promptly, efficiently, and courteously with their inquiries. You will handle a variety of requests, including rental property questions, property management services, HOA services, maintenance requests, billing issues, lockouts, call transfers, and emailing. You will also request or clarify geographic information when relevant (e.g., Santa Clara County, Alameda, Contra Costa).
 
 Geographic Service Area Restriction:
-- We only provide services in California, Indiana, Florida, Nevada, South Carolina, Georgia, Ohio, and Tennessee.
+- Intempus Realty only provides services in California, Indiana, Florida, Nevada, South Carolina, Georgia, Ohio, and Tennessee.
 - If the caller’s request involves a location outside of these states, politely inform them that Intempus Realty only operates in specific states and politely end the call.
 End the call immediately after delivering this message.
 
@@ -265,18 +306,15 @@ Pronunciation Directive:
             "messages": [
                 {
                     "role"   : "system",
+                    // TODO:
+                    // Take all these hardcoded phone numbers from the contacts spreadsheet
+                    // Remove the hardcoding
                     "content": `${systemPromptHeader}Ensure proper pronunciation to maintain a natural conversational tone.
 
 To send test email, ask who is asking and what is the reason. after getting the answer, call sendEmail to destination constfilin@gmail.com with subject "user call" and body  in which provide who and why called. Then confirm sending the email and absolutely necessary call End Call Function.
 
 If necessary, provide an option to email a billing specialist or transfer during business hours (following the validation steps below).
 Once the location is confirmed, follow location-based procedures. If a transfer or email is required, apply the validation and time-based rules as above.
-
-If the user has property management or HOA inquiries use the redirectCall with +14155553921.
-If the user has urgent maintenance issues call redirectCall with +12065557845.
-If the user has non-urgent maintenance issues clarify the issue then call redirectCall with +16465552347.
-If the user has billing inquiries call redirectCall with +13055556712.
-If the user has leasing  inquiries call redirectCall with +14083339356.
 
 `
                 }
@@ -328,7 +366,7 @@ If the user has leasing  inquiries call redirectCall with +14083339356.
             //"model-output",
             "tool-calls",
             "transfer-destination-request",
-            "transfer-update",
+            //"transfer-update",
             //"phone-call-control",
             //"function-call",
             "end-of-call-report"
@@ -364,9 +402,9 @@ export const getToolByName = async (
     case 'redirectCall':
         return getRedirectCallTool(await Contacts.get());
     case 'dispatchCall':
-        return getDispatchCallTool();
+        return getDispatchCallTool(await Contacts.get());
     case 'sendEmail':
-        return getSendEmailTool();
+        return getSendEmailTool(await Contacts.get());
     }
     throw Error(`Tool '${name}' s not known`);
 }

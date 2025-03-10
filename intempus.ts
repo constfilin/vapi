@@ -348,7 +348,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
                     n = n.replace(/[^a-zA-Z]/g,'');
                     // throw out the common words
                     const lower = n.toLowerCase();
-                    if( ["a","an","the","for","to","oncall","by","of","main"].includes(lower) )
+                    if( ["a","an","the","for","to","oncall","by","of","main","hoa"].includes(lower) )
                         return acc;
                     // Remove anything that is not a letter
                     acc[lower] = n;

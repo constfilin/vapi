@@ -6,6 +6,7 @@ import { Vapi }             from '@vapi-ai/server-sdk';
 
 import { server }           from '../Server';
 import { getCmdPromise }    from '../getCmdPromise';
+import * as misc            from '../misc';
 
 export const sendResponse = ( 
     req     : expressCore.Request, 
@@ -124,9 +125,58 @@ export default () => {
         });
     });
     router.post('/assistant',(req:expressCore.Request,res:expressCore.Response) => {
-        return sendResponse(req,res,() => {
+        return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
                 throw Error(`Access denied`);
+            // The customer requests an email to be sent to the customer if the call is transferred to a number
+            // First try the easy way
+            const vapi_message  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageEndOfCallReport;
+            if( vapi_message.type!=='end-of-call-report')
+                return {
+                    err : `Got unknown VAPI message with type '${vapi_message.type}'`
+                }
+            const get_email_address = async () : Promise<string|undefined> => {
+                // First try the easy way
+                const message_items = (vapi_message as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
+                if( Array.isArray(message_items) ) {
+                    const last_dispatch_call_result = (message_items as Vapi.ToolCallResultMessage[]).reduce( (acc,mi,mindx) => {
+                        if( mi.role!=='tool_call_result' )
+                            return acc;
+                        if( mi.name!=='dispatchCall')
+                            return acc;
+                        return mi;
+                    },undefined as (Vapi.ToolCallResultMessage|undefined));
+                    if( last_dispatch_call_result )
+                        return last_dispatch_call_result.result.replace(/^call\s+sendEmail\s+(?:with\s+)?([^@]+@.+)$/i,"$1"); 
+                }
+                // Next try the hard way
+                const phone_number = vapi_message.customer?.number;
+                if( phone_number ) {
+                    return server.getContacts().then( contacts => {
+                        const clean_phone_number = misc.canonicalizePhone(phone_number);
+                        const c = contacts.find( c => {
+                            return c.phoneNumbers.includes(clean_phone_number);
+                        });
+                        return c?.emailAddresses[0];
+                    });
+                }
+                return undefined;
+            }
+            const email_address = await get_email_address();
+            if( !email_address )
+                return {
+                    err : `Cannot figure out the email address of phone '${vapi_message.customer?.number}'`
+                };
+            const text = vapi_message.analysis.summary||'Summary was not provided';
+            server.sendEmail({
+                to      :   email_address,
+                subject :   `Call to ${vapi_message.assistant?.name}`,
+                text    :   text
+            }).then(() => {
+                server.module_log(module.filename,2,`Sent email with call summary '${text}' to '${email_address}'`);
+            }).catch( err => {
+                server.module_log(module.filename,1,`Cannot send an email with call summary '${text}' to '${email_address}' (${err.message})`);
+            })
             return {
                 // nothing in particular needs to be returned
             }

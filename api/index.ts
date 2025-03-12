@@ -146,8 +146,9 @@ export default () => {
                             return acc;
                         return mi;
                     },undefined as (Vapi.ToolCallResultMessage|undefined));
-                    if( last_dispatch_call_result )
-                        return last_dispatch_call_result.result.replace(/^call\s+sendEmail\s+(?:with\s+)?([^@]+@.+)$/i,"$1"); 
+                    const matches = last_dispatch_call_result?.result?.match(/^call\s+sendEmail\s+(?:with\s+)?([^@]+@.+)$/i);
+                    if( matches ) 
+                        return matches[1];
                 }
                 // Next try the hard way
                 const phone_number = vapi_message.customer?.number;

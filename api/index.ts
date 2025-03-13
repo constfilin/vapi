@@ -142,8 +142,6 @@ export default () => {
                 return (message_items as Vapi.ToolCallResultMessage[]).reduce( (acc,mi,mindx) => {
                     if( mi.role!=='tool_call_result' )
                         return acc;
-                    if( mi.name!=='dispatchCall')
-                        return acc;
                     const matches = mi.result.match(re);
                     if( !matches )
                         return acc;

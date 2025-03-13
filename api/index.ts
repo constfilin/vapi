@@ -135,49 +135,52 @@ export default () => {
                 return {
                     err : `Got unknown VAPI message with type '${vapi_message.type}'`
                 }
-            const get_email_address = async () : Promise<string|undefined> => {
-                // First try the easy way
+            const match_toolcall_result_message = ( re:RegExp ) : (RegExpMatchArray|null) => {
                 const message_items = (vapi_message as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
-                if( Array.isArray(message_items) ) {
-                    const last_dispatch_call_result = (message_items as Vapi.ToolCallResultMessage[]).reduce( (acc,mi,mindx) => {
-                        if( mi.role!=='tool_call_result' )
-                            return acc;
-                        if( mi.name!=='dispatchCall')
-                            return acc;
-                        return mi;
-                    },undefined as (Vapi.ToolCallResultMessage|undefined));
-                    const matches = last_dispatch_call_result?.result?.match(/^call\s+sendEmail\s+(?:with\s+)?([^@]+@.+)$/i);
-                    if( matches ) 
-                        return matches[1];
-                }
-                // Next try the hard way
-                const phone_number = vapi_message.customer?.number;
-                if( phone_number ) {
-                    return server.getContacts().then( contacts => {
-                        const clean_phone_number = misc.canonicalizePhone(phone_number);
-                        const c = contacts.find( c => {
-                            return c.phoneNumbers.includes(clean_phone_number);
-                        });
-                        return c?.emailAddresses[0];
-                    });
-                }
-                return undefined;
+                if( !Array.isArray(message_items) )
+                    return null;
+                return (message_items as Vapi.ToolCallResultMessage[]).reduce( (acc,mi,mindx) => {
+                    if( mi.role!=='tool_call_result' )
+                        return acc;
+                    if( mi.name!=='dispatchCall')
+                        return acc;
+                    const matches = mi.result.match(re);
+                    if( !matches )
+                        return acc;
+                    return matches;
+                },null as (RegExpMatchArray|null));
             }
-            const email_address = await get_email_address();
+            const phone_number = vapi_message.customer?.number;
+            if( !phone_number )
+                return {
+                    err : `Customer phone number is not provided`
+                }
+            const c = await server.getContacts().then( contacts => {
+                const clean_phone_number = misc.canonicalizePhone(phone_number);
+                const c = contacts.find( c => {
+                    return c.phoneNumbers.includes(clean_phone_number);
+                });
+                return c;
+            });
+            const email_address = c?.emailAddresses[0];
             if( !email_address )
                 return {
-                    err : `Cannot figure out the email address of phone '${vapi_message.customer?.number}'`
+                    err : `Cannot figure out the email address of phone '${phone_number}'`
                 };
+            if( match_toolcall_result_message(new RegExp(`^email\\s+is\\s+sent\\s+to\\s+${c?.emailAddresses[0]}$/`,'i')) )
+                return {
+                    err : `Email is already sent to ${email_address}`
+                } 
             const text = vapi_message.analysis.summary||'Summary was not provided';
             server.sendEmail({
-                to      :   email_address,
+                to      :   c.emailAddresses[0],
                 subject :   `Call to ${vapi_message.assistant?.name}`,
                 text    :   text
             }).then(() => {
                 server.module_log(module.filename,2,`Sent email with call summary '${text}' to '${email_address}'`);
             }).catch( err => {
                 server.module_log(module.filename,1,`Cannot send an email with call summary '${text}' to '${email_address}' (${err.message})`);
-            })
+            });
             return {
                 // nothing in particular needs to be returned
             }

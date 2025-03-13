@@ -134,7 +134,7 @@ export default () => {
             if( vapi_message.type!=='end-of-call-report')
                 return {
                     err : `Got unknown VAPI message with type '${vapi_message.type}'`
-                }
+                };
             const match_toolcall_result_message = ( re:RegExp ) : (RegExpMatchArray|null) => {
                 const message_items = (vapi_message as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
                 if( !Array.isArray(message_items) )
@@ -167,10 +167,10 @@ export default () => {
                 return {
                     err : `Cannot figure out the email address of phone '${phone_number}'`
                 };
-            if( match_toolcall_result_message(new RegExp(`^email\\s+is\\s+sent\\s+to\\s+${c?.emailAddresses[0]}$/`,'i')) )
+            if( match_toolcall_result_message(new RegExp(`^email\\s+is\\s+sent\\s+to\\s+${c?.emailAddresses[0]}$`,'i')) )
                 return {
                     err : `Email is already sent to ${email_address}`
-                } 
+                };
             const text = vapi_message.analysis.summary||'Summary was not provided';
             server.sendEmail({
                 to      :   c.emailAddresses[0],
@@ -183,7 +183,7 @@ export default () => {
             });
             return {
                 // nothing in particular needs to be returned
-            }
+            };
         });
     });
     router.post('/cmd',(req:expressCore.Request,res:expressCore.Response) => {

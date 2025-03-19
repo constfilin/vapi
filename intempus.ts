@@ -363,14 +363,20 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
         //    "function-call"
         ],
         serverMessages  : [
-            "hang",
-            //"model-output",
-            "tool-calls",
-            "transfer-destination-request",
-            //"transfer-update",
-            //"phone-call-control",
-            //"function-call",
-            "end-of-call-report"
+            'conversation-update',
+            'end-of-call-report',
+            'function-call',
+            'hang',
+            'model-output',
+            'phone-call-control',
+            'speech-update',
+            'status-update',
+            'transcript',
+            'transcript[transcriptType="final"]',
+            'tool-calls',
+            'transfer-destination-request',
+            'user-interrupted',
+            'voice-input'        
         ],
         endCallPhrases  : [
             "goodbye"
@@ -383,7 +389,10 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
         server  : {
             "url"            : `${config.publicUrl}/assistant`,
             "timeoutSeconds" : 30,
-            "secret"         : config.vapiToolSecret
+            "secret"         : config.vapiToolSecret,
+            "headers"        : {
+                "X-secret"   : config.vapiToolSecret
+            }
         }
     } as Vapi.CreateAssistantDto;
 
@@ -392,7 +401,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             return `If the user asks for ${c.name}, call dispatchCall with ${c.name}, wait for result and immediately follow the instructions of the result.`;
         })
         .join("\n");
-
+    console.log(assistant);
     return assistant;
 }
 

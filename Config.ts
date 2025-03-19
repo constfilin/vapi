@@ -8,6 +8,7 @@ export interface Config {
     vapiToolSecret          : string;
     assistantName           : string;
     publicUrl               : string;
+    replPort                : number;
     web                     :   {
         path                :   string;
         loglevel            :   number;

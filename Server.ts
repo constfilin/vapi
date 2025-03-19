@@ -1,4 +1,6 @@
 import util                     from 'node:util';
+import net                      from 'node:net';
+import repl                     from 'node:repl';
 
 import * as GoogleSpreadsheet   from 'google-spreadsheet';
 import nodemailer               from 'nodemailer';
@@ -21,8 +23,41 @@ export default class Server {
         this.config         = Config.get();
         this.contacts_sheet = undefined; // Let's do it at the very first request
         this.nm_transport   = nodemailer.createTransport(this.config.nm);
+        this.init_repl();
         server = this;
         return this;
+    }
+    init_repl() {
+        // Follows https://gist.github.com/TooTallNate/2209310
+        // To use this run `rlwrap telnet localhost 1338`
+        net.createServer( (socket:net.Socket) => {
+            this.log(1,`Started REPL server for ${socket.remotePort}@${socket.remoteAddress}`);
+            const server = repl.start({
+                prompt      : 'TT> ',
+                input       : socket,
+                output      : socket,
+                terminal    : true,
+                useGlobal   : false,
+                completer   : function( line:string ) {
+                    // tslint:disable:no-console
+                    console.log(`completer.this=`,this);
+                    return [[],line];
+                }
+            });
+            server.context.socket = socket;
+            server.context.Server = this;
+            server.on('error',() => {
+                this.log(1,`repl error event, closing socket with ${socket.remotePort}@${socket.remoteAddress}`);
+                socket.end();
+            });
+            server.on('exit',() => {
+                this.log(1,`repl exit event, closing socket with ${socket.remotePort}@${socket.remoteAddress}`);
+                socket.end();
+            });
+        }).listen({
+            port : this.config.replPort||1338,
+            host : "localhost"
+        });        
     }
     log_prefix( level:number ) {
         return `${dayjs().format("YYYY-MM-DD HH:mm:ss")}:${level}`;

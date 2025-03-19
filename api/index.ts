@@ -8,7 +8,7 @@ import { server }           from '../Server';
 import { getCmdPromise }    from '../getCmdPromise';
 import * as misc            from '../misc';
 
-export const sendResponse = ( 
+const sendResponse = ( 
     req     : expressCore.Request, 
     res     : expressCore.Response, 
     response: any 
@@ -66,6 +66,20 @@ export const sendResponse = (
         });
     }
     return log_and_send_response(response);
+}
+
+const matchToolcallResultMessage = ( vapi_message:Vapi.ServerMessageMessage, re:RegExp ) : (RegExpMatchArray|null) => {
+    const message_items = (vapi_message as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
+    if( !Array.isArray(message_items) )
+        return null;
+    return (message_items as Vapi.ToolCallResultMessage[]).reduce( (acc,mi,mindx) => {
+        if( mi.role!=='tool_call_result' )
+            return acc;
+        const matches = mi.result.match(re);
+        if( !matches )
+            return acc;
+        return matches;
+    },null as (RegExpMatchArray|null));
 }
 
 export default () => {
@@ -130,57 +144,44 @@ export default () => {
                 throw Error(`Access denied`);
             // The customer requests an email to be sent to the customer if the call is transferred to a number
             // First try the easy way
-            const vapi_message  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageEndOfCallReport;
-            if( vapi_message.type!=='end-of-call-report') {
-                server.module_log(module.filename,2,`got not handled type '${vapi_message.type}' (${JSON.stringify(vapi_message)})`);
-                return {
-                    err : `Got unknown VAPI message with type '${vapi_message.type}'`
-                };
-            }
-            const match_toolcall_result_message = ( re:RegExp ) : (RegExpMatchArray|null) => {
-                const message_items = (vapi_message as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
-                if( !Array.isArray(message_items) )
-                    return null;
-                return (message_items as Vapi.ToolCallResultMessage[]).reduce( (acc,mi,mindx) => {
-                    if( mi.role!=='tool_call_result' )
-                        return acc;
-                    const matches = mi.result.match(re);
-                    if( !matches )
-                        return acc;
-                    return matches;
-                },null as (RegExpMatchArray|null));
-            }
-            const phone_number = vapi_message.customer?.number;
-            if( !phone_number )
-                return {
-                    err : `Customer phone number is not provided`
-                }
-            const c = await server.getContacts().then( contacts => {
-                const clean_phone_number = misc.canonicalizePhone(phone_number);
-                const c = contacts.find( c => {
-                    return c.phoneNumbers.includes(clean_phone_number);
+            const server_message  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageMessage;
+            if( server_message.type==='end-of-call-report') {
+                const eocr_server_message = server_message as Vapi.ServerMessageEndOfCallReport;
+                const phone_number = eocr_server_message.customer?.number;
+                if( !phone_number )
+                    return {
+                        err : `Customer phone number is not provided`
+                    }
+                const c = await server.getContacts().then( contacts => {
+                    const clean_phone_number = misc.canonicalizePhone(phone_number);
+                    const c = contacts.find( c => {
+                        return c.phoneNumbers.includes(clean_phone_number);
+                    });
+                    return c;
                 });
-                return c;
-            });
-            const email_address = c?.emailAddresses[0];
-            if( !email_address )
-                return {
-                    err : `Cannot figure out the email address of phone '${phone_number}'`
-                };
-            if( match_toolcall_result_message(new RegExp(`^email\\s+is\\s+sent\\s+to\\s+${c?.emailAddresses[0]}$`,'i')) )
-                return {
-                    err : `Email is already sent to ${email_address}`
-                };
-            const text = vapi_message.analysis.summary||'Summary was not provided';
-            server.sendEmail({
-                to      :   c.emailAddresses[0],
-                subject :   `Call to ${vapi_message.assistant?.name}`,
-                text    :   text
-            }).then(() => {
-                server.module_log(module.filename,2,`Sent email with call summary '${text}' to '${email_address}'`);
-            }).catch( err => {
-                server.module_log(module.filename,1,`Cannot send an email with call summary '${text}' to '${email_address}' (${err.message})`);
-            });
+                const email_address = c?.emailAddresses[0];
+                if( !email_address )
+                    return {
+                        err : `Cannot figure out the email address of phone '${phone_number}'`
+                    };
+                if( matchToolcallResultMessage(eocr_server_message,new RegExp(`^email\\s+is\\s+sent\\s+to\\s+${c?.emailAddresses[0]}$`,'i')) )
+                    return {
+                        err : `Email is already sent to ${email_address}`
+                    };
+                const text = eocr_server_message.analysis.summary||'Summary was not provided';
+                server.sendEmail({
+                    to      :   c.emailAddresses[0],
+                    subject :   `Call to ${eocr_server_message.assistant?.name}`,
+                    text    :   text
+                }).then(() => {
+                    server.module_log(module.filename,2,`Sent email with call summary '${text}' to '${email_address}'`);
+                }).catch( err => {
+                    server.module_log(module.filename,1,`Cannot send an email with call summary '${text}' to '${email_address}' (${err.message})`);
+                });
+            }
+            else {
+                server.module_log(module.filename,2,`Assistant notification of type '${server_message.type}/${(server_message as any).status||'??'}' is not handled`);
+            }
             return {
                 // nothing in particular needs to be returned
             };

@@ -28,11 +28,11 @@ const sendResponse = (
         else {
             let str_to_log = String(response);
             if( str_to_log==='[object Object]' )
-                str_to_log = response?.constructor?.name||'Object';
+                str_to_log = JSON.stringify(response);
             server.module_log(
                 module.filename, 1, `${req.method} to ${req.originalUrl} (${duration_ms}ms):`,
                 str_to_log.substring(0,50),
-                `(${response?.length} chars)`
+                `(${str_to_log?.length} chars)`
             );
         }
     }
@@ -145,6 +145,7 @@ export default () => {
             // The customer requests an email to be sent to the customer if the call is transferred to a number
             // First try the easy way
             const server_message  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageMessage;
+            server.module_log(module.filename,2,`Got assistant notification '${server_message.type}/${(server_message as any).status||'??'}'`);
             if( server_message.type==='end-of-call-report') {
                 const eocr_server_message = server_message as Vapi.ServerMessageEndOfCallReport;
                 const phone_number = eocr_server_message.customer?.number;
@@ -180,7 +181,7 @@ export default () => {
                 });
             }
             else {
-                server.module_log(module.filename,2,`Assistant notification of type '${server_message.type}/${(server_message as any).status||'??'}' is not handled`);
+                // Not handled
             }
             return {
                 // nothing in particular needs to be returned

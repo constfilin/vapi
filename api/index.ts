@@ -1,5 +1,6 @@
 import util                 from 'node:util';
 
+import WebSocket            from 'ws';
 import express              from 'express';
 import * as expressCore     from 'express-serve-static-core';
 import { Vapi }             from '@vapi-ai/server-sdk';
@@ -179,6 +180,42 @@ export default () => {
                 }).catch( err => {
                     server.module_log(module.filename,1,`Cannot send an email with call summary '${text}' to '${email_address}' (${err.message})`);
                 });
+            }
+            else if( server_message.type==='status-update' ) {
+                const su_server_message = server_message as Vapi.ServerMessageStatusUpdate;
+                const call              = su_server_message.call;
+                const listenUrl         = call?.monitor?.listenUrl;
+                if( !listenUrl )
+                    throw Error(`listenUrl is not provided in '${server_message.type}' server message`);
+                if( su_server_message.status==='in-progress' ) {
+                    const ws = new WebSocket(listenUrl);
+                    ws.on('open',() => {
+                        console.log(`WebSocket connection established with '${listenUrl}'`);
+                    });
+                    ws.on('message', (data, isBinary) => {
+                        if (isBinary) {
+                            console.log(`Received binary PCM data`);
+                        } else {
+                            console.log(`Received message on '${listenUrl}':`,data.toString());
+                        }
+                    });
+                    ws.on('close', () => {
+                        console.log(`WebSocket connection is closed with '${listenUrl}'`);
+                    });
+                    ws.on('error',(error) => {
+                        console.error(`WebSocket error with '${listenUrl}':`,error);
+                    });
+                    server.ws_by_url[listenUrl] = ws;
+                }
+                else if( su_server_message.status==='ended' ) {
+                    const ws = server.ws_by_url[listenUrl];
+                    try {
+                        ws?.close();
+                    }
+                    catch( err ) {
+                        server.module_log(module.filename,1,`Cannot find WS by '${listenUrl}' (${err.message})`);
+                    }
+                }
             }
             else {
                 // Not handled

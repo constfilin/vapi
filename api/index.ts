@@ -190,20 +190,21 @@ export default () => {
                 if( su_server_message.status==='in-progress' ) {
                     const ws = new WebSocket(listenUrl);
                     ws.on('open',() => {
-                        console.log(`WebSocket connection established with '${listenUrl}'`);
+                        server.module_log(module.filename,1,`WebSocket connection established with '${listenUrl}'`);
                     });
                     ws.on('message', (data, isBinary) => {
                         if (isBinary) {
-                            console.log(`Received binary PCM data`);
-                        } else {
-                            console.log(`Received message on '${listenUrl}':`,data.toString());
+                            server.module_log(module.filename,4,`Received binary PCM data`);
+                        } 
+                        else {
+                            server.module_log(module.filename,2,`Received message on '${listenUrl}':`,data.toString());
                         }
                     });
                     ws.on('close', () => {
-                        console.log(`WebSocket connection is closed with '${listenUrl}'`);
+                        server.module_log(module.filename,2,`WebSocket connection is closed with '${listenUrl}'`);
                     });
                     ws.on('error',(error) => {
-                        console.error(`WebSocket error with '${listenUrl}':`,error);
+                        server.module_log(module.filename,2,`WebSocket error with '${listenUrl}':`,error);
                     });
                     server.ws_by_url[listenUrl] = ws;
                 }

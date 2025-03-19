@@ -211,7 +211,9 @@ export default () => {
                 else if( su_server_message.status==='ended' ) {
                     const ws = server.ws_by_url[listenUrl];
                     try {
-                        ws?.close();
+                        if( ws )
+                            ws.close();
+                        delete server.ws_by_url[listenUrl];
                     }
                     catch( err ) {
                         server.module_log(module.filename,1,`Cannot find WS by '${listenUrl}' (${err.message})`);

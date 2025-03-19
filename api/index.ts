@@ -131,10 +131,12 @@ export default () => {
             // The customer requests an email to be sent to the customer if the call is transferred to a number
             // First try the easy way
             const vapi_message  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageEndOfCallReport;
-            if( vapi_message.type!=='end-of-call-report')
+            if( vapi_message.type!=='end-of-call-report') {
+                server.module_log(module.filename,2,`got not handled type '${vapi_message.type}' (${JSON.stringify(vapi_message)})`);
                 return {
                     err : `Got unknown VAPI message with type '${vapi_message.type}'`
                 };
+            }
             const match_toolcall_result_message = ( re:RegExp ) : (RegExpMatchArray|null) => {
                 const message_items = (vapi_message as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
                 if( !Array.isArray(message_items) )

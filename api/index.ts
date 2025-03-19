@@ -206,6 +206,8 @@ export default () => {
                     ws.on('error',(error) => {
                         server.module_log(module.filename,2,`WebSocket error with '${listenUrl}':`,error);
                     });
+                    if( server.ws_by_url[listenUrl] )
+                        server.ws_by_url[listenUrl].close();
                     server.ws_by_url[listenUrl] = ws;
                 }
                 else if( su_server_message.status==='ended' ) {

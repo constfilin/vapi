@@ -4,6 +4,7 @@ import repl                     from 'node:repl';
 
 import * as GoogleSpreadsheet   from 'google-spreadsheet';
 import nodemailer               from 'nodemailer';
+import * as ws                  from 'ws';
 
 import dayjs                    from './day-timezone';
 import * as misc                from './misc';
@@ -18,11 +19,13 @@ export default class Server {
     config                  : Config.Config;
     contacts_sheet          : (GoogleSpreadsheet.GoogleSpreadsheetWorksheet|undefined);
     nm_transport            : (nodemailer.Transporter|undefined);
+    ws_by_url               : Record<string,ws.WebSocket>; 
 
     constructor() {
         this.config         = Config.get();
         this.contacts_sheet = undefined; // Let's do it at the very first request
         this.nm_transport   = nodemailer.createTransport(this.config.nm);
+        this.ws_by_url      = {};
         this.init_repl();
         server = this;
         return this;
@@ -45,7 +48,7 @@ export default class Server {
                 }
             });
             server.context.socket = socket;
-            server.context.Server = this;
+            server.context.server = this;
             server.on('error',() => {
                 this.log(1,`repl error event, closing socket with ${socket.remotePort}@${socket.remoteAddress}`);
                 socket.end();

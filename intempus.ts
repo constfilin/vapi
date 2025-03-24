@@ -339,7 +339,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
         endCallFunctionEnabled  : true,
         endCallMessage          : "Thank you for contacting us. Have a great day!",
         transcriber             : {
-            "model"     : "nova-2",
+            "model"     : "nova-2-phonecall",
             "keywords"  : Object.values(contacts
                 .map(c=>c.name.split(/\s+/))
                 .flat()

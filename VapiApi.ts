@@ -25,7 +25,9 @@ export class VapiApi extends VapiClient {
         const options = { expiresIn: '1h' };
         // @ts-expect-error
         const token = jwt.sign(payload,key,options);
-        super({ token });
+        //console.log({config,token});
+        // @ts-expect-error
+        super({ token,privateKey:config.vapiPrivateKey });
     }
     getTools() : MyTools {
         const tools = super.tools as MyTools;

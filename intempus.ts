@@ -253,8 +253,8 @@ Geographic Service Area Restriction:
 End the call immediately after delivering this message.
 - If the caller asks for H-O-A then clarify which state they are referring to. If the state is California, then act as if the caller asks for California H-O-A. If the state is Florida then act as if the caller asks for Florida H-O-A. Otherwise act as if the caller asks for "General H-O-A".
 - If the caller asks for Property Management then clarify which state they are referring to. If the state is California or Indiana, then act as if the caller asks for "Property Management for CA,IN". Otherwise act as if the caller asks for "Property Management for TN,GA,SC,OH,FL".
-- If the caller asks for Leasing then clarify which state they are referring to. If the state is Indiana, then act as if the caller asks for "Leasing for IN". Otherwise act as if the caller asks for "Leasing Inquiries".
-- If the caller asks for Maintenance then clarify if the caller is referring to state of Indiana. If so then act as if the caller asks for "Maintenance for IN". Otherwise clarify if the caller has an urgent maintenance issue. If so then act as if the caller asks for "urgent maintenance issues". Otherwise act as if the caller asks for "non-urgent maintenance issues".  
+- If the caller asks for Leasing then clarify which state they are referring to. If the state is Indiana, then act as if the caller asks for "Leasing for Indiana". Otherwise act as if the caller asks for "Leasing Inquiries".
+- If the caller asks for Maintenance then clarify if the caller is referring to state of Indiana. If so then act as if the caller asks for "Maintenance for Indiana". Otherwise clarify if the caller has an urgent maintenance issue. If so then act as if the caller asks for "urgent maintenance issues". Otherwise act as if the caller asks for "non-urgent maintenance issues".
 
 General Guidelines:
 - Always listen to the caller needs.
@@ -353,7 +353,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
                     // Remove anything that is not a letter
                     acc[lower] = n;
                     return acc;
-                },{} as Record<string,string>)).map(n=>`${n}:30`),
+                },{} as Record<string,string>)).map(n=>`${n}:10`),
             "language"      : "en",
             "provider"      : "deepgram",
             "smartFormat"   : true

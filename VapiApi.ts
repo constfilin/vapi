@@ -22,12 +22,12 @@ export class VapiApi extends VapiClient {
         const config  = Config.get();
         const payload = { orgId: config.vapiOrgId };
         const key     = config.vapiPrivateKey;
-        const options = { expiresIn: '1h' };
+        const options = { expiresIn: '30m' };
         // @ts-expect-error
         const token = jwt.sign(payload,key,options);
-        //console.log({config,token});
-        // @ts-expect-error
-        super({ token,privateKey:config.vapiPrivateKey });
+        // See https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412
+        // Looks like the token authentication is broken
+        super({ token: config.vapiPrivateKey });
     }
     getTools() : MyTools {
         const tools = super.tools as MyTools;
@@ -44,7 +44,7 @@ export class VapiApi extends VapiClient {
                     throw Error(`Cannot find tool with name '${payload['function']!.name}'`);
                 // @ts-expect-error
                 delete payload.type;
-                return super.tools.update(t.id,payload)
+                return super.tools.update(t.id,payload);
             });
         }
         return tools;
@@ -56,18 +56,17 @@ export class VapiApi extends VapiClient {
                 throw Error(`name should be provided`);
             return assistants.list().then( assistants => {
                 return assistants.find(a=>(a.name===name));
-            })
-        }
+            });
+        };
         assistants.updateByName = ( payload:Vapi.CreateAssistantDto ) : Promise<Vapi.Assistant> => {
             return assistants.getByName(payload.name).then( a => {
                 if( !a )
                     throw Error(`Cannot find assistant with name '${payload.name}'`);
                 // @ts-expect-error
                 delete payload.isServerUrlSecretSet;
-                return super.assistants.update(a.id,payload)
+                return super.assistants.update(a.id,payload);
             });
-        }
+        };
         return assistants;
     }
 }
-

@@ -188,37 +188,40 @@ export default () => {
                 if( !listenUrl )
                     throw Error(`listenUrl is not provided in '${server_message.type}' server message`);
                 if( su_server_message.status==='in-progress' ) {
-                    const ws = new WebSocket(listenUrl);
-                    ws.on('open',() => {
-                        server.module_log(module.filename,1,`WebSocket connection established with '${listenUrl}'`);
-                    });
-                    ws.on('message', (data, isBinary) => {
-                        if (isBinary) {
-                            server.module_log(module.filename,4,`Received binary PCM data`);
-                        } 
-                        else {
-                            server.module_log(module.filename,2,`Received message on '${listenUrl}':`,data.toString());
-                        }
-                    });
-                    ws.on('close', () => {
-                        server.module_log(module.filename,2,`WebSocket connection is closed with '${listenUrl}'`);
-                    });
-                    ws.on('error',(error) => {
-                        server.module_log(module.filename,2,`WebSocket error with '${listenUrl}':`,error);
-                    });
-                    if( server.ws_by_url[listenUrl] )
-                        server.ws_by_url[listenUrl].close();
-                    server.ws_by_url[listenUrl] = ws;
+                    if( server.config.open_ws ) {
+                        const ws = new WebSocket(listenUrl);
+                        ws.on('open',() => {
+                            server.module_log(module.filename,1,`WebSocket connection established with '${listenUrl}'`);
+                        });
+                        ws.on('message', (data, isBinary) => {
+                            if (isBinary) {
+                                server.module_log(module.filename,4,`Received binary PCM data`);
+                            } 
+                            else {
+                                server.module_log(module.filename,2,`Received message on '${listenUrl}':`,data.toString());
+                            }
+                        });
+                        ws.on('close', () => {
+                            server.module_log(module.filename,2,`WebSocket connection is closed with '${listenUrl}'`);
+                        });
+                        ws.on('error',(error) => {
+                            server.module_log(module.filename,2,`WebSocket error with '${listenUrl}':`,error);
+                        });
+                        if( server.ws_by_url[listenUrl] )
+                            server.ws_by_url[listenUrl].close();
+                        server.ws_by_url[listenUrl] = ws;
+                    }
                 }
                 else if( su_server_message.status==='ended' ) {
                     const ws = server.ws_by_url[listenUrl];
-                    try {
-                        if( ws )
+                    if( ws ) {
+                        try {
                             ws.close();
-                        delete server.ws_by_url[listenUrl];
-                    }
-                    catch( err ) {
-                        server.module_log(module.filename,1,`Cannot find WS by '${listenUrl}' (${err.message})`);
+                            delete server.ws_by_url[listenUrl];
+                        }
+                        catch( err ) {
+                            server.module_log(module.filename,1,`Cannot find WS by '${listenUrl}' (${err.message})`);
+                        }
                     }
                 }
             }

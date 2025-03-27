@@ -9,6 +9,7 @@ export interface Config {
     assistantName           : string;
     publicUrl               : string;
     replPort                : number;
+    open_ws                 : boolean;
     web                     :   {
         path                :   string;
         loglevel            :   number;

@@ -263,6 +263,9 @@ General Guidelines:
 - If a transfer or email cannot be completed after attempts to clarify, end the call politely.
 - Always prioritize the caller's needs and attempt to resolve their inquiry before ending the call.
 
+Error Handling:
+- If the customer's words or intend is unclear, ask clarifying questions. If you encounter any issues, inform the customer politely and ask to repeat.
+
 Pronunciation Directive:
 - Always pronounce names of people and departments (other than H-O-A) directly without spelling them.`;
 
@@ -363,20 +366,20 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
         //    "function-call"
         ],
         serverMessages  : [
-            'conversation-update',
+            //'conversation-update',
             'end-of-call-report',
             'function-call',
             'hang',
-            'model-output',
+            //'model-output',
             'phone-call-control',
-            'speech-update',
-            'status-update',
-            'transcript',
-            'transcript[transcriptType="final"]',
+            //'speech-update',
+            //'status-update',
+            //'transcript',
+            //'transcript[transcriptType="final"]',
             'tool-calls',
             'transfer-destination-request',
             'user-interrupted',
-            'voice-input'        
+            //'voice-input'        
         ],
         endCallPhrases  : [
             "goodbye"

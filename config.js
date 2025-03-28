@@ -15,7 +15,7 @@ export default {
         loglevel    : process.env.LOG_LEVEL ? parseInt(process.env.LOG_LEVEL) : 2,           // defines verbosity
         port        : 9876,        // port to listen on
         // API authentication
-        header_name : "x-vapi-secret",
+        header_name : "x-secret",
     },
     // NodeMailer
     nm                              : {

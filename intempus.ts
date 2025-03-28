@@ -57,7 +57,14 @@ export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
         server : {
             "url"            : `${config.publicUrl}/tool`,
             "timeoutSeconds" : 30,
-            "secret"         : config.vapiToolSecret
+            "secret"         : config.vapiToolSecret,
+            // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
+            // even though it is configured to do so. I am not surprised given all kinds of other 
+            // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
+            // So, as a workaround, let's just have our own secret header
+            "headers"        : {
+                "X-Secret"   : config.vapiToolSecret
+            }            
         }
     } as Vapi.CreateFunctionToolDto;
     return result;
@@ -90,7 +97,14 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
         server : {
             "url"            : `${config.publicUrl}/tool`,
             "timeoutSeconds" : 30,
-            "secret"         : config.vapiToolSecret
+            "secret"         : config.vapiToolSecret,
+            // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
+            // even though it is configured to do so. I am not surprised given all kinds of other 
+            // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
+            // So, as a workaround, let's just have our own secret header
+            "headers"        : {
+                "X-Secret"   : config.vapiToolSecret
+            }            
         }
     } as Vapi.CreateTransferCallToolDto;
     const destinationEnums  = tool['function']!.parameters!.properties!.destination!.enum!;
@@ -201,7 +215,14 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
         server  : {
             "url"            : `${config.publicUrl}/tool`,
             "timeoutSeconds" : 30,
-            "secret"         : config.vapiToolSecret
+            "secret"         : config.vapiToolSecret,
+            // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
+            // even though it is configured to do so. I am not surprised given all kinds of other 
+            // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
+            // So, as a workaround, let's just have our own secret header
+            "headers"        : {
+                "X-Secret"   : config.vapiToolSecret
+            }            
         }
     } as Vapi.CreateFunctionToolDto;
     const toEnums  = tool['function']!.parameters!.properties![toArgName]!.enum;
@@ -249,12 +270,12 @@ export const getAssistant = (
 
 Geographic Service Area Restriction:
 - Intempus Realty only provides services in California, Indiana, Florida, Nevada, South Carolina, Georgia, Ohio, and Tennessee.
-- If the caller’s request involves a location outside of these states, politely inform them that Intempus Realty only operates in specific states and politely end the call.
+- If the caller request involves a location outside of these states, politely inform them that Intempus Realty only operates in specific states and politely end the call.
 End the call immediately after delivering this message.
 - If the caller asks for H-O-A then clarify which state they are referring to. If the state is California, then act as if the caller asks for California H-O-A. If the state is Florida then act as if the caller asks for Florida H-O-A. Otherwise act as if the caller asks for "General H-O-A".
 - If the caller asks for Property Management then clarify which state they are referring to. If the state is California or Indiana, then act as if the caller asks for "Property Management for CA,IN". Otherwise act as if the caller asks for "Property Management for TN,GA,SC,OH,FL".
-- If the caller asks for Leasing then clarify which state they are referring to. If the state is Indiana, then act as if the caller asks for "Leasing for Indiana". Otherwise act as if the caller asks for "Leasing Inquiries".
-- If the caller asks for Maintenance then clarify if the caller is referring to state of Indiana. If so then act as if the caller asks for "Maintenance for Indiana". Otherwise clarify if the caller has an urgent maintenance issue. If so then act as if the caller asks for "urgent maintenance issues". Otherwise act as if the caller asks for "non-urgent maintenance issues".
+- If the caller asks for Leasing then clarify which state they are referring to. If the state is Indiana, then act as if the caller asks for "Leasing for Indiana". For any other state, including California, act as if the caller asks for "Leasing Inquiries".
+- If the caller asks for Maintenance then clarify if the caller is referring to state of Indiana. If so then act as if the caller asks for "Maintenance for Indiana". For any other state, including California, clarify if the caller has an urgent maintenance issue. If so then act as if the caller asks for "urgent maintenance issues". Otherwise act as if the caller asks for "non-urgent maintenance issues".
 
 General Guidelines:
 - Always listen to the caller needs.
@@ -393,8 +414,12 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             "url"            : `${config.publicUrl}/assistant`,
             "timeoutSeconds" : 30,
             "secret"         : config.vapiToolSecret,
+            // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
+            // even though it is configured to do so. I am not surprised given all kinds of other 
+            // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
+            // So, as a workaround, let's just have our own secret header
             "headers"        : {
-                "X-secret"   : config.vapiToolSecret
+                "X-Secret"   : config.vapiToolSecret
             }
         }
     } as Vapi.CreateAssistantDto;

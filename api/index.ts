@@ -103,8 +103,10 @@ const getLastToolCallToAgrs = (
  ) : Record<string,any> => {
     const lastToolCall = findLastToolCallTo(messageItems,toolName);
     if( !lastToolCall )
-        throw Error(`Cannot find lastDispatchCallTool in messageItems`);
+        return dflt;
     const lastToolCallFunction  = lastToolCall['function'] as Vapi.ToolCallFunction;
+    if( !lastToolCallFunction || typeof lastToolCallFunction!=='object' )
+        return dflt;
     return (typeof lastToolCallFunction.arguments==='object') ? lastToolCallFunction.arguments : 
         (typeof lastToolCallFunction.arguments==='string') ? misc.jsonParse(lastToolCallFunction.arguments as unknown as string,dflt) :
         dflt;

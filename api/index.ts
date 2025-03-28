@@ -146,7 +146,10 @@ export default () => {
             // The customer requests an email to be sent to the customer if the call is transferred to a number
             // First try the easy way
             const server_message  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageMessage;
-            server.module_log(module.filename,2,`Got assistant notification '${server_message.type}/${(server_message as any).status||'??'}'`);
+            server.module_log(module.filename,2,`Got assistant notification '${server_message.type}||'??'}'`,{
+                status  : (server_message as any).status,
+                request : (server_message as any).request,
+            });
             if( server_message.type==='end-of-call-report') {
                 const eocr_server_message = server_message as Vapi.ServerMessageEndOfCallReport;
                 const phone_number = eocr_server_message.customer?.number;

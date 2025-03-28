@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "noEmit": true,
+        "allowImportingTsExtensions" : true,
+        "module" : "esnext",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "target": "ESNext"
+    },
+    "exclude": [
+        "./dist",
+        "./tests",
+        "./node_modules",
+        "./db",
+        "./tests",
+        "./playwright-report/",
+        "./secrets"
+    ]
+}

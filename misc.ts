@@ -23,3 +23,12 @@ export const canonicalizeEmail = ( s:string ) : string => {
 export const toNumber = ( s:any, dflt:number ) : number => {
     return ((s=='') || isNaN(s)) ? dflt : Number(s);
 }
+
+export const jsonParse = ( s:string, defaultValue:Record<string,any> ) : Record<string,any> => {
+    try {
+        return JSON.parse(s);
+    }
+    catch( err ) {
+        return defaultValue
+    }
+};

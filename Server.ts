@@ -112,7 +112,7 @@ export default class Server {
         const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
         const hour = djs.hour();
         if( [0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
-            return `call sendEmail with ${contact.emailAddresses[0]}`;
+            return `call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name}" and text being the summary of the call`;
         return `call redirectCall with +1${contact.phoneNumbers[0]}`;
     }
 }

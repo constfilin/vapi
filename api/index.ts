@@ -69,46 +69,56 @@ const sendResponse = (
     return log_and_send_response(response);
 }
 
-const guessSummaryEmailAddress = async ( eocr_server_message:Vapi.ServerMessageEndOfCallReport ) : Promise<string> => {
-    // Let's see who the email needs to be sent to.
-    // 1. Find the latest call to `dispatchCall` tool
-    // 2. Fish out the arguments of that call
-    // 3. Lookup the name in the arguments in the contacts list
-    // 4. Return the email address of that contact
-    const messageItems = (eocr_server_message as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
+const findLastToolCallTo = ( messageItems:Vapi.CallMessagesItem[], toolName:string ) : (Vapi.ToolCall|undefined) => {
     if( !Array.isArray(messageItems) )
         throw Error(`messages is not an array`);
-    let lastDispatchCallTool              = undefined as (Vapi.ToolCall|undefined);
-    const lastDispatchCallToolMessageItem = messageItems.findLast( mi => {
+    let result = undefined as (Vapi.ToolCall|undefined);
+    const lastCallToolMessageItem = messageItems.findLast( mi => {
         if( mi.role!=='tool_calls' )
             return false;
         const tcmi      = mi as Record<string,any>;
         const toolCalls = (tcmi.tool_calls||tcmi.toolCalls||tcmi.toolCallList) as Vapi.ToolCall[];
         if( !Array.isArray(toolCalls) )
             return false;
-        lastDispatchCallTool = toolCalls.findLast( tc => {
+        result = toolCalls.findLast( tc => {
             if( tc.type!=='function' )
                 return false;
-            const tcrmiFunction = tc['function'];
-            if( typeof tcrmiFunction!=='object' )
+            const tcFunction = tc['function'];
+            if( typeof tcFunction!=='object' )
                 return false;
-            if( tcrmiFunction.name!=='dispatchCall' )
+            if( tcFunction.name!==toolName )
                 return false;
-            if( typeof tcrmiFunction.arguments!=='string' )
+            if( !["object","string"].includes(typeof tcFunction.arguments) )
                 return false;
             return true;
         });
-        return !!lastDispatchCallTool;
+        return !!result;
     });
-    if( !lastDispatchCallTool )
-        throw Error(`Cannot find lastDispatchCallTool in message_items`);
-    const dispatchCallToolFunction  = lastDispatchCallTool['function'] as Vapi.ToolCallFunction;
-    const dispatchCallToolName      = (typeof dispatchCallToolFunction.arguments==='object') ? dispatchCallToolFunction.arguments.name as string :
-        (typeof dispatchCallToolFunction.arguments==='string') ? misc.jsonParse(dispatchCallToolFunction.arguments as unknown as string,{})?.name as string :
-        undefined;
-    if( !dispatchCallToolName )
-        throw Error(`Cannot find name in lastDispatchCallToolFunction.arguments`);
-    const canonicalName             = misc.canonicalizePersonName(dispatchCallToolName);
+    return result;
+}
+const getLastToolCallToAgrs = ( 
+    messageItems: Vapi.CallMessagesItem[], 
+    toolName    : string,
+    dflt        : Record<string,any> = {}
+ ) : Record<string,any> => {
+    const lastToolCall = findLastToolCallTo(messageItems,toolName);
+    if( !lastToolCall )
+        throw Error(`Cannot find lastDispatchCallTool in messageItems`);
+    const lastToolCallFunction  = lastToolCall['function'] as Vapi.ToolCallFunction;
+    return (typeof lastToolCallFunction.arguments==='object') ? lastToolCallFunction.arguments : 
+        (typeof lastToolCallFunction.arguments==='string') ? misc.jsonParse(lastToolCallFunction.arguments as unknown as string,dflt) :
+        dflt;
+}
+const guessSummaryEmailAddress = async ( messageItems:Vapi.CallMessagesItem[] ) : Promise<string> => {
+    // Let's see who the email needs to be sent to.
+    // 1. Find the latest call to `dispatchCall` tool
+    // 2. Fish out the arguments of that call
+    // 3. Lookup the name in the arguments in the contacts list
+    // 4. Return the email address of that contact
+    const lastDispatchCallToolArgs = getLastToolCallToAgrs(messageItems,'dispatchCall',{});
+    if( typeof lastDispatchCallToolArgs.name !== 'string' )
+        throw Error(`Cannot find name in lastDispatchCallToolArgs`);
+    const canonicalName             = misc.canonicalizePersonName(lastDispatchCallToolArgs.name);
     const contact                   = (await server.getContacts()).find( c => {
         // Note: column names are case sensitive
         return c.name===canonicalName;
@@ -117,7 +127,6 @@ const guessSummaryEmailAddress = async ( eocr_server_message:Vapi.ServerMessageE
         throw Error(`Cannot find contact for name '${canonicalName}' in ${server.config.worksheetName}`);
     return contact.emailAddresses[0];
 }
-
 export default () => {
     const router   = express.Router();
     router.post('/tool',async (req:expressCore.Request,res:expressCore.Response) => {
@@ -180,36 +189,42 @@ export default () => {
                 throw Error(`Access denied`);
             // The customer requests an email to be sent to the customer if the call is transferred to a number
             // First try the easy way
-            const server_message  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageMessage;
-            server.module_log(module.filename,2,`Got assistant notification '${server_message.type}||'??'}'`,{
-                status  : (server_message as any).status,
-                request : (server_message as any).request,
+            const serverMessage  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageMessage;
+            server.module_log(module.filename,2,`Got assistant notification '${serverMessage.type||'??'}'`,{
+                status  : (serverMessage as any).status,
+                request : (serverMessage as any).request,
             });
-            if( server_message.type==='end-of-call-report') {
-                let summary_email_address = 'mkhesin@intempus.net'; // default
+            if( serverMessage.type==='end-of-call-report') {
+                const messageItems = (serverMessage as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
+                let summaryEmailAddress = 'mkhesin@intempus.net'; // default
                 try {
-                    summary_email_address = await guessSummaryEmailAddress(server_message as Vapi.ServerMessageEndOfCallReport);
+                    summaryEmailAddress = await guessSummaryEmailAddress(messageItems);
                 }
                 catch( err ) {
-                    server.module_log(module.filename,1,`Cannot guess summary email address (${err.message}), defaulting to '${summary_email_address}'`);
+                    server.module_log(module.filename,1,`Cannot guess summary email address (${err.message}), defaulting to '${summaryEmailAddress}'`);
                 }
-                const summary_email_text    = server_message.analysis.summary||'Summary was not provided';
-                server.sendEmail({
-                    to      :   summary_email_address,
-                    subject :   `Call to ${server_message.assistant?.name}`,
-                    text    :   summary_email_text
-                }).then(() => {
-                    server.module_log(module.filename,2,`Sent email with call summary '${summary_email_text}' to '${summary_email_address}'`);
-                }).catch( err => {
-                    server.module_log(module.filename,1,`Cannot send an email with call summary '${summary_email_text}' to '${summary_email_address}' (${err.message})`);
-                });
+                if( getLastToolCallToAgrs(messageItems,'sendEmail',{}).to===summaryEmailAddress ) {
+                    server.module_log(module.filename,2,`Summary email already sent to '${summaryEmailAddress}'`);
+                }
+                else {
+                    const summaryEmailText = serverMessage.analysis.summary||'Summary was not provided';
+                    server.sendEmail({
+                        to      :   summaryEmailAddress,
+                        subject :   `Call to ${serverMessage.assistant?.name}`,
+                        text    :   summaryEmailText
+                    }).then(() => {
+                        server.module_log(module.filename,2,`Sent email with call summary '${summaryEmailText}' to '${summaryEmailAddress}'`);
+                    }).catch( err => {
+                        server.module_log(module.filename,1,`Cannot send an email with call summary '${summaryEmailText}' to '${summaryEmailAddress}' (${err.message})`);
+                    });
+                }
             }
-            else if( server_message.type==='status-update' ) {
-                const su_server_message = server_message as Vapi.ServerMessageStatusUpdate;
+            else if( serverMessage.type==='status-update' ) {
+                const su_server_message = serverMessage as Vapi.ServerMessageStatusUpdate;
                 const call              = su_server_message.call;
                 const listenUrl         = call?.monitor?.listenUrl;
                 if( !listenUrl )
-                    throw Error(`listenUrl is not provided in '${server_message.type}' server message`);
+                    throw Error(`listenUrl is not provided in '${serverMessage.type}' server message`);
                 if( su_server_message.status==='in-progress' ) {
                     if( server.config.open_ws ) {
                         const ws = new WebSocket(listenUrl);

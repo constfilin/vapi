@@ -178,11 +178,16 @@ export default () => {
                             });
                             if( !contact )
                                 return `Cannot find name '${canonicalName}' in ${server.config.worksheetName}`;
-                            const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
-                            const hour = djs.hour();
-                            if( [0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
-                                return `call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from ${vapi_message?.customer?.number||'n/a'}" and text being the summary of the call`;
-                            return `call redirectCall with +1${contact.phoneNumbers[0]}`;
+                            const djs    = dayjs().tz(contact.timeZone||'America/Los_Angeles');
+                            const hour   = djs.hour();
+                            const result =  ([0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour)) ?
+                                `call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from ${vapi_message?.customer?.number||'n/a'}" and text being the summary of the call` :
+                                `call redirectCall with +1${contact.phoneNumbers[0]}`;
+                            server.module_log(module.filename,2,`Handled '${tc['function'].name}'`,args,result);
+                            return {
+                                toolCallId  : tc.id,
+                                result      : result
+                            }                            
                         });
                     }
                     return {

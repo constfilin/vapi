@@ -7,6 +7,7 @@ import { Vapi }             from '@vapi-ai/server-sdk';
 
 import { server }           from '../Server';
 import { getCmdPromise }    from '../getCmdPromise';
+import dayjs                from '../day-timezone';
 import * as misc            from '../misc';
 
 const sendResponse = ( 
@@ -169,12 +170,19 @@ export default () => {
                                 result      : `No args found in function name '${tc['function'].name}'`
                             };
                         }
-                        return server.dispatchCall(args.name as string).then( result => {
-                            server.module_log(module.filename,2,`Handled '${tc['function'].name}'`,args,result);
-                            return {
-                                toolCallId  : tc.id,
-                                result      : result
-                            }
+                        return server.getContacts().then( contacts => {
+                            const canonicalName = misc.canonicalizePersonName(args.name as string);
+                            const contact = contacts.find( c => {
+                                // Note: column names are case sensitive
+                                return c.name===canonicalName;
+                            });
+                            if( !contact )
+                                return `Cannot find name '${canonicalName}' in ${server.config.worksheetName}`;
+                            const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
+                            const hour = djs.hour();
+                            if( [0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
+                                return `call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from '${vapi_message?.customer?.number||'n/a'}'" and text being the summary of the call`;
+                            return `call redirectCall with +1${contact.phoneNumbers[0]}`;
                         });
                     }
                     return {

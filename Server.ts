@@ -7,7 +7,6 @@ import nodemailer               from 'nodemailer';
 import * as ws                  from 'ws';
 
 import dayjs                    from './day-timezone';
-import * as misc                from './misc';
 import * as Config              from './Config';
 import * as Contacts            from './Contacts';
 
@@ -100,19 +99,5 @@ export default class Server {
         return this.contacts_sheet.getRows().then( rows => {
             return Contacts.getFromRows(rows);
         });
-    }
-    async dispatchCall( name:string ) : Promise<string> {
-        const canonicalName = misc.canonicalizePersonName(name);
-        const contact = (await this.getContacts()).find( c => {
-            // Note: column names are case sensitive
-            return c.name===canonicalName;
-        });
-        if( !contact )
-            return `Cannot find name '${name}' in ${this.config.worksheetName}`;
-        const djs  = dayjs().tz(contact.timeZone||'America/Los_Angeles');
-        const hour = djs.hour();
-        if( [0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour) )
-            return `call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name}" and text being the summary of the call`;
-        return `call redirectCall with +1${contact.phoneNumbers[0]}`;
     }
 }

@@ -377,7 +377,9 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
                     // Remove anything that is not a letter
                     acc[lower] = n;
                     return acc;
-                },{} as Record<string,string>)).map(n=>`${n}:10`),
+                },{
+                    "voice" : "voice"
+                } as Record<string,string>)).map(n=>`${n}:10`),
             "language"      : "en",
             "provider"      : "deepgram",
             "smartFormat"   : true

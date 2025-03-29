@@ -346,7 +346,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             ],
             "provider"      : "openai",
             "maxTokens"     : 300,
-            "temperature"   : 0.5,
+            "temperature"   : 0.3,
             "tools"         : [
                 // TODO:
                 // This set of tools allows registrations of tool callbacks _immediately_ with registration

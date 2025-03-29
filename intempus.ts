@@ -378,7 +378,10 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
                     acc[lower] = n;
                     return acc;
                 },{
-                    "voice" : "voice"
+                    "voice"     : "voice",
+                    "Intempus"  : "Intempus",
+                    "Realty"    : "Realty",
+                    "Bot"       : "Bot",
                 } as Record<string,string>)).map(n=>`${n}:10`),
             "language"      : "en",
             "provider"      : "deepgram",

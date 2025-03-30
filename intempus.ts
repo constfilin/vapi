@@ -270,8 +270,7 @@ export const getAssistant = (
 
 Geographic Service Area Restriction:
 - Intempus Realty only provides services in California, Indiana, Florida, Nevada, South Carolina, Georgia, Ohio, and Tennessee.
-- If the caller request involves a location outside of these states, politely inform them that Intempus Realty only operates in specific states and politely end the call.
-End the call immediately after delivering this message.
+- If the caller request involves a location outside of these states, then tell "we have a business partner that is providing service in this state, please leave your name, the best time and phone number to reach you and someone will get back to you.". Collect the caller's response to a text and send an email to mkhesin@intemput.net with subject "New Inquiry for {{callerLocation}}" and body "Caller Name: {{callerName}}, Phone: {{callerPhone}}, Message: {{callerMessage}}". Then end the call.
 - If the caller asks for H-O-A then clarify which state they are referring to. If the state is California, then act as if the caller asks for California H-O-A. If the state is Florida then act as if the caller asks for Florida H-O-A. Otherwise act as if the caller asks for "General H-O-A".
 - If the caller asks for Property Management then clarify which state they are referring to. If the state is California or Indiana, then act as if the caller asks for "Property Management for CA,IN". Otherwise act as if the caller asks for "Property Management for TN,GA,SC,OH,FL".
 - If the caller asks for Leasing then clarify which state they are referring to. If the state is Indiana, then act as if the caller asks for "Leasing for Indiana". For any other state, including California, act as if the caller asks for "Leasing Inquiries".

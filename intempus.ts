@@ -382,6 +382,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
                     "Intempus"  : "Intempus",
                     "Realty"    : "Realty",
                     "Bot"       : "Bot",
+                    "CCandRs"   : "CCandRs", // Covenants, Conditions & Restrictions
                 } as Record<string,string>)).map(n=>`${n}:10`),
             "language"      : "en",
             "provider"      : "deepgram",

@@ -1,7 +1,7 @@
 export const canonicalizePersonName = ( s:string ) : string => {
     const m = s.trim().match(/^([^,]+),\s+(.+)$/);
     // Convert `Lastname, firstname` into `firstname lastname` and remove quotes
-    return (m ? `${m[2]} ${m[1]}` : s)
+    return ((m && (m.length==2)) ? `${m[2]} ${m[1]}` : s)
         .replace(/'/g,'')
         .replace(/\s+/g,' ')
         .toLowerCase()

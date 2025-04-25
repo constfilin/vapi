@@ -279,7 +279,7 @@ Geographic Service Area Restriction:
 General Guidelines:
 - Always listen to the caller needs.
 - Be polite, professional, and efficient at all times.
-- If the caller's requested department or service is unclear, ask for clarification by offering the list of available departments.
+- If the caller's speech is unclear or delayed then politely repeat your previous phrase or ask for clarifications.
 - If a transfer or email cannot be completed after attempts to clarify, end the call politely.
 - Always prioritize the caller's needs and attempt to resolve their inquiry before ending the call.
 - If the caller's question has to do with a termination or an extension of caller's active lease, then ask who is the caller's property manager and then dispatch the call as if the caller asks for that person. If the caller does not know his or her property manager, then act as if the caller asks for "General H-O-A".
@@ -363,7 +363,8 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
         endCallFunctionEnabled  : true,
         endCallMessage          : "Thank you for contacting us. Have a great day!",
         transcriber             : {
-            "model"     : "nova-2-phonecall",
+            "model"             : "nova-2-phonecall",
+            "confidenceThreshold" : 0.4,
             "keywords"  : Object.values(contacts
                 .map(c=>c.name.split(/\s+/))
                 .flat()

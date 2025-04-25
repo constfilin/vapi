@@ -407,7 +407,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             'tool-calls',
             //'transfer-destination-request',
             'user-interrupted',
-            //'voice-input'        
+            //'voice-input'
         ],
         endCallPhrases  : [
             "goodbye"

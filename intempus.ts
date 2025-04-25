@@ -405,7 +405,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             //'transcript',
             //'transcript[transcriptType="final"]',
             'tool-calls',
-            'transfer-destination-request',
+            //'transfer-destination-request',
             'user-interrupted',
             //'voice-input'        
         ],

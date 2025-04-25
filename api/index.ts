@@ -293,7 +293,7 @@ export default () => {
             return getCmdPromise(req.body as Record<string,any>)();
         });
     });
-    router.options('/tools',(req:expressCore.Request,res:expressCore.Response) => {
+    router.options('/tool',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             res.setHeader('Access-Control-Allow-Origin', 'https://dashboard.vapi.ai');
             res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');

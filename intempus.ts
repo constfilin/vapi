@@ -301,6 +301,27 @@ Pronunciation Directive:
     const redirectCallTool  = toolsByName['redirectCall']!;
     const sendEmailTool     = toolsByName['sendEmail']!;
     const dispatchCallTool  = toolsByName['dispatchCall']!;
+    const useAssemblyAI     = true;
+    const keywords          = Object.values(contacts
+        .map(c=>c.name.split(/\s+/))
+        .flat()
+        .reduce((acc,n) => {
+            // Remove anything that is not a letter
+            n = n.replace(/[^a-zA-Z]/g,'');
+            // throw out the common words
+            const lower = n.toLowerCase();
+            if( ["a","an","the","for","to","oncall","in","by","of","main","hoa"].includes(lower) )
+                return acc;
+            // Remove anything that is not a letter
+            acc[lower] = n;
+            return acc;
+        },{
+            "voice"     : "voice",
+            "Intempus"  : "Intempus",
+            "Realty"    : "Realty",
+            "Bot"       : "Bot",
+            "CCandRs"   : "CCandRs", // Covenants, Conditions & Restrictions
+        } as Record<string,string>));
     const assistant         = {
         name        : config.assistantName,
         voice       : {
@@ -362,33 +383,20 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
         firstMessage            : "Hello, this is Intempus Realty voice answering system. How may I assist you today?",
         endCallFunctionEnabled  : true,
         endCallMessage          : "Thank you for contacting us. Have a great day!",
-        transcriber             : {
+        transcriber             : (useAssemblyAI ? {
+            "provider"          :"assembly-ai",
+            "language"          : "en",
+            "confidenceThreshold"   :0.4,
+            "disablePartialTranscripts":false,
+            "wordBoost"         : keywords.slice(0,2500),
+        } : {
+            "provider"          : "deepgram",
+            "language"          : "en",
             "model"             : "nova-2-phonecall",
-            "confidenceThreshold" : 0.4,
-            "keywords"  : Object.values(contacts
-                .map(c=>c.name.split(/\s+/))
-                .flat()
-                .reduce((acc,n) => {
-                    // Remove anything that is not a letter
-                    n = n.replace(/[^a-zA-Z]/g,'');
-                    // throw out the common words
-                    const lower = n.toLowerCase();
-                    if( ["a","an","the","for","to","oncall","in","by","of","main","hoa"].includes(lower) )
-                        return acc;
-                    // Remove anything that is not a letter
-                    acc[lower] = n;
-                    return acc;
-                },{
-                    "voice"     : "voice",
-                    "Intempus"  : "Intempus",
-                    "Realty"    : "Realty",
-                    "Bot"       : "Bot",
-                    "CCandRs"   : "CCandRs", // Covenants, Conditions & Restrictions
-                } as Record<string,string>)).map(n=>`${n}:10`),
-            "language"      : "en",
-            "provider"      : "deepgram",
-            "smartFormat"   : true
-        },
+            "confidenceThreshold"  : 0.4,
+            "keywords"          : keywords.map(n=>`${n}:10`),
+            "smartFormat"       : true
+        }),
         clientMessages  : [
         //    "conversation-update",
         //    "function-call"
@@ -415,7 +423,11 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
         backchannelingEnabled: false,
         backgroundDenoisingEnabled: false,
         startSpeakingPlan: {
-            "smartEndpointingEnabled": true
+            "smartEndpointingPlan": {
+                "provider" : "livekit",
+            },
+            // @deprecated
+            "smartEndpointingEnabled": ("livekit" as unknown as Record<string,unknown>),
         },
         server  : {
             "url"            : `${config.publicUrl}/assistant`,

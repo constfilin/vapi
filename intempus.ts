@@ -357,7 +357,7 @@ Pronunciation Directive:
                     "role"   : "system",
                     "content": `${systemPromptHeader}without spelling them.
 
-To send test email, ask who is asking and what is the reason. after getting the answer, call sendEmail to destination constfilin@gmail.com with subject "user call" and body  in which provide who and why called. Then confirm sending the email and absolutely necessary call End Call Function.
+To send test email, ask who is asking and what is the reason. after getting the answer, call sendEmail to destination constfilin@gmail.com with subject "Caller Name: {{callerName}}, Phone: {{callerPhone}}" and body  in which provide who and why called. Then confirm sending the email and absolutely necessary call End Call Function.
 
 If necessary, provide an option to email a billing specialist or transfer during business hours (following the validation steps below).
 Once the location is confirmed, follow location-based procedures. If a transfer or email is required, apply the validation and time-based rules as above.
@@ -407,7 +407,9 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             'function-call',
             'hang',
             //'model-output',
-            'phone-call-control',
+            // phone call control has to be commented out
+            // See https://discord.com/channels/1211482211119796234/1211483291191083018/threads/1379590374393118860
+            //'phone-call-control',
             //'speech-update',
             //'status-update',
             //'transcript',

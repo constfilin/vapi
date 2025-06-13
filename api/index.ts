@@ -10,6 +10,8 @@ import { getCmdPromise }    from '../getCmdPromise';
 import dayjs                from '../day-timezone';
 import * as misc            from '../misc';
 
+import stateByAreaCode      from './stateByAreaCode';
+
 const sendResponse = ( 
     req     : expressCore.Request, 
     res     : expressCore.Response, 
@@ -69,7 +71,6 @@ const sendResponse = (
     }
     return log_and_send_response(response);
 }
-
 const findLastToolCallTo = ( messageItems:Vapi.CallMessagesItem[], toolName:string ) : (Vapi.ToolCall|undefined) => {
     if( !Array.isArray(messageItems) )
         throw Error(`messages is not an array`);
@@ -130,6 +131,14 @@ const guessSummaryEmailAddress = async ( messageItems:Vapi.CallMessagesItem[] ) 
         throw Error(`Cannot find contact for name '${canonicalName}' in ${server.config.worksheetName}`);
     return contact.emailAddresses[0];
 }
+const guessState = ( phoneNumber:string ) : string => {
+    // Guess the state from the phone number
+    const re = /^(\+1)?(\d{3})\d{7}/;
+    const match = phoneNumber.match(re);
+    if( !match )
+        return 'unknown';
+    return stateByAreaCode[match[2]] || 'unknown';
+}
 export default () => {
     const router   = express.Router();
     router.post('/tool',async (req:expressCore.Request,res:expressCore.Response) => {
@@ -143,7 +152,7 @@ export default () => {
             return {
                 // For each tool in the `toolCalls` return a result
                 results : await Promise.all(tool_calls.map( tc => {
-                    const args = tc['function'].arguments;
+                    const args = tc['function'].arguments as unknown as Record<string,any>;
                     switch( tc['function'].name ) {
                     case 'sendEmail':
                         if( !args || !(args.to||args.destination) || !args.subject || !args.text ) {
@@ -187,8 +196,13 @@ export default () => {
                             return {
                                 toolCallId  : tc.id,
                                 result      : result
-                            }                            
+                            }
                         });
+                    case 'guessState':
+                        return {
+                            toolCallId  : tc.id,
+                            result      : guessState(vapi_message.customer?.number||'')
+                        }
                     }
                     return {
                         toolCallId  : tc.id,

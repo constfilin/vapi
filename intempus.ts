@@ -253,6 +253,53 @@ export const getSendEmailTool = ( contacts:Contacts.Contact[] ) : Vapi.CreateFun
     return tool;
 }
 
+export const getGuessStateTool = () : Vapi.CreateFunctionToolDto => {
+    const config    = Config.get();
+    const tool = {
+        'type'      : "function",
+        "async"     : false,
+        'function'  : {
+            "name"          : "guessState",
+            "description"   : "Guess State of the Caller",
+            "parameters"    : {
+                "type"      :"object",
+                properties  : {
+                },
+                required: [
+                ]
+            }
+        },
+        messages    :[
+            {
+                "type"      : "request-response-delayed",
+                "content"   : "Guessing state is taking a bit longer to respond"
+            },
+            {
+                "role"      : "system",
+                "type"      : "request-complete",
+                "content"   : "Hangup"
+            },
+            {
+                "type"      : "request-failed",
+                "content"   : "Cannot guess state"
+            }
+        ],
+        server  : {
+            "url"            : `${config.publicUrl}/tool`,
+            "timeoutSeconds" : 30,
+            "secret"         : config.vapiToolSecret,
+            // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
+            // even though it is configured to do so. I am not surprised given all kinds of other 
+            // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
+            // So, as a workaround, let's just have our own secret header
+            "headers"        : {
+                "X-Secret"   : config.vapiToolSecret
+            }            
+        }
+    } as Vapi.CreateFunctionToolDto;
+    return tool;
+}
+
 export const getAssistant = (
     contacts            : Contacts.Contact[],
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -470,6 +517,8 @@ export const getToolByName = async (
         return getDispatchCallTool(await Contacts.get());
     case 'sendEmail':
         return getSendEmailTool(await Contacts.get());
+    case 'guessState':
+        return getGuessStateTool();
     }
     throw Error(`Tool '${name}' s not known`);
 }

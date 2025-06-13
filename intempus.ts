@@ -427,7 +427,8 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             "goodbye"
         ],
         backchannelingEnabled: false,
-        backgroundDenoisingEnabled: false,
+        backgroundSound: "off",
+        backgroundDenoisingEnabled: true,
         startSpeakingPlan: {
             "smartEndpointingPlan": {
                 "provider" : "livekit",

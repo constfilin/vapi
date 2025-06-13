@@ -324,7 +324,7 @@ Pronunciation Directive:
             "Bot"           : "Bot",
             "CCandRs"       : "CCandRs", // Covenants, Conditions & Restrictions
         } as Record<string,string>));
-    const keyterm           = contacts.map(c=>c.name);
+    const keyterm           = ["H-O-A",...contacts.map(c=>c.name)];
     const assistant         = {
         name        : config.assistantName,
         voice       : {

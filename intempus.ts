@@ -301,7 +301,7 @@ Pronunciation Directive:
     const redirectCallTool  = toolsByName['redirectCall']!;
     const sendEmailTool     = toolsByName['sendEmail']!;
     const dispatchCallTool  = toolsByName['dispatchCall']!;
-    const useAssemblyAI     = true;
+    const useAssemblyAI     = false;
     const keywords          = Object.values(contacts
         .map(c=>c.name.split(/\s+/))
         .flat()
@@ -316,12 +316,15 @@ Pronunciation Directive:
             acc[lower] = n;
             return acc;
         },{
-            "voice"     : "voice",
-            "Intempus"  : "Intempus",
-            "Realty"    : "Realty",
-            "Bot"       : "Bot",
-            "CCandRs"   : "CCandRs", // Covenants, Conditions & Restrictions
+            "voice"         : "voice",
+            "Intempus"      : "Intempus",
+            "Maintenance"   : "Maintenance",
+            "Property"      : "Property",
+            "Realty"        : "Realty",
+            "Bot"           : "Bot",
+            "CCandRs"       : "CCandRs", // Covenants, Conditions & Restrictions
         } as Record<string,string>));
+    const keyterm           = contacts.map(c=>c.name);
     const assistant         = {
         name        : config.assistantName,
         voice       : {
@@ -333,14 +336,13 @@ Pronunciation Directive:
             ]
         },
         voicemailDetection: {
-            provider: "twilio",
-            enabled : true,
-            voicemailDetectionTypes: [
-              "machine_start",
-              "machine_end_beep",
-              "unknown"
-            ],
-            machineDetectionTimeout: 15
+            provider    : 'vapi',
+            backoffPlan : {
+                maxRetries      : 6,
+                startAtSeconds  : 5,
+                frequencySeconds: 5
+            },
+            beepMaxAwaitSeconds: 0
         },
         // Note:
         // This seems to be ineffective
@@ -368,34 +370,36 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             "provider"      : "openai",
             "maxTokens"     : 300,
             "temperature"   : 0.3,
-            "tools"         : [
-                // TODO:
-                // This set of tools allows registrations of tool callbacks _immediately_ with registration
-                // of the assistant. The type of the entries in `tools` array is `Vapi.OpenAiModelToolsItem`
-                // We just need to fill this array out
-                {
-                    async : false,
-                    type  : "voicemail"
-                }
-            ]
+            //"tools"         : [
+            //    // TODO:
+            //    // This set of tools allows registrations of tool callbacks _immediately_ with registration
+            //    // of the assistant. The type of the entries in `tools` array is `Vapi.OpenAiModelToolsItem`
+            //    // We just need to fill this array out
+            //    {
+            //        async : false,
+            //        type  : "voicemail"
+            //    } as Vapi.OpenAiModelToolsItem
+            //]
         },
         recordingEnabled        : true,
         firstMessage            : "Hello, this is Intempus Realty voice answering system. How may I assist you today?",
         endCallFunctionEnabled  : true,
         endCallMessage          : "Thank you for contacting us. Have a great day!",
         transcriber             : (useAssemblyAI ? {
-            "provider"          :"assembly-ai",
-            "language"          : "en",
-            "confidenceThreshold"   :0.4,
-            "disablePartialTranscripts":false,
-            "wordBoost"         : keywords.slice(0,2500),
+            provider            :"assembly-ai",
+            language            : "en",
+            confidenceThreshold : 0.4,
+            disablePartialTranscripts:false,
+            wordBoost           : keywords.slice(0,2500),
         } : {
-            "provider"          : "deepgram",
-            "language"          : "en",
-            "model"             : "nova-2-phonecall",
-            "confidenceThreshold"  : 0.4,
-            "keywords"          : keywords.map(n=>`${n}:10`),
-            "smartFormat"       : true
+            provider            : "deepgram",
+            language            : "en",
+//            model               : "nova-2-phonecall",
+            model               : "nova-3",
+            confidenceThreshold : 0.4,
+            keywords            : keywords.map(n=>`${n}:10`),
+            keyterm             : keyterm,
+            smartFormat         : true
         }),
         clientMessages  : [
         //    "conversation-update",
@@ -429,7 +433,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
                 "provider" : "livekit",
             },
             // @deprecated
-            "smartEndpointingEnabled": ("livekit" as unknown as Record<string,unknown>),
+            "smartEndpointingEnabled": "livekit",
         },
         server  : {
             "url"            : `${config.publicUrl}/assistant`,
@@ -442,14 +446,15 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             "headers"        : {
                 "X-Secret"   : config.vapiToolSecret
             }
-        }
+        },
     } as Vapi.CreateAssistantDto;
 
     assistant.model!.messages![0].content += contacts
         .map( c => {
             return `If the user asks for "${c.name}", call dispatchCall with "${c.name}", wait for result and immediately follow the instructions of the result.`;
         })
-        .join("\n");
+        .join("\n")+"\n"+
+        "If user asks for anyone else then ask the user to repeat the name and then call redirectCall with the name of the person. Wait for result and immediately follow the instructions of the result.";
     console.log(assistant);
     return assistant;
 }

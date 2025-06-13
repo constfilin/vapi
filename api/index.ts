@@ -181,7 +181,7 @@ export default () => {
                             const djs    = dayjs().tz(contact.timeZone||'America/Los_Angeles');
                             const hour   = djs.hour();
                             const result =  ([0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour)) ?
-                                `ask the user why it is reaching out to '${canonicalName}', save its answer to a text and call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from ${vapi_message?.customer?.number||'n/a'}" and that text` :
+                                `ask the user to describe its issue to '${canonicalName}', save its answer to a text and call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from ${vapi_message?.customer?.number||'n/a'}" and that text` :
                                 `call redirectCall with +1${contact.phoneNumbers[0]}`;
                             server.module_log(module.filename,2,`Handled '${tc['function'].name}'`,args,result);
                             return {

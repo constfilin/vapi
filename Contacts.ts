@@ -12,6 +12,7 @@ export interface Contact {
     emailAddresses      : string[];
     businessStartHour   : number;
     businessEndHour     : number;
+    vmPrompt?           : string;
 }
 
 export const getSheet = async ( apiKey:string, docId:string, sheetName:string ) : Promise<GoogleSpreadsheet.GoogleSpreadsheetWorksheet|undefined> => {
@@ -64,6 +65,7 @@ export const getFromRows = (
             emailAddresses,
             businessStartHour   : misc.toNumber(r.get("Business Start Hour"),config.web.business_start_hour??8),
             businessEndHour     : misc.toNumber(r.get("Business End Hour"),config.web.business_end_hour??17),
+            vmPrompt            : r.get("VM Prompt"),
         });
         return acc;
     },[] as Contact[]);

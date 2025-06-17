@@ -40,7 +40,7 @@ export const getDispatchCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                     conditions  : [{
                         param   : 'name',
                         operator: 'eq', 
-                        value   : c.name as unknown as Record<string,unknown>
+                        value   : c.name
                     }]
                 } as Vapi.ToolMessageStart;
             }),
@@ -345,9 +345,18 @@ Pronunciation Directive:
     const missingToolName = ['redirectCall','sendEmail','dispatchCall'].find(n=>!(n in toolsByName));
     if( missingToolName )
         throw Error(`Cannot find tool '${missingToolName}'`);
-    const redirectCallTool  = toolsByName['redirectCall']!;
-    const sendEmailTool     = toolsByName['sendEmail']!;
-    const dispatchCallTool  = toolsByName['dispatchCall']!;
+    const redirectCallTool  = toolsByName['redirectCall'];
+    if( !redirectCallTool )
+        throw Error(`Tool 'redirectCall' is not found`);
+    const sendEmailTool     = toolsByName['sendEmail'];
+    if( !sendEmailTool )
+        throw Error(`Tool 'sendEmail' is not found`);
+    const dispatchCallTool  = toolsByName['dispatchCall'];
+    if( !dispatchCallTool )
+        throw Error(`Tool 'dispatchCall' is not found`);
+    const guessStateTool    = toolsByName['guessState'];
+    if( !guessStateTool )
+        throw Error(`Tool 'guessState' is not found`);
     const useAssemblyAI     = false;
     const keywords          = Object.values(contacts
         .map(c=>c.name.split(/\s+/))
@@ -362,16 +371,17 @@ Pronunciation Directive:
             // Remove anything that is not a letter
             acc[lower] = n;
             return acc;
-        },{
-            "voice"         : "voice",
-            "Intempus"      : "Intempus",
-            "Maintenance"   : "Maintenance",
-            "Property"      : "Property",
-            "Realty"        : "Realty",
-            "Bot"           : "Bot",
-            "CCandRs"       : "CCandRs", // Covenants, Conditions & Restrictions
-        } as Record<string,string>));
-    const keyterm           = ["H-O-A",...contacts.map(c=>c.name)];
+        },{} as Record<string,string>));
+    const keyterm           = [
+        "H-O-A",
+        "Maintenance",
+        "Property",
+        "Realty",
+        "Intempus",
+        "voice",
+        "Bot",
+        //...contacts.map(c=>c.name)
+    ];
     const assistant         = {
         name        : config.assistantName,
         voice       : {
@@ -399,7 +409,8 @@ Pronunciation Directive:
             "toolIds": [
                 redirectCallTool.id,
                 sendEmailTool.id,
-                dispatchCallTool.id
+                dispatchCallTool.id,
+                guessStateTool.id
             ],
             "messages": [
                 {

@@ -328,7 +328,7 @@ General Guidelines:
 - Always listen to the caller needs.
 - Be polite, professional, and efficient at all times.
 - If the caller's speech is unclear or delayed then politely repeat your previous phrase or ask for clarifications.
-- If a transfer or email cannot be completed after attempts to clarify, end the call politely.
+- If a transfer or email cannot be completed after attempts to clarify, say "Redirecting the call to operator" then call dispatchCall with "Intempus Main Office", wait for result and immediately follow the instructions of the result.
 - Always prioritize the caller's needs and attempt to resolve their inquiry before ending the call.
 - If the caller's question has to do with a termination or an extension of caller's active lease, then ask who is the caller's property manager and then dispatch the call as if the caller asks for that person. If the caller does not know his or her property manager, then act as if the caller asks for "General H-O-A".
 
@@ -514,7 +514,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
             return `If the user asks for "${c.name}", call dispatchCall with "${c.name}", wait for result and immediately follow the instructions of the result.`;
         })
         .join("\n")+"\n"+
-        "If user asks for anyone else then ask the user to repeat the name and then call redirectCall with the name of the person. Wait for result and immediately follow the instructions of the result.";
+        "If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result.";
     console.log(assistant);
     return assistant;
 }

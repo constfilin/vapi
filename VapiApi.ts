@@ -9,12 +9,12 @@ import * as Config              from './Config';
 
 const dummyVapiClient = {} as VapiClient;
 type MyTools = (typeof dummyVapiClient.tools) & {
-    getByName( name?:string ) : Promise<Vapi.ToolsListResponseItem|undefined>;
-    updateByName( payload:Vapi.ToolsCreateRequest ) : Promise<Vapi.ToolsUpdateResponse>;
+    getByName( name?:string ) : Promise<Vapi.ListToolsResponseItem|undefined>;
+    updateByName( payload:(Vapi.UpdateToolsRequestBody|Vapi.CreateToolsRequest) ) : Promise<Vapi.UpdateToolsResponse>;
 }
 type MyAssistants = (typeof dummyVapiClient.assistants) & {
     getByName( name?:string ) : Promise<Vapi.Assistant|undefined>;
-    updateByName( payload:Vapi.CreateAssistantDto ) : Promise<Vapi.Assistant>
+    updateByName( payload:(Vapi.CreateAssistantDto) ) : Promise<Vapi.Assistant>
 }
 
 export class VapiApi extends VapiClient {
@@ -31,20 +31,28 @@ export class VapiApi extends VapiClient {
     }
     getTools() : MyTools {
         const tools = super.tools as MyTools;
-        tools.getByName = ( name?:string ) : Promise<Vapi.ToolsListResponseItem|undefined> => {
+        const guessToolName = ( t:(Vapi.ListToolsResponseItem|Vapi.UpdateToolsRequestBody|Vapi.CreateToolsRequest) ) => {
+            // @ts-expect-error
+            return t.name||t['function']?.name;
+        }
+        tools.getByName = ( name?:string ) : Promise<Vapi.ListToolsResponseItem|undefined> => {
             if( !name )
                 throw Error(`name should be provided`);
             return tools.list().then( tools => {
-                return tools.find(t=>(t['function']?.name===name));
+                return tools.find(t=>(guessToolName(t)===name));
             });
         }
-        tools.updateByName = ( payload:Vapi.CreateFunctionToolDto ) : Promise<Vapi.ToolsUpdateResponse> => {
-            return tools.getByName(payload['function']?.name).then( t => {
+        tools.updateByName = ( body:(Vapi.UpdateToolsRequestBody|Vapi.CreateToolsRequest) ) : Promise<Vapi.UpdateToolsResponse> => {
+            console.log({body});
+            return tools.getByName(guessToolName(body)).then( t => {
                 if( !t )
-                    throw Error(`Cannot find tool with name '${payload['function']!.name}'`);
+                    throw Error(`Cannot find tool with name '${body['function']!.name}'`);
                 // @ts-expect-error
-                delete payload.type;
-                return super.tools.update(t.id,payload);
+                delete body.type;
+                return super.tools.update({
+                    id  : t.id,
+                    body: body
+                });
             });
         }
         return tools;
@@ -64,7 +72,10 @@ export class VapiApi extends VapiClient {
                     throw Error(`Cannot find assistant with name '${payload.name}'`);
                 // @ts-expect-error
                 delete payload.isServerUrlSecretSet;
-                return super.assistants.update(a.id,payload);
+                return super.assistants.update({
+                    id : a.id,
+                    ...payload
+                });
             });
         };
         return assistants;

@@ -61,7 +61,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 existingAssistant,
                 existingTools,
             ] = await Promise.all([
-                assistants.getByName(config.assistantName),
+                assistants.getByName(args.name),
                 tools.list(),
             ]);
             return assistants.create(await intempus.getAssistantByName(args.name,existingAssistant,existingTools));
@@ -72,7 +72,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 existingAssistant,
                 existingTools,
             ] = await Promise.all([
-                assistants.getByName(config.assistantName),
+                assistants.getByName(args.name),
                 tools.list(),
             ]);
             return assistants.updateByName(await intempus.getAssistantByName(args.name,existingAssistant,existingTools));
@@ -85,7 +85,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 existingTools
             ] = await Promise.all([
                 Contacts.get(),
-                assistants.getByName(config.assistantName),
+                assistants.getByName(args.name),
                 tools.list()
             ]);
             return Promise.all([
@@ -99,7 +99,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
     }
     // Nothing is found
     return () => {
-        return Promise.reject(Error(`Unknown tool '${cmd}'`));
+        return Promise.reject(Error(`Unknown command '${cmd}'`));
     }
 }
 

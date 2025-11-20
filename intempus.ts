@@ -74,7 +74,6 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
     const config = Config.get();
     const tool = {
         type            : "transferCall",
-        async           : false,
         destinations    : [] as Vapi.TransferDestinationNumber[],
         'function'      : {
             name        : "redirectCall",
@@ -155,6 +154,15 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
             }]
         } as Vapi.CreateTransferCallToolDtoMessagesItem);
         */
+    });
+    // Special group extensions
+    destinationEnums.push("Maintenance HOA");
+    tool.destinations!.push({
+        type        : 'number',
+        number      : '+14083205509',
+        extension   : '18',
+        message     : 'I am forwarding your call to Maintenance HOA',
+        description : 'Maintenance HOA',
     });
     // In case if the call is forwarded to unknown contact
     /*
@@ -303,7 +311,7 @@ export const getGuessStateTool = () : Vapi.CreateFunctionToolDto => {
 export const getAssistant = (
     contacts            : Contacts.Contact[],
     existingAssistant   : (Vapi.Assistant|undefined),
-    existingTools       : Vapi.ToolsListResponseItem[]
+    existingTools       : Vapi.ListToolsResponseItem[]
  ) : Vapi.CreateAssistantDto => {
 
     const config = Config.get();
@@ -339,10 +347,13 @@ Pronunciation Directive:
 - Always pronounce names of people and departments (other than H-O-A) directly without spelling them.`;
 
     // let's look at existing tools
+    // TODO:
+    // In the new version of VAPI API not all tools have to have a name
+    // so the name code will probably break
     const toolsByName = existingTools.reduce( (acc,t) => {
         acc[t['function']!.name] = t;
         return acc;
-    },{} as Record<string,Vapi.ToolsListResponseItem>);
+    },{} as Record<string,Vapi.ListToolsResponseItem>);
     const missingToolName = ['redirectCall','sendEmail','dispatchCall'].find(n=>!(n in toolsByName));
     if( missingToolName )
         throw Error(`Cannot find tool '${missingToolName}'`);
@@ -520,7 +531,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
 }
 export const getIVRIntroductionAssistant = async (
     existingAssistant   : (Vapi.Assistant|undefined),
-    existingTools       : Vapi.ToolsListResponseItem[]
+    existingTools       : Vapi.ListToolsResponseItem[]
 ) : Promise<Vapi.CreateAssistantDto> => {
     const config = Config.get();
 
@@ -528,7 +539,7 @@ export const getIVRIntroductionAssistant = async (
     const toolsByName = existingTools.reduce( (acc,t) => {
         acc[t['function']!.name] = t;
         return acc;
-    },{} as Record<string,Vapi.ToolsListResponseItem>);
+    },{} as Record<string,Vapi.ListToolsResponseItem>);
 
     // Prefer mapping known tool names to actual ids (if present)
     const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState'];
@@ -536,9 +547,10 @@ export const getIVRIntroductionAssistant = async (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
+    const name = "Intempus IVR Introduction";
     const assistant = {
         // Basic metadata
-        name: "Intempus IVR Introduction",
+        name,
 
         // Voice settings (from JSON)
         voice: {
@@ -614,7 +626,7 @@ providing services across California, Indiana, Florida, Nevada, South Carolina, 
 
         // Ensure server settings follow current config (timeout + secret + header)
         server: {
-            url: `${config.publicUrl}/assistant/${existingAssistant?.name || ''}`,
+            url: `${config.publicUrl}/assistant/${encodeURIComponent(name)}`,
             timeoutSeconds: 30,
             secret: config.vapiToolSecret,
             headers: {
@@ -630,7 +642,7 @@ providing services across California, Indiana, Florida, Nevada, South Carolina, 
 }
 export const getIVRHOAAssistant = async (
     existingAssistant   : (Vapi.Assistant|undefined),
-    existingTools       : Vapi.ToolsListResponseItem[]
+    existingTools       : Vapi.ListToolsResponseItem[]
 ) : Promise<Vapi.CreateAssistantDto> => {
     const config = Config.get();
 
@@ -638,7 +650,7 @@ export const getIVRHOAAssistant = async (
     const toolsByName = existingTools.reduce( (acc,t) => {
         acc[t['function']!.name] = t;
         return acc;
-    },{} as Record<string,Vapi.ToolsListResponseItem>);
+    },{} as Record<string,Vapi.ListToolsResponseItem>);
 
     // Prefer mapping known tool names to actual ids (if present)
     const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState'];
@@ -646,9 +658,11 @@ export const getIVRHOAAssistant = async (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
+    const name = "Intempus IVR HOA";
+
     const assistant = {
         // Basic metadata (from IntempusIVRIntroductionAssistant.json -> Intempus IVR HOA)
-        name: "Intempus IVR HOA",
+        name,
 
         // Voice settings
         voice: {
@@ -674,21 +688,21 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
 - Speak naturally, using pauses when needed to make the interaction feel human-like.
 
 [Response Guidelines]  
-- Ask one question at a time.  
+- Ask one question at a time.
 - Wait for the caller's response before proceeding to the next question.  
 - Address the caller respectfully and keep interactions concise.  
 - Do not repeat questions if the caller has already answered them.
 
 [Task & Goals]  
 1. Greet the caller warmly and introduce yourself as Intempus Realty's IVR system.  
-2. Ask: "Would you like to request HOA maintenance?"  
-    - If the caller responds affirmatively (e.g., "yes", "sure", "definitely", "of course"), call \`redirectCall\` to the maintenance department.  
+2. Ask: "Would you like to request HOA maintenance?"
+   - If the caller responds affirmatively (e.g., "yes", "sure", "definitely", "of course"), then transfer the call to "Maintenance HOA".
 3. Ask: "Would you like to speak about HOA payments, parking calls, estoppable requests, or application status?"  
    - If the caller responds affirmatively, call redirectCall to the relevant department.  
 4. Ask: "Would you like to speak with our Sales Department about Community Association management services?"  
-   - If the caller responds affirmatively, call redirectCall to the sales department.  
+   - If the caller responds affirmatively, then transfer the call to "Sales HOA".
 5. Ask: "Would you like to get HOA emergency maintenance?"  
-   - If the caller responds affirmatively, call redirectCall to the emergency maintenance line.  
+   - If the caller responds affirmatively, then transfer the call to "Emergency Group".
 6. Ask: "Would you like to get back to the previous menu?"  
     - If the caller responds affirmatively, call \`handoff_to_assistant\` to "Intempus IVR Introduction".
 
@@ -725,7 +739,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
 
         // Ensure server settings follow current config (timeout + secret + header)
         server: {
-            url: `${config.publicUrl}/assistant/${existingAssistant?.name || ''}`,
+            url: `${config.publicUrl}/assistant/${encodeURIComponent(name)}`,
             timeoutSeconds: 30,
             secret: config.vapiToolSecret,
             headers: {
@@ -741,7 +755,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
 }
 export const getIVRPropertyOwnerAssistant = async (
     existingAssistant   : (Vapi.Assistant|undefined),
-    existingTools       : Vapi.ToolsListResponseItem[]
+    existingTools       : Vapi.ListToolsResponseItem[]
 ) : Promise<Vapi.CreateAssistantDto> => {
     const config = Config.get();
 
@@ -749,7 +763,7 @@ export const getIVRPropertyOwnerAssistant = async (
     const toolsByName = existingTools.reduce( (acc,t) => {
         acc[t['function']!.name] = t;
         return acc;
-    },{} as Record<string,Vapi.ToolsListResponseItem>);
+    },{} as Record<string,Vapi.ListToolsResponseItem>);
 
     // Prefer mapping known tool names to actual ids (if present)
     const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState'];
@@ -757,9 +771,10 @@ export const getIVRPropertyOwnerAssistant = async (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
+    const name = "Intempus IVR PropertyOwner";
     const assistant = {
         // Basic metadata (property owner focused)
-        name: "Intempus IVR PropertyOwner",
+        name,
 
         // Voice settings (reuse JSON voice)
         voice: {
@@ -824,7 +839,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**.
         },
 
         server: {
-            url: `${config.publicUrl}/assistant/${existingAssistant?.name || ''}`,
+            url: `${config.publicUrl}/assistant/${encodeURIComponent(name)}`,
             timeoutSeconds: 30,
             secret: config.vapiToolSecret,
             headers: {
@@ -840,7 +855,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**.
 }
 export const getToolByName = async (
     name    : string
-) : Promise<Vapi.ToolsCreateRequest> => {
+) : Promise<Vapi.CreateToolsRequest> => {
     switch( name ) {
     case 'redirectCall':
         return getRedirectCallTool(await Contacts.get());
@@ -857,7 +872,7 @@ export const getToolByName = async (
 export const getAssistantByName = async (
     name                : string,
     existingAssistant   : (Vapi.Assistant|undefined),
-    existingTools       : Vapi.ToolsListResponseItem[]
+    existingTools       : Vapi.ListToolsResponseItem[]
 ) : Promise<Vapi.CreateAssistantDto> => {
     const config = Config.get();
     // if( name===config.assistantName )

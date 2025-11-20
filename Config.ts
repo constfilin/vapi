@@ -6,7 +6,6 @@ export interface Config {
     vapiOrgId               : string;
     vapiPrivateKey          : string;
     vapiToolSecret          : string;
-    assistantName           : string;
     publicUrl               : string;
     replPort                : number;
     open_ws                 : boolean;

@@ -6,7 +6,6 @@ export default {
     vapiOrgId                       : (process.env.VAPI_ORG_ID||'[hidden]'),
     vapiPrivateKey                  : (process.env.VAPI_PRIVATE_KEY||''),
     vapiToolSecret                  : (process.env.VAPI_TOOLS_SECRET||'[hidden]'),
-    assistantName                   : (process.env.ASSISTANT_NAME||'IntempusBot'),
     publicUrl                       : (process.env.PUBLIC_URL||'http://127.0.0.1:9876/api'),                          // https://demo.tectransit.com/api/vapi
     replPort                        : 1338,
     // web server

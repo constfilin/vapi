@@ -384,7 +384,7 @@ Pronunciation Directive:
         //...contacts.map(c=>c.name)
     ];
     const assistant         = {
-        name        : config.assistantName,
+        name : "IntempusBot",
         voice       : {
             "voiceId"               : "luna",
             "provider"              : "deepgram",
@@ -518,7 +518,326 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
     console.log(assistant);
     return assistant;
 }
+export const getIVRIntroductionAssistant = async (
+    existingAssistant   : (Vapi.Assistant|undefined),
+    existingTools       : Vapi.ToolsListResponseItem[]
+) : Promise<Vapi.CreateAssistantDto> => {
+    const config = Config.get();
 
+    // Map existing tools by their function.name -> tool item
+    const toolsByName = existingTools.reduce( (acc,t) => {
+        acc[t['function']!.name] = t;
+        return acc;
+    },{} as Record<string,Vapi.ToolsListResponseItem>);
+
+    // Prefer mapping known tool names to actual ids (if present)
+    const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState'];
+    const mappedToolIds = desiredNames
+        .map(n => toolsByName[n]?.id)
+        .filter((id): id is string => typeof id === 'string');
+
+    const assistant = {
+        // Basic metadata
+        name: "Intempus IVR Introduction",
+
+        // Voice settings (from JSON)
+        voice: {
+            model: "aura-2",
+            voiceId: "luna",
+            provider: "deepgram",
+            inputPunctuationBoundaries: ["。"]
+        },
+
+        // model block
+        model: {
+            model: "gpt-4o",
+            toolIds: mappedToolIds.length ? mappedToolIds : undefined,
+            messages: [
+                {
+                    role: "system",
+                    content: `[Identity]  
+You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, a property management company 
+providing services across California, Indiana, Florida, Nevada, South Carolina, Georgia, Ohio, and Tennessee.
+
+[Style]  
+- Use a polite and professional tone.  
+- Communicate clearly and concisely.  
+- Ensure a warm and welcoming demeanor throughout the interaction. 
+
+[Response Guidelines]  
+- Ask one question at a time and wait for user response before proceeding.  
+- Maintain clarity by confirming the user's inputs when needed.  
+- Inform the caller about the handoff destination before transferring the call. 
+
+[Task & Goals]  
+1. Greet the caller promptly and gather their inquiry information.
+2. Unless the caller has already answered those quesions, proceed to ask:
+   a. "Are you a homeowner board member or a resident calling about HOA and Community Management Services?"
+   b. If they respond affirmatively (e.g., "yes", "sure", "definitely", "of course"), then:
+      - Inform them: "You will be redirected to our HOA and Community Management Services."
+      - Call \`handoff_to_assistant\` with "Intempus IVR HOA".
+   c. If they did not respond affirmatively, then:
+      - Ask them: "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
+   d. If they respond affirmatively:
+      - Inform them: "You will be redirected to our Property Owner Services."
+      - Call \`handoff_to_assistant\` with "Intempus IVR PropertyOwner".
+3. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.
+
+[Error Handling / Fallback]  
+- If the caller's input is unclear or if they provide an unexpected response, politely ask for clarification.
+- In case of any doubts or errors in the process, offer assistance to help guide them to the appropriate department or information source.
+`
+                }
+            ],
+            provider: "openai"
+        },
+
+        firstMessage: "Hello, I am Emily, an AI assistant for Intempus Realty, Please let me know if you are a homeowner, a property board member or a resident calling about HOA and Community Management Services.",
+        voicemailMessage: "Please call back when you're available.",
+        endCallFunctionEnabled: true,
+        endCallMessage: "Goodbye.",
+        transcriber: {
+            model: "nova-3",
+            keyterm: [
+                "H-O-A",
+                "Maintenance",
+                "Property",
+                "Realty",
+                "Intempus",
+                "voice",
+                "Bot",
+                "IVR"
+            ],
+            language: "en",
+            provider: "deepgram"
+        },
+
+        // Ensure server settings follow current config (timeout + secret + header)
+        server: {
+            url: `${config.publicUrl}/assistant/${existingAssistant?.name || ''}`,
+            timeoutSeconds: 30,
+            secret: config.vapiToolSecret,
+            headers: {
+                "X-Secret": config.vapiToolSecret
+            }
+        },
+
+        // keep compatibility fields if needed by CreateAssistantDto
+        compliancePlan: { pciEnabled: false } as any
+    } as Vapi.CreateAssistantDto;
+
+    return assistant;
+}
+export const getIVRHOAAssistant = async (
+    existingAssistant   : (Vapi.Assistant|undefined),
+    existingTools       : Vapi.ToolsListResponseItem[]
+) : Promise<Vapi.CreateAssistantDto> => {
+    const config = Config.get();
+
+    // Map existing tools by their function.name -> tool item
+    const toolsByName = existingTools.reduce( (acc,t) => {
+        acc[t['function']!.name] = t;
+        return acc;
+    },{} as Record<string,Vapi.ToolsListResponseItem>);
+
+    // Prefer mapping known tool names to actual ids (if present)
+    const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState'];
+    const mappedToolIds = desiredNames
+        .map(n => toolsByName[n]?.id)
+        .filter((id): id is string => typeof id === 'string');
+
+    const assistant = {
+        // Basic metadata (from IntempusIVRIntroductionAssistant.json -> Intempus IVR HOA)
+        name: "Intempus IVR HOA",
+
+        // Voice settings
+        voice: {
+            model: "aura-2",
+            voiceId: "luna",
+            provider: "deepgram",
+            inputPunctuationBoundaries: ["。"]
+        },
+
+        // model block (uses mapped tool ids when available)
+        model: {
+            model: "gpt-4.1-mini",
+            toolIds: mappedToolIds.length ? mappedToolIds : undefined,
+            messages: [
+                {
+                    role: "system",
+                    content: `[Identity]  
+You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, a property management company providing services across California, Indiana, Florida, Nevada, South Carolina, Georgia, Ohio, and Tennessee.
+
+[Style]  
+- Use a clear and professional tone.  
+- Be patient and courteous.  
+- Speak naturally, using pauses when needed to make the interaction feel human-like.
+
+[Response Guidelines]  
+- Ask one question at a time.  
+- Wait for the caller's response before proceeding to the next question.  
+- Address the caller respectfully and keep interactions concise.  
+- Do not repeat questions if the caller has already answered them.
+
+[Task & Goals]  
+1. Greet the caller warmly and introduce yourself as Intempus Realty's IVR system.  
+2. Ask: "Would you like to request HOA maintenance?"  
+    - If the caller responds affirmatively (e.g., "yes", "sure", "definitely", "of course"), call \`redirectCall\` to the maintenance department.  
+3. Ask: "Would you like to speak about HOA payments, parking calls, estoppable requests, or application status?"  
+   - If the caller responds affirmatively, call redirectCall to the relevant department.  
+4. Ask: "Would you like to speak with our Sales Department about Community Association management services?"  
+   - If the caller responds affirmatively, call redirectCall to the sales department.  
+5. Ask: "Would you like to get HOA emergency maintenance?"  
+   - If the caller responds affirmatively, call redirectCall to the emergency maintenance line.  
+6. Ask: "Would you like to get back to the previous menu?"  
+    - If the caller responds affirmatively, call \`handoff_to_assistant\` to "Intempus IVR Introduction".
+
+[Error Handling / Fallback]  
+- If the caller’s response is unclear, politely ask them to repeat their answer.  
+- If an unexpected error occurs, apologize and attempt to redirect them to the main menu or an operator for further assistance.`
+                }
+            ],
+            provider: "openai"
+        },
+
+        // messages and prompts
+        firstMessage: "This is Intempus Realty HOA menu. Would you like to request HOA maintenance?",
+        voicemailMessage: "Please call back when you're available.",
+        endCallFunctionEnabled: true,
+        endCallMessage: "Goodbye.",
+
+        // transcriber settings
+        transcriber: {
+            model: "nova-3",
+            keyterm: [
+                "H-O-A",
+                "Maintenance",
+                "Property",
+                "Realty",
+                "Intempus",
+                "voice",
+                "Bot",
+                "IVR"
+            ],
+            language: "en",
+            provider: "deepgram"
+        },
+
+        // Ensure server settings follow current config (timeout + secret + header)
+        server: {
+            url: `${config.publicUrl}/assistant/${existingAssistant?.name || ''}`,
+            timeoutSeconds: 30,
+            secret: config.vapiToolSecret,
+            headers: {
+                "X-Secret": config.vapiToolSecret
+            }
+        },
+
+        // keep compatibility fields if needed by CreateAssistantDto
+        compliancePlan: { pciEnabled: false } as any
+    } as Vapi.CreateAssistantDto;
+
+    return assistant;
+}
+export const getIVRPropertyOwnerAssistant = async (
+    existingAssistant   : (Vapi.Assistant|undefined),
+    existingTools       : Vapi.ToolsListResponseItem[]
+) : Promise<Vapi.CreateAssistantDto> => {
+    const config = Config.get();
+
+    // Map existing tools by their function.name -> tool item
+    const toolsByName = existingTools.reduce( (acc,t) => {
+        acc[t['function']!.name] = t;
+        return acc;
+    },{} as Record<string,Vapi.ToolsListResponseItem>);
+
+    // Prefer mapping known tool names to actual ids (if present)
+    const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState'];
+    const mappedToolIds = desiredNames
+        .map(n => toolsByName[n]?.id)
+        .filter((id): id is string => typeof id === 'string');
+
+    const assistant = {
+        // Basic metadata (property owner focused)
+        name: "Intempus IVR PropertyOwner",
+
+        // Voice settings (reuse JSON voice)
+        voice: {
+            model: "aura-2",
+            voiceId: "luna",
+            provider: "deepgram",
+            inputPunctuationBoundaries: ["。"]
+        },
+
+        model: {
+            model: "gpt-4.1-mini",
+            toolIds: mappedToolIds.length ? mappedToolIds : undefined,
+            messages: [
+                {
+                    role: "system",
+                    content: `[Identity]
+You are Emily, an AI Interactive Voice Response system for **Intempus Realty**.
+
+[Style]
+- Use a clear and professional tone.
+- Be patient and courteous.
+- Speak naturally and keep interactions concise.
+
+[Response Guidelines]
+- Ask one question at a time and wait for the caller's response before proceeding.
+- Confirm important inputs when necessary.
+
+[Task & Goals]
+1. Greet the caller and determine whether they are calling about rental management, scheduling a showing, selling a property, payments, or maintenance.
+2. If the caller asks about maintenance, call \`redirectCall\` to the maintenance department (use mapped tool ids when available).
+3. If the caller asks about scheduling a showing or leasing, collect the property address and preferred times, then call \`redirectCall\` to the appropriate leasing/contact.
+4. If the caller asks about selling, collect basic details and hand off to Sales or call \`redirectCall\` as appropriate.
+5. Keep the caller informed about actions being taken and offer to send follow-up emails when needed (call \`sendEmail\`).
+
+[Error Handling / Fallback]
+- If the caller's response is unclear, ask for clarification.
+- If an unexpected error occurs, apologize and offer to transfer to an operator.`
+                }
+            ],
+            provider: "openai"
+        },
+
+        firstMessage: "Hello, this is Intempus Realty. Are you calling about rental management, scheduling a showing, selling a property, or something else?",
+        voicemailMessage: "Please call back when you're available.",
+        endCallFunctionEnabled: true,
+        endCallMessage: "Goodbye.",
+
+        transcriber: {
+            model: "nova-3",
+            keyterm: [
+                "rental",
+                "showing",
+                "lease",
+                "maintenance",
+                "seller",
+                "payment",
+                "H-O-A",
+                "Intempus"
+            ],
+            language: "en",
+            provider: "deepgram"
+        },
+
+        server: {
+            url: `${config.publicUrl}/assistant/${existingAssistant?.name || ''}`,
+            timeoutSeconds: 30,
+            secret: config.vapiToolSecret,
+            headers: {
+                "X-Secret": config.vapiToolSecret
+            }
+        },
+
+        // compatibility
+        compliancePlan: { pciEnabled: false } as any
+    } as Vapi.CreateAssistantDto;
+
+    return assistant;
+}
 export const getToolByName = async (
     name    : string
 ) : Promise<Vapi.ToolsCreateRequest> => {
@@ -541,7 +860,18 @@ export const getAssistantByName = async (
     existingTools       : Vapi.ToolsListResponseItem[]
 ) : Promise<Vapi.CreateAssistantDto> => {
     const config = Config.get();
-    if( name===config.assistantName )
-        return getAssistant(await Contacts.get(),existingAssistant,existingTools);
-    throw Error(`Assistant '${name}' s not known`);
+    // if( name===config.assistantName )
+    //     return getAssistant(await Contacts.get(),existingAssistant,existingTools);
+    switch (name) {
+        case "Intempus IVR Introduction":
+            return getIVRIntroductionAssistant(existingAssistant, existingTools);
+        case "Intempus IVR HOA":
+            return getIVRHOAAssistant(existingAssistant, existingTools);
+        case "Intempus IVR PropertyOwner":
+            return getIVRPropertyOwnerAssistant(existingAssistant, existingTools);
+        case "IntempusBot":
+            return getAssistant(await Contacts.get(), existingAssistant, existingTools);
+        default:
+            throw Error(`Assistant '${name}' s not known`);
+    }
 }

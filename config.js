@@ -1,7 +1,7 @@
 export default {
     // common params
     spreadsheetId                   : (process.env.SPREADSHEETID||'[hidden]'),
-    googleApiKey                    : (process.env.APIKEY||'[hidden]'),
+    googleApiKey                    : (process.env.GOOGLE_API_KEY||'[hidden]'),
     worksheetName                   : (process.env.WORKSHEET_NAME||'Contacts'),
     vapiOrgId                       : (process.env.VAPI_ORG_ID||'[hidden]'),
     vapiPrivateKey                  : (process.env.VAPI_PRIVATE_KEY||''),

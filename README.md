@@ -30,7 +30,7 @@
 ## ENVIRONMENT
 Several environament variables affect the work of the program
 1. `SPREADSHEETID` - id of [Contacts Spreadsheet](https://docs.google.com/spreadsheets/d/1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI/edit?gid=907085893#gid=907085893)
-1. `APIKEY` - Google API key to access the spreadsheet with
+1. `GOOGLE_API_KEY` - Google API key to access the spreadsheet with
 1. `VAPI_ORG_ID`- VAPI org Id accessed by the program
 1. `VAPI_PRIVATE_KEY` - VAPI secret key to access VAPI org defined by `VAPI_ORG_ID`
 1. `ASSISTANT_NAME` - Name of Intempus assistant. Default is `Vasa`

@@ -384,8 +384,7 @@ Pronunciation Directive:
         //...contacts.map(c=>c.name)
     ];
     const assistant         = {
-        // name        : config.assistantName,
-        name : "Intempus Realty Assistant",
+        name : "IntempusBot",
         voice       : {
             "voiceId"               : "luna",
             "provider"              : "deepgram",
@@ -519,7 +518,7 @@ Once the location is confirmed, follow location-based procedures. If a transfer 
     console.log(assistant);
     return assistant;
 }
-export const getIntempusIVRIntroductionAssistant = async (
+export const getIVRIntroductionAssistant = async (
     existingAssistant   : (Vapi.Assistant|undefined),
     existingTools       : Vapi.ToolsListResponseItem[]
 ) : Promise<Vapi.CreateAssistantDto> => {
@@ -615,7 +614,7 @@ providing services across California, Indiana, Florida, Nevada, South Carolina, 
 
         // Ensure server settings follow current config (timeout + secret + header)
         server: {
-            url: `${config.publicUrl}/assistant`,
+            url: `${config.publicUrl}/assistant/${existingAssistant?.name || ''}`,
             timeoutSeconds: 30,
             secret: config.vapiToolSecret,
             headers: {
@@ -629,7 +628,7 @@ providing services across California, Indiana, Florida, Nevada, South Carolina, 
 
     return assistant;
 }
-export const getIntempusIVRHOAAssistant = async (
+export const getIVRHOAAssistant = async (
     existingAssistant   : (Vapi.Assistant|undefined),
     existingTools       : Vapi.ToolsListResponseItem[]
 ) : Promise<Vapi.CreateAssistantDto> => {
@@ -726,7 +725,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
 
         // Ensure server settings follow current config (timeout + secret + header)
         server: {
-            url: `${config.publicUrl}/assistant`,
+            url: `${config.publicUrl}/assistant/${existingAssistant?.name || ''}`,
             timeoutSeconds: 30,
             secret: config.vapiToolSecret,
             headers: {
@@ -740,7 +739,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
 
     return assistant;
 }
-export const getIntempusIVRPropertyOwnerAssistant = async (
+export const getIVRPropertyOwnerAssistant = async (
     existingAssistant   : (Vapi.Assistant|undefined),
     existingTools       : Vapi.ToolsListResponseItem[]
 ) : Promise<Vapi.CreateAssistantDto> => {
@@ -825,7 +824,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**.
         },
 
         server: {
-            url: `${config.publicUrl}/assistant`,
+            url: `${config.publicUrl}/assistant/${existingAssistant?.name || ''}`,
             timeoutSeconds: 30,
             secret: config.vapiToolSecret,
             headers: {
@@ -863,17 +862,16 @@ export const getAssistantByName = async (
     const config = Config.get();
     // if( name===config.assistantName )
     //     return getAssistant(await Contacts.get(),existingAssistant,existingTools);
-    if (name === "Intempus IVR Introduction") {
-        return getIntempusIVRIntroductionAssistant(existingAssistant, existingTools);
+    switch (name) {
+        case "Intempus IVR Introduction":
+            return getIVRIntroductionAssistant(existingAssistant, existingTools);
+        case "Intempus IVR HOA":
+            return getIVRHOAAssistant(existingAssistant, existingTools);
+        case "Intempus IVR PropertyOwner":
+            return getIVRPropertyOwnerAssistant(existingAssistant, existingTools);
+        case "IntempusBot":
+            return getAssistant(await Contacts.get(), existingAssistant, existingTools);
+        default:
+            throw Error(`Assistant '${name}' s not known`);
     }
-    if (name === "Intempus IVR HOA") {
-        return getIntempusIVRHOAAssistant(existingAssistant, existingTools);
-    }
-    if (name === "Intempus IVR PropertyOwner") {
-        return getIntempusIVRPropertyOwnerAssistant(existingAssistant, existingTools);
-    }
-    if ( name === "Intempus Realty Assistant"){
-        return getAssistant(await Contacts.get(),existingAssistant,existingTools);
-    }
-    throw Error(`Assistant '${name}' s not known`);
 }

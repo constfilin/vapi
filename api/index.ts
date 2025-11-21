@@ -301,6 +301,11 @@ export default () => {
             };
         });
     });
+    router.post('/assistant/IntempusIVRHOA',(req:expressCore.Request,res:expressCore.Response) => {
+        return sendResponse(req,res,() => {
+            throw Error("Not implemented");
+        });
+    });
     router.post('/cmd',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )

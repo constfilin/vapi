@@ -626,7 +626,7 @@ providing services across California, Indiana, Florida, Nevada, South Carolina, 
 
         // Ensure server settings follow current config (timeout + secret + header)
         server: {
-            url: `${config.publicUrl}/assistant/${encodeURIComponent(name)}`,
+            url: `${config.publicUrl}/assistant/${name.replace(/[^a-zA-Z0-9-_]/g,"")}`,
             timeoutSeconds: 30,
             secret: config.vapiToolSecret,
             headers: {
@@ -739,7 +739,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
 
         // Ensure server settings follow current config (timeout + secret + header)
         server: {
-            url: `${config.publicUrl}/assistant/${encodeURIComponent(name)}`,
+            url: `${config.publicUrl}/assistant/${name.replace(/[^a-zA-Z0-9-_]/g,"")}`,
             timeoutSeconds: 30,
             secret: config.vapiToolSecret,
             headers: {
@@ -839,7 +839,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**.
         },
 
         server: {
-            url: `${config.publicUrl}/assistant/${encodeURIComponent(name)}`,
+            url: `${config.publicUrl}/assistant/${name.replace(/[^a-zA-Z0-9-_]/g,"")}`,
             timeoutSeconds: 30,
             secret: config.vapiToolSecret,
             headers: {

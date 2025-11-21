@@ -122,7 +122,7 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
             number      :   fullPhone,
             //message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
             description :   c.description ? `${c.name} - ${c.description}` : c.name,
-            callerId    :   `+17254446330`,
+            //callerId    :   `+17254446330`,
             transferPlan : {
                 mode        : 'warm-transfer-say-message',
                 message     : 'Incoming call from Intempus',
@@ -143,27 +143,27 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
                 }
             }
         } as Vapi.TransferDestinationNumber);
-        /*
-        tool.messages!.push({
-            'type'      : 'request-start',
-            content     : `I am forwarding your call to ${c.name}. Please stay on the line`,
-            conditions  : [{
-                param   : 'name',
-                operator: 'eq',
-                value   : c.name as unknown as Record<string,unknown>
-            }]
-        } as Vapi.CreateTransferCallToolDtoMessagesItem);
-        */
+        // tool.messages!.push({
+        //     'type'      : 'request-start',
+        //     content     : `I am forwarding your call to ${c.name}. Please stay on the line`,
+        //     conditions  : [{
+        //         param   : 'name',
+        //         operator: 'eq',
+        //         value   : c.name as unknown as Record<string,unknown>
+        //     }]
+        // } as Vapi.CreateTransferCallToolDtoMessagesItem);
     });
     // Special group extensions
-    destinationEnums.push("Maintenance HOA");
-    tool.destinations!.push({
-        type        : 'number',
-        number      : '+14083205509',
-        extension   : '18',
-        message     : 'I am forwarding your call to Maintenance HOA',
-        description : 'Maintenance HOA',
-    });
+    if( !destinationEnums.includes("+15103404275") )
+        destinationEnums.push("+15103404275");
+    if( !(tool.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number==='+15103404275')) )
+        tool.destinations!.push({
+            type        : 'number',
+            number      : '+15103404275',
+            message     : 'I am forwarding your call to Maintenance HOA',
+            description : 'Maintenance HOA',
+        });
+
     // In case if the call is forwarded to unknown contact
     /*
     tool.messages!.push({
@@ -696,7 +696,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
 [Task & Goals]  
 1. Greet the caller warmly and introduce yourself as Intempus Realty's IVR system.  
 2. Ask: "Would you like to request HOA maintenance?"
-   - If the caller responds affirmatively (e.g., "yes", "sure", "definitely", "of course"), then transfer the call to "Maintenance HOA".
+   - If the caller responds affirmatively (e.g., "yes", "sure", "definitely", "of course"), then transfer the call to +15103404275.
 3. Ask: "Would you like to speak about HOA payments, parking calls, estoppable requests, or application status?"  
    - If the caller responds affirmatively, call redirectCall to the relevant department.  
 4. Ask: "Would you like to speak with our Sales Department about Community Association management services?"  

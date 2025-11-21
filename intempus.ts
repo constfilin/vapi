@@ -747,7 +747,7 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
             // See https://discord.com/channels/1211482211119796234/1211483291191083018/threads/1379590374393118860
             //'phone-call-control',
             //'speech-update',
-            //'status-update',
+            'status-update',
             //'transcript',
             //'transcript[transcriptType="final"]',
             'tool-calls',

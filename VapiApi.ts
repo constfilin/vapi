@@ -43,7 +43,6 @@ export class VapiApi extends VapiClient {
             });
         }
         tools.updateByName = ( body:(Vapi.UpdateToolsRequestBody|Vapi.CreateToolsRequest) ) : Promise<Vapi.UpdateToolsResponse> => {
-            console.log({body});
             return tools.getByName(guessToolName(body)).then( t => {
                 if( !t )
                     throw Error(`Cannot find tool with name '${body['function']!.name}'`);

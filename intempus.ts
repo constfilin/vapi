@@ -737,6 +737,25 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
             provider: "deepgram"
         },
 
+        serverMessages  : [
+            //'conversation-update',
+            //'end-of-call-report',
+            'function-call',
+            'hang',
+            //'model-output',
+            // phone call control has to be commented out
+            // See https://discord.com/channels/1211482211119796234/1211483291191083018/threads/1379590374393118860
+            //'phone-call-control',
+            //'speech-update',
+            //'status-update',
+            //'transcript',
+            //'transcript[transcriptType="final"]',
+            'tool-calls',
+            'transfer-destination-request',
+            //'user-interrupted',
+            //'voice-input'
+        ],
+
         // Ensure server settings follow current config (timeout + secret + header)
         server: {
             url: `${config.publicUrl}/assistant/${name.replace(/[^a-zA-Z0-9-_]/g,"")}`,

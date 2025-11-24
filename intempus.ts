@@ -163,6 +163,24 @@ export const getRedirectCallTool = ( contacts:Contacts.Contact[] ) : Vapi.Create
             message     : 'I am forwarding your call to Maintenance HOA',
             description : 'Maintenance HOA',
         });
+    if( !destinationEnums.includes("+19162358444") )
+        destinationEnums.push("+19162358444");
+    if( !(tool.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number==='+19162358444')) )
+        tool.destinations!.push({
+            type        : 'number',
+            number      : '+19162358444',
+            message     : 'I am forwarding your call to Emergency Group',
+            description : 'Emergency Group',
+        });
+    if( !destinationEnums.includes("+14083593034") )
+        destinationEnums.push("+14083593034");
+    if( !(tool.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number==='+14083593034')) )
+        tool.destinations!.push({
+            type        : 'number',
+            number      : '+14083593034',
+            message     : 'I am forwarding your call to Leasing Group',
+            description : 'Leasing Group',
+        });
 
     // In case if the call is forwarded to unknown contact
     /*
@@ -697,13 +715,13 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**, 
 1. Greet the caller warmly and introduce yourself as Intempus Realty's IVR system.  
 2. Ask: "Would you like to request HOA maintenance?"
    - If the caller responds affirmatively (e.g., "yes", "sure", "definitely", "of course"), then transfer the call to +15103404275.
-3. Ask: "Would you like to speak about HOA payments, parking calls, estoppable requests, or application status?"  
-   - If the caller responds affirmatively, call redirectCall to the relevant department.  
+3. Ask: "Would you like to speak about HOA payments, parking calls, estoppable requests, or application status?"
+   - If the caller responds affirmatively, then transfer the call to +15103404275.
 4. Ask: "Would you like to speak with our Sales Department about Community Association management services?"  
-   - If the caller responds affirmatively, then transfer the call to "Sales HOA".
+   - If the caller responds affirmatively, then transfer the call to +15103404275.
 5. Ask: "Would you like to get HOA emergency maintenance?"  
-   - If the caller responds affirmatively, then transfer the call to "Emergency Group".
-6. Ask: "Would you like to get back to the previous menu?"  
+   - If the caller responds affirmatively, then transfer the call to +19162358444.
+6. Ask: "Would you like to get back to the previous menu?"
     - If the caller responds affirmatively, call \`handoff_to_assistant\` to "Intempus IVR Introduction".
 
 [Error Handling / Fallback]  
@@ -822,11 +840,12 @@ You are Emily, an AI Interactive Voice Response system for **Intempus Realty**.
 - Confirm important inputs when necessary.
 
 [Task & Goals]
-1. Greet the caller and determine whether they are calling about rental management, scheduling a showing, selling a property, payments, or maintenance.
-2. If the caller asks about maintenance, call \`redirectCall\` to the maintenance department (use mapped tool ids when available).
-3. If the caller asks about scheduling a showing or leasing, collect the property address and preferred times, then call \`redirectCall\` to the appropriate leasing/contact.
-4. If the caller asks about selling, collect basic details and hand off to Sales or call \`redirectCall\` as appropriate.
-5. Keep the caller informed about actions being taken and offer to send follow-up emails when needed (call \`sendEmail\`).
+1. Greet the caller and determine whether they are calling about rental management, scheduling a showing, selling a property, payments, or rental property emergency maintenance.
+2. If the caller asks about rental propety maintenance, then transfer the call to +15103404275.
+3. If the caller asks about scheduling a showing or leasing, submitting a rental application, or make a rent payment, then transfer the call to +14083593034.
+4. If the caller asks about property selling, collect basic details and then transfer the call to +15103404275.
+5. If the caller asks about rental property emergency maintenance, then transfer the call to +19162358444
+6. If the caller wants to get back to the previous menu, then call handoff_to_assistant to "Intempus IVR Introduction".
 
 [Error Handling / Fallback]
 - If the caller's response is unclear, ask for clarification.

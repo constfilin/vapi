@@ -8,6 +8,8 @@ export interface Config {
     vapiToolSecret          : string;
     publicUrl               : string;
     replPort                : number;
+    model                   : string;
+    provider                : string;
     open_ws                 : boolean;
     web                     :   {
         path                :   string;

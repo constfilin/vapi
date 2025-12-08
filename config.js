@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 export default {
     // common params
     spreadsheetId                   : (process.env.SPREADSHEETID||'[hidden]'),
@@ -8,6 +11,9 @@ export default {
     vapiToolSecret                  : (process.env.VAPI_TOOLS_SECRET||'[hidden]'),
     publicUrl                       : (process.env.PUBLIC_URL||'http://127.0.0.1:9876/api'),                          // https://demo.tectransit.com/api/vapi
     replPort                        : 1338,
+    // global model defaults for assistants
+    model                           : (process.env.MODEL || 'gemini-2.5-flash'),
+    provider                        : (process.env.MODEL_PROVIDER || 'google'),
     // web server
     web                             : {
         path        : __dirname,

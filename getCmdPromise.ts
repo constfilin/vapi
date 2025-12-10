@@ -1,4 +1,4 @@
-import * as intempus    from './intempus';
+import * as intempus    from './intempus/';
 import * as Config      from './Config';
 import * as Contacts    from './Contacts';
 import { VapiApi }      from './VapiApi';
@@ -36,11 +36,15 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
         });
     case 'createToolByName':
         return  (async () => {
-            return tools.create(await intempus.getToolByName(args.name));
+            return tools.create(intempus.toolsByName[args.name](
+                await Contacts.get()
+            ));
         });
     case 'updateToolByName':
         return  (async () => {
-            return tools.updateByName(await intempus.getToolByName(args.name));
+            return tools.updateByName(intempus.toolsByName[args.name](
+                await Contacts.get()
+            ));
         });
     case 'getAssistantById':
         return (() => assistants.get(args.id));
@@ -58,42 +62,50 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
     case 'createAssistantByName':
         return  (async () => {
             const [
+                toolsByName,
                 existingAssistant,
-                existingTools,
             ] = await Promise.all([
+                tools.listByName(),
                 assistants.getByName(args.name),
-                tools.list(),
             ]);
-            return assistants.create(await intempus.getAssistantByName(args.name,existingAssistant,existingTools));
+            return assistants.create(intempus.assistantsByName[args.name](
+                await Contacts.get(),
+                toolsByName,
+                existingAssistant
+            ));
         });
     case 'updateAssistantByName':
         return  (async () => {
             const [
+                toolsByName,
                 existingAssistant,
-                existingTools,
             ] = await Promise.all([
+                tools.listByName(),
                 assistants.getByName(args.name),
-                tools.list(),
             ]);
-            return assistants.updateByName(await intempus.getAssistantByName(args.name,existingAssistant,existingTools));
+            return assistants.updateByName(intempus.assistantsByName[args.name](
+                await Contacts.get(),
+                toolsByName,
+                existingAssistant
+            ));
         });
     case 'updateAll':
         return (async () => {
             const [
                 contacts,
-                existingAssistant,
-                existingTools
+                toolsByName,
+                existingAssistant
             ] = await Promise.all([
                 Contacts.get(),
+                tools.listByName(),
                 assistants.getByName(args.name),
-                tools.list()
             ]);
             return Promise.all([
-                assistants.updateByName(intempus.getAssistant(contacts,existingAssistant,existingTools)),
-                tools.updateByName(intempus.getRedirectCallTool(contacts)),
-                tools.updateByName(intempus.getDispatchCallTool(contacts)),
-                tools.updateByName(intempus.getSendEmailTool(contacts)),
-                tools.updateByName(intempus.getGuessStateTool()),
+                assistants.updateByName(intempus.assistantsByName.IntempusBot(contacts,toolsByName,existingAssistant)),
+                tools.updateByName(intempus.toolsByName.redirectCall(contacts)),
+                tools.updateByName(intempus.toolsByName.dispatchCall(contacts)),
+                tools.updateByName(intempus.toolsByName.sendEmail(contacts)),
+                tools.updateByName(intempus.toolsByName.guessState(contacts)),
             ]);
         });
     }

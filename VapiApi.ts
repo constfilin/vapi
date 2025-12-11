@@ -10,6 +10,7 @@ import * as Config              from './Config';
 const dummyVapiClient = {} as VapiClient;
 type MyTools = (typeof dummyVapiClient.tools) & {
     getByName( name?:string ) : Promise<Vapi.ListToolsResponseItem|undefined>;
+    listByName() : Promise<Record<string,Vapi.ListToolsResponseItem>>;
     updateByName( payload:(Vapi.UpdateToolsRequestBody|Vapi.CreateToolsRequest) ) : Promise<Vapi.UpdateToolsResponse>;
 }
 type MyAssistants = (typeof dummyVapiClient.assistants) & {
@@ -40,6 +41,14 @@ export class VapiApi extends VapiClient {
                 throw Error(`name should be provided`);
             return tools.list().then( tools => {
                 return tools.find(t=>(guessToolName(t)===name));
+            });
+        }
+        tools.listByName = () : Promise<Record<string,Vapi.ListToolsResponseItem>> => {
+            return tools.list().then( existingTools => {
+                return existingTools.reduce( (acc,t) => {
+                    acc[guessToolName(t)] = t;
+                    return acc;
+                },{} as Record<string,Vapi.ListToolsResponseItem>);
             });
         }
         tools.updateByName = ( body:(Vapi.UpdateToolsRequestBody|Vapi.CreateToolsRequest) ) : Promise<Vapi.UpdateToolsResponse> => {

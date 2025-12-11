@@ -5,8 +5,24 @@ import {
 import * as Config      from '../Config';
 import * as Contacts    from '../Contacts';
 
-export const getDispatchCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
+const getToolsServer = () : Vapi.Server => {
     const config = Config.get();
+    return {
+        "url"            : `${config.publicUrl}/tool`,
+        "timeoutSeconds" : 30,
+        // @ts-expect-error
+        "secret"         : config.vapiToolSecret,
+        // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
+        // even though it is configured to do so. I am not surprised given all kinds of other 
+        // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
+        // So, as a workaround, let's just have our own secret header
+        "headers"        : {
+            "X-Secret"   : config.vapiToolSecret
+        }            
+    };
+}
+
+export const getDispatchCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
     const result =  {
         'type'     : 'function',
         'async'    : false,
@@ -54,25 +70,13 @@ export const getDispatchCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateTool
                 "content": "Cannot dispatch call"
             }
         ] as Vapi.CreateFunctionToolDtoMessagesItem[],
-        server : {
-            "url"            : `${config.publicUrl}/tool`,
-            "timeoutSeconds" : 30,
-            "secret"         : config.vapiToolSecret,
-            // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
-            // even though it is configured to do so. I am not surprised given all kinds of other 
-            // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
-            // So, as a workaround, let's just have our own secret header
-            "headers"        : {
-                "X-Secret"   : config.vapiToolSecret
-            }            
-        }
+        server : getToolsServer()
     } as Vapi.CreateFunctionToolDto;
     return result;
 }
 
 export const getRedirectCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
-    const config = Config.get();
-    const tool = {
+    const result = {
         type            : "transferCall",
         destinations    : [] as Vapi.TransferDestinationNumber[],
         'function'      : {
@@ -92,21 +96,9 @@ export const getRedirectCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateTool
                 ]
             },
         },
-        messages        : [] as Vapi.ToolMessageStart[],
-        server : {
-            "url"            : `${config.publicUrl}/tool`,
-            "timeoutSeconds" : 30,
-            "secret"         : config.vapiToolSecret,
-            // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
-            // even though it is configured to do so. I am not surprised given all kinds of other 
-            // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
-            // So, as a workaround, let's just have our own secret header
-            "headers"        : {
-                "X-Secret"   : config.vapiToolSecret
-            }            
-        }
+        messages    : [] as Vapi.ToolMessageStart[],
     } as Vapi.CreateTransferCallToolDto;
-    const destinationEnums  = tool['function']!.parameters!.properties!.destination!.enum!;
+    const destinationEnums  = result['function']!.parameters!.properties!.destination!.enum!;
     contacts.forEach( c => {
         // TODO:
         // The same phone number can be listed in the contacts multiple times
@@ -117,7 +109,7 @@ export const getRedirectCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateTool
         const fullPhone     = `+1${c.phoneNumbers[0]}`;
         if( !destinationEnums.includes(fullPhone) )
             destinationEnums.push(fullPhone);
-        tool.destinations!.push({
+        result.destinations!.push({
             'type'      :   'number',
             number      :   fullPhone,
             //message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
@@ -154,34 +146,31 @@ export const getRedirectCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateTool
         // } as Vapi.CreateTransferCallToolDtoMessagesItem);
     });
     // Special group extensions
-    if( !destinationEnums.includes("+15103404275") )
-        destinationEnums.push("+15103404275");
-    if( !(tool.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number==='+15103404275')) )
-        tool.destinations!.push({
+    [
+        {
             type        : 'number',
             number      : '+15103404275',
             message     : 'I am forwarding your call to Maintenance HOA',
             description : 'Maintenance HOA',
-        });
-    if( !destinationEnums.includes("+19162358444") )
-        destinationEnums.push("+19162358444");
-    if( !(tool.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number==='+19162358444')) )
-        tool.destinations!.push({
+        },
+        {
             type        : 'number',
             number      : '+19162358444',
             message     : 'I am forwarding your call to Emergency Group',
             description : 'Emergency Group',
-        });
-    if( !destinationEnums.includes("+14083593034") )
-        destinationEnums.push("+14083593034");
-    if( !(tool.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number==='+14083593034')) )
-        tool.destinations!.push({
+        },
+        {
             type        : 'number',
             number      : '+14083593034',
             message     : 'I am forwarding your call to Leasing Group',
             description : 'Leasing Group',
-        });
-
+        }
+    ].forEach( dest => {
+        if( !destinationEnums.includes(dest.number) )
+            destinationEnums.push(dest.number);
+        if( !(result.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number===dest.number)) )
+            result.destinations!.push(dest as Vapi.TransferDestinationNumber);
+    });
     // In case if the call is forwarded to unknown contact
     /*
     tool.messages!.push({
@@ -189,13 +178,12 @@ export const getRedirectCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateTool
         content     : `I am forwarding your call...`,
     });
     */
-    return tool as Vapi.CreateTransferCallToolDto;
+    return result;
 }
 
 export const getSendEmail = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
-    const config    = Config.get();
     const toArgName = 'to';
-    const tool = {
+    const result = {
         'type'      : "function",
         "async"     : false,
         'function'  : {
@@ -238,20 +226,9 @@ export const getSendEmail = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRe
                 "content"   : "Cannot send email"
             }
         ],
-        server  : {
-            "url"            : `${config.publicUrl}/tool`,
-            "timeoutSeconds" : 30,
-            "secret"         : config.vapiToolSecret,
-            // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
-            // even though it is configured to do so. I am not surprised given all kinds of other 
-            // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
-            // So, as a workaround, let's just have our own secret header
-            "headers"        : {
-                "X-Secret"   : config.vapiToolSecret
-            }            
-        }
+        server : getToolsServer()
     } as Vapi.CreateFunctionToolDto;
-    const toEnums  = tool['function']!.parameters!.properties![toArgName]!.enum;
+    const toEnums  = result['function']!.parameters!.properties![toArgName]!.enum;
     contacts.forEach( c => {
         // TODO:
         // The same phone number can be listed in the contacts multiple times
@@ -275,13 +252,11 @@ export const getSendEmail = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRe
         } as Vapi.CreateTransferCallToolDtoMessagesItem);
         */
     });
-
-    return tool;
+    return result;
 }
 
 export const getGuessState = ( /*contacts:Contacts.Contact[]*/ ) : Vapi.CreateToolsRequest => {
-    const config    = Config.get();
-    const tool = {
+    const result = {
         'type'      : "function",
         "async"     : false,
         'function'  : {
@@ -310,19 +285,8 @@ export const getGuessState = ( /*contacts:Contacts.Contact[]*/ ) : Vapi.CreateTo
                 "content"   : "Cannot guess state"
             }
         ],
-        server  : {
-            "url"            : `${config.publicUrl}/tool`,
-            "timeoutSeconds" : 30,
-            "secret"         : config.vapiToolSecret,
-            // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
-            // even though it is configured to do so. I am not surprised given all kinds of other 
-            // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
-            // So, as a workaround, let's just have our own secret header
-            "headers"        : {
-                "X-Secret"   : config.vapiToolSecret
-            }            
-        }
+        server : getToolsServer()
     } as Vapi.CreateFunctionToolDto;
-    return tool;
+    return result;
 }
 

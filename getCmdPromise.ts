@@ -62,14 +62,16 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
     case 'createAssistantByName':
         return  (async () => {
             const [
+                contacts,
                 toolsByName,
                 existingAssistant,
             ] = await Promise.all([
+                Contacts.get(),
                 tools.listByName(),
                 assistants.getByName(args.name),
             ]);
             return assistants.create(intempus.assistantsByName[args.name](
-                await Contacts.get(),
+                contacts,
                 toolsByName,
                 existingAssistant
             ));
@@ -77,14 +79,16 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
     case 'updateAssistantByName':
         return  (async () => {
             const [
+                contacts,
                 toolsByName,
                 existingAssistant,
             ] = await Promise.all([
+                Contacts.get(),
                 tools.listByName(),
                 assistants.getByName(args.name),
             ]);
             return assistants.updateByName(intempus.assistantsByName[args.name](
-                await Contacts.get(),
+                contacts,
                 toolsByName,
                 existingAssistant
             ));

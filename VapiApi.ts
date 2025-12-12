@@ -5,17 +5,18 @@ import {
 import jwt                      from 'jsonwebtoken';
 
 import * as Config              from './Config';
-
+import * as misc                from './misc';
 
 const dummyVapiClient = {} as VapiClient;
 type MyTools = (typeof dummyVapiClient.tools) & {
     getByName( name?:string ) : Promise<Vapi.ListToolsResponseItem|undefined>;
     listByName() : Promise<Record<string,Vapi.ListToolsResponseItem>>;
-    updateByName( payload:(Vapi.UpdateToolsRequestBody|Vapi.CreateToolsRequest) ) : Promise<Vapi.UpdateToolsResponse>;
+    credate( payload:Vapi.CreateToolsRequest, tool:(Vapi.ListToolsResponseItem|undefined) ) : Promise<Vapi.ListToolsResponseItem>;
 }
 type MyAssistants = (typeof dummyVapiClient.assistants) & {
     getByName( name?:string ) : Promise<Vapi.Assistant|undefined>;
-    updateByName( payload:(Vapi.CreateAssistantDto) ) : Promise<Vapi.Assistant>
+    listByName() : Promise<Record<string,Vapi.Assistant>>;
+    credate( payload:Vapi.CreateAssistantDto, assistant:(Vapi.Assistant|undefined) ) : Promise<Vapi.Assistant>;
 }
 
 export class VapiApi extends VapiClient {
@@ -51,17 +52,11 @@ export class VapiApi extends VapiClient {
                 },{} as Record<string,Vapi.ListToolsResponseItem>);
             });
         }
-        tools.updateByName = ( body:(Vapi.UpdateToolsRequestBody|Vapi.CreateToolsRequest) ) : Promise<Vapi.UpdateToolsResponse> => {
-            return tools.getByName(guessToolName(body)).then( t => {
-                if( !t )
-                    throw Error(`Cannot find tool with name '${body['function']!.name}'`);
-                // @ts-expect-error
-                delete body.type;
-                return super.tools.update({
-                    id  : t.id,
-                    body: body
-                });
-            });
+        tools.credate = ( payload:Vapi.CreateToolsRequest, tool:(Vapi.ListToolsResponseItem|undefined) ) : Promise<Vapi.ListToolsResponseItem> => {
+            return tool ? tools.update({
+                id   : tool.id,
+                body : misc.deleteKey(payload,'type')
+            }) : tools.create(payload)
         }
         return tools;
     }
@@ -74,17 +69,19 @@ export class VapiApi extends VapiClient {
                 return assistants.find(a=>(a.name===name));
             });
         };
-        assistants.updateByName = ( payload:Vapi.CreateAssistantDto ) : Promise<Vapi.Assistant> => {
-            return assistants.getByName(payload.name).then( a => {
-                if( !a )
-                    throw Error(`Cannot find assistant with name '${payload.name}'`);
-                // @ts-expect-error
-                delete payload.isServerUrlSecretSet;
-                return super.assistants.update({
-                    id : a.id,
-                    ...payload
-                });
+        assistants.listByName = () : Promise<Record<string,Vapi.Assistant>> => {
+            return assistants.list().then( existingAssistants => {
+                return existingAssistants.reduce( (acc,a) => {
+                    acc[a.name] = a;
+                    return acc;
+                },{} as Record<string,Vapi.Assistant>);
             });
+        }
+        assistants.credate = ( payload:Vapi.CreateAssistantDto, assistant:(Vapi.Assistant|undefined) ) : Promise<Vapi.Assistant> => {
+            return assistant ? assistants.update({
+                id : assistant.id,
+                ...misc.deleteKey(payload,'isServerUrlSecretSet')
+            }) : assistants.create(payload)
         };
         return assistants;
     }

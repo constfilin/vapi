@@ -15,7 +15,7 @@ export const assistantsByName = {
     "Intempus IVR FAQ"          : assistants.getIVRFAQ,
     "Intempus IVR CallbackForm" : assistants.getIVRCallbackForm,
     "Intempus IVR Main"         : assistants.getIVRMain,
-    "Intempus IVR Introduction (next version)": assistants.getIVRIntroductionNextVersion,
+    "Introduction (next version)": assistants.getIVRIntroductionNextVersion,
 } as Record<string,(
     contacts            : Contacts.Contact[], 
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,

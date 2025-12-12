@@ -31,4 +31,12 @@ export const jsonParse = ( s:string, defaultValue:Record<string,any> ) : Record<
     catch( err ) {
         return defaultValue
     }
-};
+}
+
+export const deleteKey = <T extends Record<string,any>>( t:(T|undefined), key:(string|number) ) : (T|undefined) => {
+    if( !t )
+        return t;
+    const result = { ...t };
+    delete result[key];
+    return result;
+}

@@ -1,12 +1,9 @@
 import * as intempus    from './intempus/';
-import * as Config      from './Config';
 import * as Contacts    from './Contacts';
 import { VapiApi }      from './VapiApi';
 
 export const getCmdPromise = ( args:Record<string,any> ) => {
 
-    const config        = Config.get();
-    const cmd           = args.cmd;
     const vapiApi       = new VapiApi();
     const tools         = vapiApi.getTools();
     const assistants    = vapiApi.getAssistants();
@@ -34,18 +31,6 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 }
             });
         });
-    case 'createToolByName':
-        return  (async () => {
-            return tools.create(intempus.toolsByName[args.name](
-                await Contacts.get()
-            ));
-        });
-    case 'updateToolByName':
-        return  (async () => {
-            return tools.updateByName(intempus.toolsByName[args.name](
-                await Contacts.get()
-            ));
-        });
     case 'getAssistantById':
         return (() => assistants.get(args.id));
     case 'getAssistantByName':
@@ -59,7 +44,21 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 }
             });
         });
-    case 'createAssistantByName':
+    case 'credateToolByName':
+        return  (async () => {
+            const [
+                contacts,
+                existingTool,
+            ] = await Promise.all([
+                Contacts.get(),
+                tools.getByName(args.name),
+            ]);
+            return tools.credate(
+                intempus.toolsByName[args.name](contacts),
+                existingTool
+            );
+        });
+    case 'credateAssistantByName':
         return  (async () => {
             const [
                 contacts,
@@ -70,52 +69,41 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 tools.listByName(),
                 assistants.getByName(args.name),
             ]);
-            return assistants.create(intempus.assistantsByName[args.name](
-                contacts,
-                toolsByName,
+            return assistants.credate(
+                intempus.assistantsByName[args.name](contacts,toolsByName,existingAssistant),
                 existingAssistant
-            ));
+            );
         });
-    case 'updateAssistantByName':
-        return  (async () => {
-            const [
-                contacts,
-                toolsByName,
-                existingAssistant,
-            ] = await Promise.all([
-                Contacts.get(),
-                tools.listByName(),
-                assistants.getByName(args.name),
-            ]);
-            return assistants.updateByName(intempus.assistantsByName[args.name](
-                contacts,
-                toolsByName,
-                existingAssistant
-            ));
-        });
-    case 'updateAll':
+    case 'credateAll':
         return (async () => {
             const [
                 contacts,
                 toolsByName,
-                existingAssistant
+                assistantsByName
             ] = await Promise.all([
                 Contacts.get(),
                 tools.listByName(),
-                assistants.getByName(args.name),
+                assistants.listByName(),
             ]);
             return Promise.all([
-                assistants.updateByName(intempus.assistantsByName.IntempusBot(contacts,toolsByName,existingAssistant)),
-                tools.updateByName(intempus.toolsByName.redirectCall(contacts)),
-                tools.updateByName(intempus.toolsByName.dispatchCall(contacts)),
-                tools.updateByName(intempus.toolsByName.sendEmail(contacts)),
-                tools.updateByName(intempus.toolsByName.guessState(contacts)),
+                ...Object.entries(intempus.assistantsByName).map( ([assistantName,getAssistantDto]) => {
+                    return assistants.credate(
+                        getAssistantDto(contacts,toolsByName,assistantsByName[assistantName]),
+                        assistantsByName[assistantName]
+                    );
+                }),
+                ...Object.entries(intempus.toolsByName).map( ([toolName,getToolDto]) => {
+                    return tools.credate(
+                        getToolDto(contacts),
+                        toolsByName[toolName]
+                    );
+                })
             ]);
         });
     }
     // Nothing is found
     return () => {
-        return Promise.reject(Error(`Unknown command '${cmd}'`));
+        return Promise.reject(Error(`Unknown command '${args.cmd}'`));
     }
 }
 

@@ -276,96 +276,6 @@ ${tasksAndGoals.map((tng,ndx) => {
     } as Vapi.CreateAssistantDto;
     return assistant;
 }
-export const getIVRIntroduction = (
-    contacts            : Contacts.Contact[],
-    toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
-    existingAssistant   : (Vapi.Assistant|undefined)
-) : Vapi.CreateAssistantDto => {
-    const config = Config.get();
-
-    // Prefer mapping known tool names to actual ids (if present)
-    const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState'];
-    const mappedToolIds = desiredNames
-        .map(n => toolsByName[n]?.id)
-        .filter((id): id is string => typeof id === 'string');
-
-    const name = "Intempus IVR Introduction";
-    const assistant = {
-        // Basic metadata
-        name,
-
-        // Voice settings (from JSON)
-        voice: {
-            model: "aura-2",
-            voiceId: "luna",
-            provider: "deepgram",
-            inputPunctuationBoundaries: ["。"]
-        },
-
-        // model block
-        model: {
-            model: config.model,
-            toolIds: mappedToolIds.length ? mappedToolIds : undefined,
-            messages: [
-                {
-                    role: "system",
-                    content: `${systemPromptHeader}
-<TASKS_AND_GOALS>
-1. Greet the caller promptly and gather their inquiry information.
-2. Unless the caller has already answered those questions, proceed to ask:
-   a. "Are you a homeowner board member or a resident calling about HOA and Community Management Services?"
-   b. If they respond affirmatively (e.g., "yes", "sure", "definitely", "of course"), then:
-      - Inform them: "You will be redirected to our HOA and Community Management Services."
-      - Call \`handoff_to_assistant\` with "Intempus IVR HOA".
-   c. If they did not respond affirmatively, then:
-      - Ask them: "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
-   d. If they respond affirmatively:
-      - Inform them: "You will be redirected to our Property Owner Services."
-      - Call \`handoff_to_assistant\` with "Intempus IVR PropertyOwner".
-3. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.
-<TASKS_AND_GOALS>
-${systemPromptFooter}`
-                }
-            ],
-            provider: config.provider
-        },
-
-        firstMessage: "Hello, I am Emily, an AI assistant for Intempus Realty, Please let me know if you are a homeowner, a property board member or a resident calling about HOA and Community Management Services.",
-        voicemailMessage: "Please call back when you're available.",
-        endCallFunctionEnabled: true,
-        endCallMessage: "Goodbye.",
-        transcriber: {
-            model: "nova-3",
-            keyterm: [
-                "H-O-A",
-                "Maintenance",
-                "Property",
-                "Realty",
-                "Intempus",
-                "voice",
-                "Bot",
-                "IVR"
-            ],
-            language: "en",
-            provider: "deepgram"
-        },
-
-        // Ensure server settings follow current config (timeout + secret + header)
-        server: {
-            url: `${config.publicUrl}/assistant/${name.replace(/[^a-zA-Z0-9-_]/g,"")}`,
-            timeoutSeconds: 30,
-            secret: config.vapiToolSecret,
-            headers: {
-                "X-Secret": config.vapiToolSecret
-            }
-        },
-
-        // keep compatibility fields if needed by CreateAssistantDto
-        compliancePlan: { pciEnabled: false } as any
-    } as Vapi.CreateAssistantDto;
-
-    return assistant;
-}
 export const getIVRHOA = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
@@ -379,7 +289,7 @@ export const getIVRHOA = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus IVR HOA";
+    const name = "Intempus HOA";
 
     const assistant = {
         // Basic metadata (from IntempusIVRIntroductionAssistant.json -> Intempus IVR HOA)
@@ -425,7 +335,7 @@ export const getIVRHOA = (
 - For HOA payments, parking calls, estoppel requests, or application status: transfer to +15103404275.
 - For HOA community association management services sales: transfer to +15103404275.
 - For HOA emergency maintenance: transfer to +19162358444.
-- If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus IVR Introduction".
+- If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus Introduction".
 </CALLROUTING>
 ${systemPromptFooter}`
                 }
@@ -506,7 +416,7 @@ export const getIVRPropertyOwner = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus IVR PropertyOwner";
+    const name = "Intempus PropertyOwner";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -558,7 +468,7 @@ export const getIVRPropertyOwner = (
 - For scheduling a showing, leasing, submitting a rental application, or making a rent payment: transfer to +14083593034.
 - For selling a property: transfer to +15103404275.
 - For rental property emergency maintenance: transfer to +19162358444.
-- If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus IVR Introduction".
+- If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus Introduction".
 </CALLROUTING>
 ${systemPromptFooter}`
                 }
@@ -617,7 +527,7 @@ export const getIVRFAQ = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus IVR FAQ";
+    const name = "Intempus FAQ";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -639,7 +549,7 @@ export const getIVRFAQ = (
                     content: `${systemPromptHeader}
 <TASKS_AND_GOALS>
 Ask caller: "Do you want to return to previous menu?"
-If the caller responds affirmatively call "handoff_to_assistant" to "Intempus IVR Introduction".
+If the caller responds affirmatively call "handoff_to_assistant" to "Intempus Introduction".
 </TASKS_AND_GOALS>
 ${systemPromptFooter}`
                 }
@@ -696,7 +606,7 @@ export const getIVRCallbackForm = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus IVR CallbackForm";
+    const name = "Intempus CallbackForm";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -718,7 +628,7 @@ export const getIVRCallbackForm = (
                     content: `${systemPromptHeader}
 <TASKS_AND_GOALS>
 Ask caller: "Do you want to return to previous menu?"
-If the caller responds affirmatively call "handoff_to_assistant" to "Intempus IVR Introduction".
+If the caller responds affirmatively call "handoff_to_assistant" to "Intempus Introduction".
 </TASKS_AND_GOALS>
 ${systemPromptFooter}`
                 }
@@ -780,7 +690,7 @@ export const getIVRDialByName = (
         }),
         `${contacts.length+1}. If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result.`
     ];
-    const name = "Intempus IVR DialByName";
+    const name = "Intempus DialByName";
     const assistant = {
         // Basic metadata
         name,
@@ -871,7 +781,7 @@ export const getIVRMain = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus IVR Main";
+    const name = "Intempus Main";
     const assistant = {
         // Basic metadata
         name,
@@ -896,15 +806,15 @@ export const getIVRMain = (
 1. Greet the caller promptly.
 2. Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
    a. "Are you a homeowner board member or a resident calling about HOA and Community Management Services?"
-      - Call "handoff_to_assistant" with "Intempus IVR HOA".
+      - Call "handoff_to_assistant" with "Intempus HOA".
    b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
-      - Call "handoff_to_assistant" with "Intempus IVR PropertyOwner".
+      - Call "handoff_to_assistant" with "Intempus PropertyOwner".
    c. "Do you know the name of the person you would like to talk to?"
-      - Call "handoff_to_assistant" with "Intempus IVR DialByName".
+      - Call "handoff_to_assistant" with "Intempus DialByName".
    d. "Do you have a general question about Intempus Property Management"?
-      - Call "handoff_to_assistant" with "Intempus IVR FAQ"
+      - Call "handoff_to_assistant" with "Intempus FAQ"
    e. "Would you like to leave your information for a callback from Intempus?"
-      - Call "handoff_to_assistant" with "Intempus IVR CallbackForm"
+      - Call "handoff_to_assistant" with "Intempus CallbackForm"
    f. "Would you like to hear these options again?"
       - Follow the instructions of step 2 again
 3. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.
@@ -952,7 +862,7 @@ ${systemPromptFooter}`
 
     return assistant;
 }
-export const getIVRIntroductionNextVersion = (
+export const getIVRIntroduction = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -965,10 +875,10 @@ export const getIVRIntroductionNextVersion = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus IVR Introduction (next version)";
+    const name = "Intempus Introduction";
     const assistant = {
         id: "c8034aff-f13f-4d2c-bb74-6a308ca3b5ab",
-        name: "Introduction (next version)",
+        name: "Intempus Introduction",
         voice: {
             model: "aura",
             voiceId: "luna",
@@ -985,19 +895,19 @@ export const getIVRIntroductionNextVersion = (
 1. Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
    a. "Are you a homeowner board member or a resident calling about /eɪtʃ oʊ eɪ/ and Community Management Services?"
       - Tell "I am forwarding your call to our HOA and Community Management Services."
-      - Call "handoff_to_assistant" with "Intempus IVR HOA".
+      - Call "handoff_to_assistant" with "Intempus HOA".
    b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
       - Tell "I am forwarding your call to our Property Management Services."
-      - Call "handoff_to_assistant" with "Intempus IVR PropertyOwner".
+      - Call "handoff_to_assistant" with "Intempus PropertyOwner".
    c. "Do you know the name of the person you would like to talk to?"
       - Tell "I am forwarding your call to our Dial By Name assistant"
-      - Call "handoff_to_assistant" with "Intempus IVR DialByName".
+      - Call "handoff_to_assistant" with "Intempus DialByName".
    d. "Do you have a general question about Intempus Property Management"?
       - Tell "I am forwarding your call to our Frequently Asked Questions assistant"
-      - Call "handoff_to_assistant" with "Intempus IVR FAQ"
+      - Call "handoff_to_assistant" with "Intempus FAQ"
    e. "Would you like to leave your information for a callback from Intempus?"
       - Tell "I am forwarding your call to our Callback Form assistant"
-      - Call "handoff_to_assistant" with "Intempus IVR CallbackForm"
+      - Call "handoff_to_assistant" with "Intempus CallbackForm"
    f. "Would you like to hear these options again?"
       - Go to the first task again
 2. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.

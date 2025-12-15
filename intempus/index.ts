@@ -8,14 +8,13 @@ import * as tools      from './tools';
 
 export const assistantsByName = {
     "IntempusBot"               : assistants.getBotOldVersion,
-    "Intempus IVR Introduction" : assistants.getIVRIntroduction,
-    "Intempus IVR HOA"          : assistants.getIVRHOA,
-    "Intempus IVR PropertyOwner": assistants.getIVRPropertyOwner,
-    "Intempus IVR DialByName"   : assistants.getIVRDialByName,
-    "Intempus IVR FAQ"          : assistants.getIVRFAQ,
-    "Intempus IVR CallbackForm" : assistants.getIVRCallbackForm,
-    "Intempus IVR Main"         : assistants.getIVRMain,
-    "Introduction (next version)": assistants.getIVRIntroductionNextVersion,
+    "Intempus HOA"          : assistants.getIVRHOA,
+    "Intempus PropertyOwner": assistants.getIVRPropertyOwner,
+    "Intempus DialByName"   : assistants.getIVRDialByName,
+    "Intempus FAQ"          : assistants.getIVRFAQ,
+    "Intempus CallbackForm" : assistants.getIVRCallbackForm,
+    "Intempus Main"         : assistants.getIVRMain,
+    "Intempus Introduction": assistants.getIVRIntroduction,
 } as Record<string,(
     contacts            : Contacts.Contact[], 
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,

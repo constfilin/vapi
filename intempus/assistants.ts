@@ -565,6 +565,8 @@ export const getCallbackForm = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
+    // See https://docs.vapi.ai/assistants/dynamic-variables#default-variables
+    // about default variables like {{customer.number}}
     const name = "Intempus CallbackForm";
     const assistant = {
         // Basic metadata (property owner focused)
@@ -586,8 +588,13 @@ export const getCallbackForm = (
                     role: "system",
                     content: `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-Ask caller: "Do you want to return to previous menu?"
-If the caller responds affirmatively call "handoff_to_assistant" to "Intempus Introduction".
+1. Ask caller: "Please let us know if you are an existing or prospective client" and save the answer as 'clientType'.
+2. Ask caller: "Are you looking to rent your property, looking to buy a property or deciding to between renting and selling?" and save the answer as 'propertyInterest'.
+3. If the caller is looking to rent their property, ask: "What is the address of your property" and save the answer as 'propertyAddress'. Otherwise ask: "What state, county or zip code you would like your to live in?" and save the answer as 'locationInterest'.
+4. Ask caller: "What is your first and last name?" and save the answer as 'name'.
+5. Ask caller: "Would you like to leave us your email address" and if the caller responds affirmatively, then ask "Please provide your email address", re-confirm it and after the re-confirmation save the answer as 'emailAddress'.
+6. After collecting all the above information, tell the customer something like "You are an {{clientType}} client interested in {{propertyInterest}}. Your property address is {{propertyAddress}}. Your location of interest is {{locationInterest}}. Your name is {{name}}. Your email address is {{emailAddress}}. Your phone number is {{customer.number}}. Thank you for providing this information. A representative will reach out to you shortly.".
+7. If instead of the answer on any of the above questions the caller says something like "I want to return to the previous menu", then call "handoff_to_assistant" to "Intempus Introduction".
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`
                 }
@@ -595,7 +602,7 @@ ${intempusConsts.systemPromptFooter}`
             provider: config.provider
         },
 
-        firstMessage: "Hello, this is Intempus Realty. Are you calling about rental management, scheduling a showing, selling a property, or something else?",
+        firstMessage: null,
         voicemailMessage: "Please call back when you're available.",
         endCallFunctionEnabled: true,
         endCallMessage: "Goodbye.",

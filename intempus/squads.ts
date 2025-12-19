@@ -93,6 +93,5 @@ export const getIVR = (
                 })
         ]
     } as Vapi.CreateSquadDto;
-    //  throw Error('Stop');
     return result;
 }

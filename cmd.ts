@@ -10,7 +10,7 @@ const cmd = () => {
     ]);
     getCmdPromise(argv)().then( r => {
         if( argv.stringify )
-            return console.log(JSON.stringify(r));
+            return console.log(JSON.stringify(r,null,4));
         return console.log(r);
     }).catch(console.error);
 }

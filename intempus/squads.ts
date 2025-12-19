@@ -5,18 +5,16 @@ import {
 import * as Config          from '../Config';
 
 import * as intempus        from '.';
-import * as intempusConsts  from './consts';
 
 export const getIVR = (
     existingAssistantsByName    : Record<string,Vapi.Assistant>,
 ) : Vapi.CreateSquadDto => {
 
     const config            = Config.get();
-    const assistantsByName  = intempus.assistantsByName;
     const existingIntroductionAssistant = existingAssistantsByName['Intempus Introduction'];
     if( !existingIntroductionAssistant )
         throw Error(`Expected existing assistant Intempus Introduction to be present`);
-    const handoffAssistantNames  = Object.keys(assistantsByName).filter( (name) => {
+    const handoffAssistantNames  = Object.keys(intempus.assistantsByName).filter( (name) => {
         return (name !== 'Intempus Introduction' && name !== 'IntempusBot');
     });
 
@@ -28,17 +26,6 @@ export const getIVR = (
             {
                 assistantId : existingIntroductionAssistant.id,
                 assistantOverrides : {
-                    model : {
-                        model    : config.model,
-                        provider : config.provider,                    
-                        messages : [
-                            {
-                                role    : 'system',
-                                content : intempusConsts.systemPromptHeader
-                            }
-                        ],
-                    },
-                    firstMessage : "Hello, I am Emily, an AI assistant for Intempus Realty, .... Are you a homeowner board member or a resident calling about HOA and Community Management Services?",
                     'tools:append' : [
                         {
                             type        : 'handoff',

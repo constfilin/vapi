@@ -7,6 +7,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
     const vapiApi       = new VapiApi();
     const tools         = vapiApi.getTools();
     const assistants    = vapiApi.getAssistants();
+    const squads        = vapiApi.getSquads();
 
     // Commands to manage tools
     switch( args.cmd ) {
@@ -44,6 +45,19 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 }
             });
         });
+    case 'getSquadById':
+        return (() => squads.get(args.id));
+    case 'getSquadByName':
+        return (() => squads.getByName(args.name));
+    case 'listSquads':
+        return (async () => {
+            return (await squads.list()).map( s => {
+                return {
+                    id      : s.id,
+                    name    : s.name
+                }
+            });
+        });
     case 'credateToolByName':
         return  (async () => {
             const [
@@ -74,16 +88,32 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 existingAssistant
             );
         });
+    case 'credateSquadByName':
+        return  (async () => {
+            const [
+                assistantsByName,
+                existingSquad,
+            ] = await Promise.all([
+                assistants.listByName(),
+                squads.getByName(args.name),
+            ]);
+            return squads.credate(
+                intempus.squadsByName[args.name](assistantsByName),
+                existingSquad
+            );
+        });
     case 'credateAll':
         return (async () => {
             const [
                 contacts,
                 toolsByName,
-                assistantsByName
+                assistantsByName,
+                squadsByName
             ] = await Promise.all([
                 Contacts.get(),
                 tools.listByName(),
                 assistants.listByName(),
+                squads.listByName(),
             ]);
             return Promise.all([
                 ...Object.entries(intempus.assistantsByName).map( ([assistantName,getAssistantDto]) => {
@@ -96,6 +126,12 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                     return tools.credate(
                         getToolDto(contacts),
                         toolsByName[toolName]
+                    );
+                }),
+                ...Object.entries(intempus.squadsByName).map( ([squadName,getSquadDto]) => {
+                    return squads.credate(
+                        getSquadDto(assistantsByName),
+                        squadsByName[squadName]
                     );
                 })
             ]);

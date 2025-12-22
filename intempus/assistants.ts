@@ -473,6 +473,7 @@ ${intempusConsts.systemPromptFooter}`
 
     return assistant;
 }
+//https://intempusrealty.com/frequently-asked-questions/
 export const getFAQ = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
@@ -552,6 +553,7 @@ ${intempusConsts.systemPromptFooter}`
 
     return assistant;
 }
+//https://intempuspropertymanagement.com/santa-clara-property-management/
 export const getCallbackForm = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
@@ -749,7 +751,6 @@ export const getIntroduction = (
 
     const name = "Intempus Introduction";
     const assistant = {
-        id: "c8034aff-f13f-4d2c-bb74-6a308ca3b5ab",
         name: "Intempus Introduction",
         voice: {
             model: "aura",

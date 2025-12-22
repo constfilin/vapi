@@ -18,7 +18,11 @@ type MyAssistants = (typeof dummyVapiClient.assistants) & {
     listByName() : Promise<Record<string,Vapi.Assistant>>;
     credate( payload:Vapi.CreateAssistantDto, assistant:(Vapi.Assistant|undefined) ) : Promise<Vapi.Assistant>;
 }
-
+type MySquads = (typeof dummyVapiClient.squads) & {
+    getByName( name?:string ) : Promise<Vapi.Squad|undefined>;
+    listByName() : Promise<Record<string,Vapi.Squad>>;
+    credate( payload:Vapi.CreateSquadDto, squad:(Vapi.Squad|undefined) ) : Promise<Vapi.Squad>;
+}
 export class VapiApi extends VapiClient {
     constructor() {
         const config  = Config.get();
@@ -84,5 +88,30 @@ export class VapiApi extends VapiClient {
             }) : assistants.create(payload)
         };
         return assistants;
+    }
+    getSquads() : MySquads {
+        const squads = super.squads as MySquads;
+        squads.getByName = ( name?:string ) : Promise<Vapi.Squad|undefined> => {
+            if( !name )
+                throw Error(`name should be provided`);
+            return squads.list().then( squads => {
+                return squads.find(s=>(s.name===name));
+            });
+        };
+        squads.listByName = () : Promise<Record<string,Vapi.Squad>> => {
+            return squads.list().then( existingSquads => {
+                return existingSquads.reduce( (acc,s) => {
+                    acc[s.name] = s;
+                    return acc;
+                },{} as Record<string,Vapi.Squad>);
+            });
+        }
+        squads.credate = ( payload:Vapi.CreateSquadDto, squad:(Vapi.Squad|undefined) ) : Promise<Vapi.Squad> => {
+            return squad ? squads.update({
+                id : squad.id,
+                ...payload
+            }) : squads.create(payload)
+        };
+        return squads;
     }
 }

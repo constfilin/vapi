@@ -276,7 +276,7 @@ ${tasksAndGoals.map((tng,ndx) => {
     } as Vapi.CreateAssistantDto;
     return assistant;
 }
-export const getIVRHOA = (
+export const getHOA = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -403,7 +403,7 @@ ${systemPromptFooter}`
 
     return assistant;
 }
-export const getIVRPropertyOwner = (
+export const getPropertyOwner = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -514,7 +514,8 @@ ${systemPromptFooter}`
 
     return assistant;
 }
-export const getIVRFAQ = (
+//https://intempusrealty.com/frequently-asked-questions/
+export const getFAQ = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -593,7 +594,8 @@ ${systemPromptFooter}`
 
     return assistant;
 }
-export const getIVRCallbackForm = (
+//https://intempuspropertymanagement.com/santa-clara-property-management/
+export const getCallbackForm = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -672,7 +674,7 @@ ${systemPromptFooter}`
 
     return assistant;
 }
-export const getIVRDialByName = (
+export const getDialByName = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -768,101 +770,7 @@ ${systemPromptFooter}`
     } as Vapi.CreateAssistantDto;
     return assistant;
 }
-export const getIVRMain = (
-    contacts            : Contacts.Contact[],
-    toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
-    existingAssistant   : (Vapi.Assistant|undefined)
-) : Vapi.CreateAssistantDto => {
-    const config = Config.get();
-
-    // Prefer mapping known tool names to actual ids (if present)
-    const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState'];
-    const mappedToolIds = desiredNames
-        .map(n => toolsByName[n]?.id)
-        .filter((id): id is string => typeof id === 'string');
-
-    const name = "Intempus Main";
-    const assistant = {
-        // Basic metadata
-        name,
-
-        // Voice settings (from JSON)
-        voice: {
-            model: "aura-2",
-            voiceId: "luna",
-            provider: "deepgram",
-            inputPunctuationBoundaries: ["。"]
-        },
-
-        // model block
-        model: {
-            model: config.model,
-            toolIds: mappedToolIds.length ? mappedToolIds : undefined,
-            messages: [
-                {
-                    role: "system",
-                    content: `${systemPromptHeader}
-<TASKS_AND_GOALS>
-1. Greet the caller promptly.
-2. Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
-   a. "Are you a homeowner board member or a resident calling about HOA and Community Management Services?"
-      - Call "handoff_to_assistant" with "Intempus HOA".
-   b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
-      - Call "handoff_to_assistant" with "Intempus PropertyOwner".
-   c. "Do you know the name of the person you would like to talk to?"
-      - Call "handoff_to_assistant" with "Intempus DialByName".
-   d. "Do you have a general question about Intempus Property Management"?
-      - Call "handoff_to_assistant" with "Intempus FAQ"
-   e. "Would you like to leave your information for a callback from Intempus?"
-      - Call "handoff_to_assistant" with "Intempus CallbackForm"
-   f. "Would you like to hear these options again?"
-      - Follow the instructions of step 2 again
-3. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.
-4. When forwarding a call to another assistant say: "I am forwarding your call to [assistant name]"
-</TASKS_AND_GOALS>
-${systemPromptFooter}`
-                }
-            ],
-            provider: config.provider
-        },
-
-        firstMessage: "Hello, I am Emily, an AI assistant for Intempus Realty, Please let me know if you are a homeowner, a property board member or a resident calling about HOA and Community Management Services.",
-        voicemailMessage: "Please call back when you're available.",
-        endCallFunctionEnabled: true,
-        endCallMessage: "Goodbye.",
-        transcriber: {
-            model: "nova-3",
-            keyterm: [
-                "H-O-A",
-                "Maintenance",
-                "Property",
-                "Realty",
-                "Intempus",
-                "voice",
-                "Bot",
-                "IVR"
-            ],
-            language: "en",
-            provider: "deepgram"
-        },
-
-        // Ensure server settings follow current config (timeout + secret + header)
-        server: {
-            url: `${config.publicUrl}/assistant/${name.replace(/[^a-zA-Z0-9-_]/g,"")}`,
-            timeoutSeconds: 30,
-            secret: config.vapiToolSecret,
-            headers: {
-                "X-Secret": config.vapiToolSecret
-            }
-        },
-
-        // keep compatibility fields if needed by CreateAssistantDto
-        compliancePlan: { pciEnabled: false } as any
-    } as Vapi.CreateAssistantDto;
-
-    return assistant;
-}
-export const getIVRIntroduction = (
+export const getIntroduction = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -877,7 +785,6 @@ export const getIVRIntroduction = (
 
     const name = "Intempus Introduction";
     const assistant = {
-        id: "c8034aff-f13f-4d2c-bb74-6a308ca3b5ab",
         name: "Intempus Introduction",
         voice: {
             model: "aura",

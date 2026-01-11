@@ -19,7 +19,7 @@ export const getIVR = (
     });
 
     const result = {
-        name: 'Intempus IVR Squad',
+        name: 'IVR for unknown users',
         //description: 'Squad for Intempus IVR system',
         members: [
             // First goes the Introduction assistant

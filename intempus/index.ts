@@ -12,9 +12,10 @@ export const assistantsByName = {
     "Intempus HOA"          : assistants.getHOA,
     "Intempus PropertyOwner": assistants.getPropertyOwner,
     "Intempus DialByName"   : assistants.getDialByName,
-    "Intempus FAQ"          : assistants.getFAQ,
+    // "Intempus FAQ"          : assistants.getFAQ,
     "Intempus CallbackForm" : assistants.getCallbackForm,
     "Intempus Introduction" : assistants.getIntroduction,
+    "Intempus Main"         : assistants.getIntempusMain,
 } as Record<string,(
     contacts            : Contacts.Contact[], 
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
@@ -26,6 +27,8 @@ export const toolsByName = {
     'dispatchCall'          : tools.getDispatchCall,
     'sendEmail'             : tools.getSendEmail,
     'guessState'            : tools.getGuessState,
+    'getUserFromPhone'      : tools.getUserFromPhone,
+    'getFAQAnswer'          : tools.getFAQAnswer,
 } as Record<string,(
     contacts    : Contacts.Contact[]
 ) => Vapi.CreateToolsRequest>;

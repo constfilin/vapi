@@ -289,4 +289,92 @@ export const getGuessState = ( /*contacts:Contacts.Contact[]*/ ) : Vapi.CreateTo
     } as Vapi.CreateFunctionToolDto;
     return result;
 }
-
+export const getUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
+    const result = {
+        'type'      : "function",
+        "async"     : false,
+        'function'  : {
+            "name"          : "getUserFromPhone",
+            "description"   : "Get user information from phone number",
+            "parameters"    : {
+                "type"      :"object",
+                properties  : {
+                    "phoneNumber"    : {
+                        "type"      :"string",
+                        description : 'The phone number of the caller',
+                    },
+                },
+                required: [
+                    "phoneNumber",
+                ]
+            }
+        },
+        messages    :[
+            {
+                "type"      : "request-response-delayed",
+                "content"   : "Retrieving user information is taking a bit longer to respond"
+            },
+            {
+                "role"      : "system",
+                "type"      : "request-complete",
+                "content"   : "Hangup"
+            },
+            {
+                "type"      : "request-failed",
+                "content"   : "Cannot retrieve user information"
+            }
+        ],
+        server : {
+            "url"            : `https://api.insynergyapp.com/ai-voice-chat-user`,
+            "timeoutSeconds" : 30,
+            "secret"         : Config.get().vapiToolSecret,
+            "headers"        : {
+                "X-Secret"   : Config.get().vapiToolSecret,
+                "Authorization" : `Bearer ${Config.get().vape_ai_devtoken}`
+            }
+            
+        }
+    } as Vapi.CreateFunctionToolDto
+    return result;
+};
+export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
+    const result = {
+        'type'      : "function",
+        "async"     : false,
+        'function'  : {
+            "name"          : "getFAQAnswer",
+            "description"   : "Get FAQ answer for the question",
+            "parameters"    : {
+                "type"      :"object",
+                properties  : {
+                    "question"    : {
+                        "type"      :"string",
+                        description : 'The question asked by the caller',
+                    },
+                },
+                required: [
+                    "question",
+                ]
+            }
+        },
+        messages    :[
+            {
+                "type"      : "request-response-delayed",
+                "content"   : "Retrieving FAQ answer is taking a bit longer to respond"
+            },
+            {
+                "type"      : "request-failed",
+                "content"   : "Cannot retrieve FAQ answer"
+            }
+        ],
+        server : {
+            "url"            : `https://api.insynergyapp.com/ai-voice-chat-message`,
+            "timeoutSeconds" : 30,
+            "secret"         : Config.get().vapiToolSecret,
+            "headers"        : {
+                "X-Secret"   : Config.get().vapiToolSecret
+            }
+        }
+    } as Vapi.CreateFunctionToolDto
+    return result;
+};

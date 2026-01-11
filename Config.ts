@@ -1,6 +1,7 @@
 export interface Config {
     // common params
     spreadsheetId           : string;
+    vape_ai_devtoken         : string;
     googleApiKey            : string;
     worksheetName           : string;
     vapiOrgId               : string;

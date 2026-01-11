@@ -814,3 +814,70 @@ ${intempusConsts.systemPromptFooter}`
 
     return assistant;
 }
+export const getIntempusMain = (
+    contacts            : Contacts.Contact[],
+    toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
+    existingAssistant   : (Vapi.Assistant|undefined),
+) : Vapi.CreateAssistantDto => {
+    const config = Config.get();
+
+    // Prefer mapping known tool names to actual ids (if present)
+    const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState', 'getUserFromPhone', 'getFAQAnswer'];
+    const mappedToolIds = desiredNames
+        .map(n => toolsByName[n]?.id)
+        .filter((id): id is string => typeof id === 'string');
+
+    const name = "Intempus Main";
+    const assistant = {
+        name: "Intempus Main",
+        voice: {
+            model: "aura",
+            voiceId: "luna",
+            provider: "deepgram"
+        },
+        model: {
+            model: config.model,
+            toolIds: mappedToolIds.length ? mappedToolIds : undefined,
+            messages: [
+                {
+                    role: "system",
+                    content: `${intempusConsts.systemPromptHeader}
+<TASKS_AND_GOALS>
+1. Call the "getUserFromPhone" tool to retrieve the user's information where:
+    - phoneNumber is {{customer.number}}
+2. If tool returns user then you must greet the user and then ask them what they would like assistance with today.
+    - When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
+    - Provide the answer to the user.
+    - Repeat this process until user says that they want to end the call.
+3. If tool does not return user then call "handoff_to_assistant" with "Intempus Introduction".
+
+</TASKS_AND_GOALS>
+${intempusConsts.systemPromptFooter}`
+                }
+            ],
+            provider: config.provider
+        },
+        firstMessage: "Hello, I am Emily, an AI assistant for Intempus Realty, .... Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
+        voicemailMessage: "Please call back when you're available.",
+        endCallMessage: "Goodbye.",
+        transcriber: {
+            model: "flux-general-en",
+            language: "en",
+            provider: "deepgram"
+        },
+        compliancePlan: {
+            hipaaEnabled: false,
+            pciEnabled: false
+        },
+        server: {
+            url: `${config.publicUrl}/assistant/${name.replace(/[^a-zA-Z0-9-_]/g,"")}`,
+            timeoutSeconds: 30,
+            secret: config.vapiToolSecret,
+            headers: {
+                "X-Secret": config.vapiToolSecret
+            }
+        },
+    } as Vapi.CreateAssistantDto;
+
+    return assistant;
+}

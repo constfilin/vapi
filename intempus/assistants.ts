@@ -849,7 +849,7 @@ export const getIntempusMain = (
     - When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
     - Provide the answer to the user.
     - Repeat this process until user says that they want to end the call.
-3. If tool does not return user then call "handoff_to_assistant" with "Intempus Introduction".
+3. If tool does not return user, returns nothing or error then call "handoff_to_assistant" with "Intempus Introduction".
 
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`
@@ -857,7 +857,8 @@ ${intempusConsts.systemPromptFooter}`
             ],
             provider: config.provider
         },
-        firstMessage: "Hello, I am Emily, an AI assistant for Intempus Realty, .... Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
+        firstMessage: "Hello, I am Emily, an AI assistant for Intempus Realty",
+        firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         voicemailMessage: "Please call back when you're available.",
         endCallMessage: "Goodbye.",
         transcriber: {

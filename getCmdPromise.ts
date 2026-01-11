@@ -115,6 +115,62 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 existingSquad
             );
         });
+    case 'credateTools':
+        return (async () => {
+            const [ 
+                contacts,
+                toolsByName
+            ] = await Promise.all([
+                Contacts.get(),
+                tools.listByName(),
+            ]);
+            return Promise.all(
+                Object.entries(intempus.toolsByName).map( ([toolName,getToolDto]) => {
+                    return tools.credate(
+                        getToolDto(contacts),
+                        toolsByName[toolName]
+                    );
+                })
+            );
+        });
+    case 'credateAssistants':
+        return (async () => {
+            const [
+                contacts,
+                toolsByName,
+                assistantsByName
+            ] = await Promise.all([
+                Contacts.get(),
+                tools.listByName(),
+                assistants.listByName(),
+            ]);
+            return Promise.all(
+                Object.entries(intempus.assistantsByName).map( ([assistantName,getAssistantDto]) => {
+                    return assistants.credate(
+                        getAssistantDto(contacts,toolsByName,undefined),
+                        assistantsByName[assistantName]
+                    );
+                })
+            );
+        });
+    case 'credateSquads':
+        return (async () => {
+            const [
+                assistantsByName,
+                squadsByName
+            ] = await Promise.all([
+                assistants.listByName(),
+                squads.listByName(),
+            ]);
+            return Promise.all(
+                Object.entries(intempus.squadsByName).map( ([squadName,getSquadDto]) => {
+                    return squads.credate(
+                        getSquadDto(assistantsByName),
+                        squadsByName[squadName]
+                    );
+                })
+            );
+        });
     case 'credateAll':
         return (async () => {
             const [

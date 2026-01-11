@@ -11,18 +11,46 @@ export const getIVR = (
 ) : Vapi.CreateSquadDto => {
 
     const config            = Config.get();
-    const existingIntroductionAssistant = existingAssistantsByName['Intempus Introduction'];
+    const existingMainAssistant         = existingAssistantsByName['Intempus Main'];
+    const existingIntroductionAssistant = existingAssistantsByName['Intempus Unk Introduction'];
     if( !existingIntroductionAssistant )
         throw Error(`Expected existing assistant Intempus Introduction to be present`);
-    const handoffAssistantNames  = Object.keys(intempus.assistantsByName).filter( (name) => {
-        return (name !== 'Intempus Introduction' && name !== 'IntempusBot');
-    });
+    const excludedAssistantNames = [
+        existingMainAssistant.name,             // main assistant is not part of IVR squad
+        existingIntroductionAssistant.name,     // has to go first and mentioned explicitly
+        'IntempusBot',                          // deprecated bot assistant
+    ];
+    const handoffAssistantNames  = Object.keys(intempus.assistantsByName).filter(name=>!excludedAssistantNames.includes(name))
 
     const result = {
-        name: 'IVR for unknown users',
+        name: 'Intempus IVR',
         //description: 'Squad for Intempus IVR system',
         members: [
-            // First goes the Introduction assistant
+            // First goes the Main assistant
+            {
+                assistantId : existingMainAssistant.id,
+                assistantOverrides : {
+                    'tools:append' : [
+                        {
+                            type        : 'handoff',
+                            //'async'     : false,
+                            'function'  : {
+                                'name'  : 'handoff_to_assistant',
+                            },
+                            messages   : [],
+                            // The main assistant sometimes hands off to the Introduction assistant
+                            destinations : [
+                                {
+                                    type        : 'assistant',
+                                    assistantId : existingIntroductionAssistant.id,
+                                    //assistantsName : existingIntroductionAssistant.name
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            // Second goes the Unknown Introduction assistant
             {
                 assistantId : existingIntroductionAssistant.id,
                 assistantOverrides : {
@@ -34,6 +62,7 @@ export const getIVR = (
                                 'name'  : 'handoff_to_assistant',
                             },
                             messages   : [],
+                            // The Introduction assistant can hand off to all other assistants (except Main and Bot)
                             destinations : handoffAssistantNames
                                 .map( (name) => {
                                     const existingAssistant = existingAssistantsByName[name];
@@ -66,6 +95,7 @@ export const getIVR = (
                                         'name'  : 'handoff_to_assistant',
                                     },
                                     messages   : [],
+                                    // All other assistants hand off to the Introduction assistant
                                     destinations : [
                                         {
                                             type        : 'assistant',

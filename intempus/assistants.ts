@@ -235,7 +235,7 @@ ${tasksAndGoals.map((tng,ndx) => {
     } as Vapi.CreateAssistantDto;
     return assistant;
 }
-export const getHOA = (
+export const getUnkHOA = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -248,7 +248,7 @@ export const getHOA = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus HOA";
+    const name = "Intempus Unk HOA";
 
     const assistant = {
         // Basic metadata (from IntempusIVRIntroductionAssistant.json -> Intempus IVR HOA)
@@ -362,7 +362,7 @@ ${intempusConsts.systemPromptFooter}`
 
     return assistant;
 }
-export const getPropertyOwner = (
+export const getUnkPropertyOwner = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -375,7 +375,7 @@ export const getPropertyOwner = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus PropertyOwner";
+    const name = "Intempus Unk PropertyOwner";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -487,7 +487,7 @@ export const getFAQ = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus FAQ";
+    const name = "Intempus Unk FAQ";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -554,7 +554,7 @@ ${intempusConsts.systemPromptFooter}`
     return assistant;
 }
 //https://intempuspropertymanagement.com/santa-clara-property-management/
-export const getCallbackForm = (
+export const getUnkCallbackForm = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -569,7 +569,7 @@ export const getCallbackForm = (
 
     // See https://docs.vapi.ai/assistants/dynamic-variables#default-variables
     // about default variables like {{customer.number}}
-    const name = "Intempus CallbackForm";
+    const name = "Intempus Unk CallbackForm";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -640,7 +640,7 @@ ${intempusConsts.systemPromptFooter}`
 
     return assistant;
 }
-export const getDialByName = (
+export const getUnkDialByName = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -658,7 +658,7 @@ export const getDialByName = (
         }),
         `${contacts.length+1}. If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result.`
     ];
-    const name = "Intempus DialByName";
+    const name = "Intempus Unk DialByName";
     const assistant = {
         // Basic metadata
         name,
@@ -736,7 +736,7 @@ ${intempusConsts.systemPromptFooter}`
     } as Vapi.CreateAssistantDto;
     return assistant;
 }
-export const getIntroduction = (
+export const getUnkIntroduction = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -749,9 +749,9 @@ export const getIntroduction = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus Introduction";
+    const name = "Intempus Unk Introduction";
     const assistant = {
-        name: "Intempus Introduction",
+        name,
         voice: {
             model: "aura",
             voiceId: "luna",
@@ -814,7 +814,7 @@ ${intempusConsts.systemPromptFooter}`
 
     return assistant;
 }
-export const getIntempusMain = (
+export const getMain = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -829,7 +829,7 @@ export const getIntempusMain = (
 
     const name = "Intempus Main";
     const assistant = {
-        name: "Intempus Main",
+        name,
         voice: {
             model: "aura",
             voiceId: "luna",

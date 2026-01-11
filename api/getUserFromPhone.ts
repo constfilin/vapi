@@ -22,10 +22,10 @@ export const getUserFromPhone = async ( sessionId:string, phoneNumber:string ) :
     const response = await fetch(apiUrl,init);
     if( !response.ok )
         throw Error(`Error fetching user from phone: ${response.status} ${response.statusText}`);
-    const data = (await response.json()) as Record<string,any>;
-    if( data.error || !data.data || !data.data.user || !data.data.verified )
-        throw Error(`User not found or not verified for phone number '${phoneNumber}': ${JSON.stringify(data)}`);
-    return data.data;
+    const resp = (await response.json()) as Record<string,any>;
+    if( resp.error || !resp.data || !resp.data.user || !resp.data.verified )
+        throw Error(`User not found or not verified for phone number '${phoneNumber}': ${JSON.stringify(resp)}`);
+    return resp.data;
 }
 
 export default getUserFromPhone;

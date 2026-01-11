@@ -298,14 +298,17 @@ export const getUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToo
             "description"   : "Get user information from phone number",
             "parameters"    : {
                 "type"      :"object",
+                // No, `phoneNumber` is not a required parameter.
+                // Because it is passwed automatically anyway by VAPI
+                // See, for example, implemenation of `guessState` tool above
                 properties  : {
-                    "phoneNumber"    : {
-                        "type"      :"string",
-                        description : 'The phone number of the caller',
-                    },
+                    //"phoneNumber"    : {
+                    //    "type"      :"string",
+                    //    description : 'The phone number of the caller',
+                    //},
                 },
                 required: [
-                    "phoneNumber",
+                    //"phoneNumber",
                 ]
             }
         },
@@ -324,16 +327,7 @@ export const getUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToo
                 "content"   : "Cannot retrieve user information"
             }
         ],
-        server : {
-            "url"            : `https://api.insynergyapp.com/ai-voice-chat-user`,
-            "timeoutSeconds" : 30,
-            "secret"         : Config.get().vapiToolSecret,
-            "headers"        : {
-                "X-Secret"   : Config.get().vapiToolSecret,
-                "Authorization" : `Bearer ${Config.get().vape_ai_devtoken}`
-            }
-            
-        }
+        server : getToolsServer(),
     } as Vapi.CreateFunctionToolDto
     return result;
 };

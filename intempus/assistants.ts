@@ -822,7 +822,7 @@ export const getIntempusMain = (
     const config = Config.get();
 
     // Prefer mapping known tool names to actual ids (if present)
-    const desiredNames = ['redirectCall','sendEmail','dispatchCall','guessState', 'getUserFromPhone', 'getFAQAnswer'];
+    const desiredNames = ['getUserFromPhone', 'getFAQAnswer'];
     const mappedToolIds = desiredNames
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
@@ -843,13 +843,12 @@ export const getIntempusMain = (
                     role: "system",
                     content: `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-1. Call the "getUserFromPhone" tool to retrieve the user's information where:
-    - phoneNumber is {{customer.number}}
-2. If tool returns user then you must greet the user and then ask them what they would like assistance with today.
+1. Call the "getUserFromPhone" tool to retrieve the user's information.
+2. If "getUserFromPhone" tool returns a user then you must greet the user and then ask them what they would like assistance with today.
     - When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
     - Provide the answer to the user.
     - Repeat this process until user says that they want to end the call.
-3. If tool does not return user, returns nothing or error then call "handoff_to_assistant" with "Intempus Introduction".
+3. If "getUserFromPhone" tool does not return a user, returns nothing or an error then call "handoff_to_assistant" with "Intempus Introduction".
 
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`

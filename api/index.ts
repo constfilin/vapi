@@ -11,6 +11,8 @@ import dayjs                from '../day-timezone';
 import * as misc            from '../misc';
 
 import stateByAreaCode      from './stateByAreaCode';
+import getUserFromPhone     from './getUserFromPhone';
+import getFAQAnswer         from './getFAQAnswer';
 
 const sendResponse = ( 
     req     : expressCore.Request, 
@@ -203,6 +205,24 @@ export default () => {
                         return {
                             toolCallId  : tc.id,
                             result      : guessState(vapi_message.customer?.number||'')
+                        }
+                    case 'getUserFromPhone':
+                        // TODO:
+                        // Test if VAPI understands the JSON format of this answer
+                        return {
+                            toolCallId  : tc.id,
+                            result      : getUserFromPhone(
+                                vapi_message.call?.id,
+                                vapi_message.customer?.number||''
+                            )
+                        };
+                    case 'getFAQAnswer':
+                        // TODO:
+                        // Test if VAPI understands the JSON format of this answer
+                        // We we just need to return a simple string reply?
+                        return {
+                            toolCallId  : tc.id,
+                            result      : getFAQAnswer(vapi_message.customer?.number||'',args.question as string)
                         }
                     }
                     return {

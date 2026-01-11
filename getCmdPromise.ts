@@ -2,6 +2,9 @@ import * as intempus    from './intempus/';
 import * as Contacts    from './Contacts';
 import { VapiApi }      from './VapiApi';
 
+import { getFAQAnswer }     from './api/getFAQAnswer';
+import { getUserFromPhone } from './api/getUserFromPhone';
+
 export const getCmdPromise = ( args:Record<string,any> ) => {
 
     const vapiApi       = new VapiApi();
@@ -19,6 +22,16 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 warns,
             };
         });
+    case 'getUserFromPhone':
+        return (() => getUserFromPhone(
+            args.sessionId as string,
+            args.phoneNumber as string
+        ));
+    case 'getFAQAnswer':
+        return (() => getFAQAnswer(
+            args.sessionId   as string,
+            args.question as string
+        ));
     case 'getToolById':
         return (() => tools.get(args.id));
     case 'getToolByName':

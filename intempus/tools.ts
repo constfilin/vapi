@@ -361,14 +361,7 @@ export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRe
                 "content"   : "Cannot retrieve FAQ answer"
             }
         ],
-        server : {
-            "url"            : `https://api.insynergyapp.com/ai-voice-chat-message`,
-            "timeoutSeconds" : 30,
-            "secret"         : Config.get().vapiToolSecret,
-            "headers"        : {
-                "X-Secret"   : Config.get().vapiToolSecret
-            }
-        }
+        server : getToolsServer(),
     } as Vapi.CreateFunctionToolDto
     return result;
 };

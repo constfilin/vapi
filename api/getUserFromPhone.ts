@@ -3,6 +3,7 @@ import * as Config          from '../Config';
 
 export const getUserFromPhone = async ( sessionId:string, phoneNumber:string ) : Promise<Record<string,any>> => {
     const apiUrl = `https://api.insynergyapp.com/ai-voice-chat-user`;
+    const formattedPhone = phoneNumber.replace(/^\+1/, '');
     const init   = {
         method  : 'POST',
         headers : {
@@ -11,7 +12,7 @@ export const getUserFromPhone = async ( sessionId:string, phoneNumber:string ) :
         },
         body    : JSON.stringify({
             session_id  : sessionId,
-            phone       : phoneNumber
+            phone       : formattedPhone
         })
     };
     //console.log({

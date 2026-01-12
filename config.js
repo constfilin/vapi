@@ -4,6 +4,7 @@ dotenv.config();
 export default {
     // common params
     spreadsheetId                   : (process.env.SPREADSHEETID||'[hidden]'),
+    simulatedPhoneNumber          : (process.env.SIMULATED_PHONE_NUMBER || ''),
     googleApiKey                    : (process.env.GOOGLE_API_KEY||'[hidden]'),
     worksheetName                   : (process.env.WORKSHEET_NAME||'Contacts'),
     vapiOrgId                       : (process.env.VAPI_ORG_ID||'[hidden]'),

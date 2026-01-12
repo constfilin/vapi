@@ -12,7 +12,7 @@ export const getUserFromPhone = async ( sessionId:string, phoneNumber:string ) :
         },
         body    : JSON.stringify({
             session_id  : sessionId,
-            phone       : formattedPhone
+            phone       : Config.get().simulatedPhoneNumber || formattedPhone
         })
     };
     //console.log({

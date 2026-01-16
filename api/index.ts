@@ -234,7 +234,7 @@ export default () => {
             }
         });
     });
-    router.post('/assistant',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/assistant/*',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
                 throw Error(`Access denied`);
@@ -322,6 +322,7 @@ export default () => {
             };
         });
     });
+    /*
     router.post('/assistant/IntempusIVRHOA',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
@@ -336,6 +337,7 @@ export default () => {
             throw Error("Not implemented");
         });
     });
+    */
     router.post('/cmd',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )

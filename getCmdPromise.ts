@@ -33,7 +33,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             args.question as string
         ));
     case 'getToolById':
-        return (() => tools.get(args.id));
+        return (() => tools.get({id:args.id}));
     case 'getToolByName':
         return (() => tools.getByName(args.name));
     case 'listTools':
@@ -46,7 +46,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             });
         });
     case 'getAssistantById':
-        return (() => assistants.get(args.id));
+        return (() => assistants.get({id:args.id}));
     case 'getAssistantByName':
         return (() => assistants.getByName(args.name));
     case 'listAssistants':
@@ -59,7 +59,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             });
         });
     case 'getSquadById':
-        return (() => squads.get(args.id));
+        return (() => squads.get({id:args.id}));
     case 'getSquadByName':
         return (() => squads.getByName(args.name));
     case 'listSquads':

@@ -209,21 +209,22 @@ export default () => {
                     case 'getUserFromPhone':
                         // TODO:
                         // Test if VAPI understands the JSON format of this answer
-                        return {
-                            toolCallId  : tc.id,
-                            result      : getUserFromPhone(
-                                vapi_message.call?.id,
-                                vapi_message.customer?.number||''
-                            )
-                        };
+                        return getUserFromPhone(vapi_message.call?.id,vapi_message.customer?.number||'').then( userInfo => {
+                            return {
+                                toolCallId  : tc.id,
+                                result      : userInfo
+                            };
+                        });
                     case 'getFAQAnswer':
                         // TODO:
                         // Test if VAPI understands the JSON format of this answer
                         // We we just need to return a simple string reply?
-                        return {
-                            toolCallId  : tc.id,
-                            result      : getFAQAnswer(vapi_message.customer?.number||'',args.question as string)
-                        }
+                        return getFAQAnswer(vapi_message.customer?.number||'',args.question as string).then( faqAnswer => {
+                            return {
+                                toolCallId  : tc.id,
+                                result      : faqAnswer
+                            };
+                        });
                     }
                     return {
                         toolCallId  : tc.id,

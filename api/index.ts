@@ -141,6 +141,21 @@ const guessState = ( phoneNumber:string ) : string => {
         return 'unknown';
     return stateByAreaCode[match[2]] || 'unknown';
 }
+const guessSessionId = ( vapi_message:Vapi.ServerMessageToolCalls ) : string => {
+    if( vapi_message.call?.id )
+        return vapi_message.call.id;
+    // By experimentation it was found that the chat ID gets changed with every new chat message
+    // but the assistant ID remains the same throughout the session
+    //if( vapi_message.chat?.id )
+    //    return vapi_message.chat.id;
+    const assistant = vapi_message.assistant as typeof vapi_message.assistant & { id?:string };
+    if( vapi_message.chat?.createdAt )
+        return `${assistant?.id||'unknown_assistant'}_${vapi_message.chat.createdAt}`;
+    if( assistant?.id )
+        return assistant.id;
+    return 'unknown_session';
+}
+
 export default () => {
     const router   = express.Router();
     router.post('/tool',async (req:expressCore.Request,res:expressCore.Response) => {
@@ -209,7 +224,7 @@ export default () => {
                     case 'getUserFromPhone':
                         // TODO:
                         // Test if VAPI understands the JSON format of this answer
-                        return getUserFromPhone(vapi_message.call?.id||vapi_message.chat?.id,vapi_message.customer?.number||'').then( userInfo => {
+                        return getUserFromPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'').then( userInfo => {
                             return {
                                 toolCallId  : tc.id,
                                 result      : JSON.stringify(userInfo)
@@ -219,7 +234,7 @@ export default () => {
                         // TODO:
                         // Test if VAPI understands the JSON format of this answer
                         // We we just need to return a simple string reply?
-                        return getFAQAnswer(vapi_message.call?.id||vapi_message.chat?.id,args.question as string).then( faqAnswer => {
+                        return getFAQAnswer(guessSessionId(vapi_message),args.question as string).then( faqAnswer => {
                             return {
                                 toolCallId  : tc.id,
                                 result      : faqAnswer

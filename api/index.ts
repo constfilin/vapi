@@ -242,8 +242,9 @@ export default () => {
             // First try the easy way
             const serverMessage  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageMessage;
             server.module_log(module.filename,2,`Got assistant notification '${serverMessage.type||'??'}'`,{
-                status  : (serverMessage as any).status,
-                request : (serverMessage as any).request,
+                status          : (serverMessage as any).status,
+                request         : (serverMessage as any).request,
+                assistantsName  : serverMessage.assistant?.name,
             });
             if( serverMessage.type==='end-of-call-report') {
                 const messageItems = (serverMessage as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];

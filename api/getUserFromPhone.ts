@@ -1,5 +1,6 @@
 import fetch                from 'node-fetch';
 import * as Config          from '../Config';
+import { server }           from '../Server';
 
 export const getUserFromPhone = async ( sessionId:string, phoneNumber:string ) : Promise<Record<string,any>> => {
     const apiUrl = `https://api.insynergyapp.com/ai-voice-chat-user`;
@@ -15,11 +16,13 @@ export const getUserFromPhone = async ( sessionId:string, phoneNumber:string ) :
             phone       : Config.get().simulatedPhoneNumber || formattedPhone
         })
     };
-    //console.log({
-    //    sessionId, 
-    //    phoneNumber,
-    //    init
-    //});
+    server.module_log(
+        module.filename,3,`Calling ${apiUrl} with`,{
+            sessionId, 
+            phoneNumber,
+            init
+        }
+    );
     const response = await fetch(apiUrl,init);
     if( !response.ok )
         throw Error(`Error fetching user from phone: ${response.status} ${response.statusText}`);

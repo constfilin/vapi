@@ -248,7 +248,7 @@ export default () => {
             });
             if( serverMessage.type==='end-of-call-report') {
                 const messageItems = (serverMessage as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
-                let summaryEmailAddress = 'mkhesin@intempus.net'; // default
+                let summaryEmailAddress = 'constfilin@gmail.com'; // || 'mkhesin@intempus.net'; // default
                 try {
                     summaryEmailAddress = await guessSummaryEmailAddress(messageItems);
                 }

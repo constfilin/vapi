@@ -237,7 +237,7 @@ export default () => {
                         return getFAQAnswer(guessSessionId(vapi_message),args.question as string).then( faqAnswer => {
                             return {
                                 toolCallId  : tc.id,
-                                result      : faqAnswer
+                                result      : JSON.stringify(faqAnswer)
                             };
                         });
                     }

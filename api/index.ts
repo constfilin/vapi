@@ -212,7 +212,7 @@ export default () => {
                         return getUserFromPhone(vapi_message.call?.id,vapi_message.customer?.number||'').then( userInfo => {
                             return {
                                 toolCallId  : tc.id,
-                                result      : userInfo
+                                result      : JSON.stringify(userInfo)
                             };
                         });
                     case 'getFAQAnswer':

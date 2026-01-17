@@ -235,7 +235,7 @@ ${tasksAndGoals.map((tng,ndx) => {
     } as Vapi.CreateAssistantDto;
     return assistant;
 }
-export const getHOA = (
+export const getUnkHOA = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -248,7 +248,7 @@ export const getHOA = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus HOA";
+    const name = "Intempus Unk HOA";
 
     const assistant = {
         // Basic metadata (from IntempusIVRIntroductionAssistant.json -> Intempus IVR HOA)
@@ -362,7 +362,7 @@ ${intempusConsts.systemPromptFooter}`
 
     return assistant;
 }
-export const getPropertyOwner = (
+export const getUnkPropertyOwner = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -375,7 +375,7 @@ export const getPropertyOwner = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus PropertyOwner";
+    const name = "Intempus Unk PropertyOwner";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -487,7 +487,7 @@ export const getFAQ = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus FAQ";
+    const name = "Intempus Unk FAQ";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -554,7 +554,7 @@ ${intempusConsts.systemPromptFooter}`
     return assistant;
 }
 //https://intempuspropertymanagement.com/santa-clara-property-management/
-export const getCallbackForm = (
+export const getUnkCallbackForm = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -569,7 +569,7 @@ export const getCallbackForm = (
 
     // See https://docs.vapi.ai/assistants/dynamic-variables#default-variables
     // about default variables like {{customer.number}}
-    const name = "Intempus CallbackForm";
+    const name = "Intempus Unk CallbackForm";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -640,7 +640,7 @@ ${intempusConsts.systemPromptFooter}`
 
     return assistant;
 }
-export const getDialByName = (
+export const getUnkDialByName = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -658,7 +658,7 @@ export const getDialByName = (
         }),
         `${contacts.length+1}. If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result.`
     ];
-    const name = "Intempus DialByName";
+    const name = "Intempus Unk DialByName";
     const assistant = {
         // Basic metadata
         name,
@@ -736,7 +736,7 @@ ${intempusConsts.systemPromptFooter}`
     } as Vapi.CreateAssistantDto;
     return assistant;
 }
-export const getIntroduction = (
+export const getUnkIntroduction = (
     contacts            : Contacts.Contact[],
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
@@ -749,9 +749,9 @@ export const getIntroduction = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus Introduction";
+    const name = "Intempus Unk Introduction";
     const assistant = {
-        name: "Intempus Introduction",
+        name,
         voice: {
             model: "aura",
             voiceId: "luna",
@@ -765,25 +765,23 @@ export const getIntroduction = (
                     role: "system",
                     content: `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-1. Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
+1. Immediately greet the caller and introduce yourself using information in <IDENTITY/> section.
+2. Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
    a. "Are you a homeowner board member or a resident calling about /eɪtʃ oʊ eɪ/ and Community Management Services?"
       - Tell "I am forwarding your call to our HOA and Community Management Services."
-      - Call "handoff_to_assistant" with "Intempus HOA".
+      - Call "handoff_to_assistant" with "Intempus Unk HOA".
    b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
       - Tell "I am forwarding your call to our Property Management Services."
-      - Call "handoff_to_assistant" with "Intempus PropertyOwner".
+      - Call "handoff_to_assistant" with "Intempus Unk PropertyOwner".
    c. "Do you know the name of the person you would like to talk to?"
       - Tell "I am forwarding your call to our Dial By Name assistant"
-      - Call "handoff_to_assistant" with "Intempus DialByName".
-   d. "Do you have a general question about Intempus Property Management"?
-      - Tell "I am forwarding your call to our Frequently Asked Questions assistant"
-      - Call "handoff_to_assistant" with "Intempus FAQ"
-   e. "Would you like to leave your information for a callback from Intempus?"
+      - Call "handoff_to_assistant" with "Intempus Unk DialByName".
+   d. "Would you like to leave your information for a callback from Intempus?"
       - Tell "I am forwarding your call to our Callback Form assistant"
-      - Call "handoff_to_assistant" with "Intempus CallbackForm"
-   f. "Would you like to hear these options again?"
+      - Call "handoff_to_assistant" with "Intempus Unk CallbackForm"
+   e. "Would you like to hear these options again?"
       - Go to the first task again
-2. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.
+3. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`
                 }
@@ -791,6 +789,73 @@ ${intempusConsts.systemPromptFooter}`
             provider: config.provider
         },
         firstMessage: "Hello, I am Emily, an AI assistant for Intempus Realty, .... Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
+        voicemailMessage: "Please call back when you're available.",
+        endCallMessage: "Goodbye.",
+        transcriber: {
+            model: "flux-general-en",
+            language: "en",
+            provider: "deepgram"
+        },
+        compliancePlan: {
+            hipaaEnabled: false,
+            pciEnabled: false
+        },
+        server: {
+            url: `${config.publicUrl}/assistant/${name.replace(/[^a-zA-Z0-9-_]/g,"")}`,
+            timeoutSeconds: 30,
+            secret: config.vapiToolSecret,
+            headers: {
+                "X-Secret": config.vapiToolSecret
+            }
+        },
+    } as Vapi.CreateAssistantDto;
+
+    return assistant;
+}
+export const getMain = (
+    contacts            : Contacts.Contact[],
+    toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
+    existingAssistant   : (Vapi.Assistant|undefined),
+) : Vapi.CreateAssistantDto => {
+    const config = Config.get();
+
+    // Prefer mapping known tool names to actual ids (if present)
+    const desiredNames = ['getUserFromPhone', 'getFAQAnswer'];
+    const mappedToolIds = desiredNames
+        .map(n => toolsByName[n]?.id)
+        .filter((id): id is string => typeof id === 'string');
+
+    const name = "Intempus Main";
+    const assistant = {
+        name,
+        voice: {
+            model: "aura",
+            voiceId: "luna",
+            provider: "deepgram"
+        },
+        model: {
+            model: config.model,
+            toolIds: mappedToolIds.length ? mappedToolIds : undefined,
+            messages: [
+                {
+                    role: "system",
+                    content: `${intempusConsts.systemPromptHeader}
+<TASKS_AND_GOALS>
+1. Call the "getUserFromPhone" tool to retrieve the user's information.
+2. If "getUserFromPhone" tool returns a user then you must greet the user and then ask them what they would like assistance with today.
+    - When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
+    - Provide the answer to the user.
+    - Repeat this process until user hangs up or says that it wants to end the call.
+3. If "getUserFromPhone" tool does not return a user, returns nothing or an error then *immediately* call "handoff_to_assistant" with "Intempus Unk Introduction".
+
+</TASKS_AND_GOALS>
+${intempusConsts.systemPromptFooter}`
+                }
+            ],
+            provider: config.provider
+        },
+        firstMessage: "Hello, I am Emily, an AI assistant for Intempus Realty",
+        firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         voicemailMessage: "Please call back when you're available.",
         endCallMessage: "Goodbye.",
         transcriber: {

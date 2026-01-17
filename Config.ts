@@ -1,6 +1,7 @@
 export interface Config {
     // common params
     spreadsheetId           : string;
+    vapeAiDevtoken          : string;
     googleApiKey            : string;
     worksheetName           : string;
     vapiOrgId               : string;
@@ -11,6 +12,7 @@ export interface Config {
     model                   : string;
     provider                : string;
     open_ws                 : boolean;
+    simulatedPhoneNumber    : string;
     web                     :   {
         path                :   string;
         loglevel            :   number;

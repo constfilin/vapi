@@ -2,6 +2,9 @@ import * as intempus    from './intempus/';
 import * as Contacts    from './Contacts';
 import { VapiApi }      from './VapiApi';
 
+import { getFAQAnswer }     from './api/getFAQAnswer';
+import { getUserFromPhone } from './api/getUserFromPhone';
+
 export const getCmdPromise = ( args:Record<string,any> ) => {
 
     const vapiApi       = new VapiApi();
@@ -19,8 +22,18 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 warns,
             };
         });
+    case 'getUserFromPhone':
+        return (() => getUserFromPhone(
+            args.sessionId as string,
+            args.phoneNumber as string
+        ));
+    case 'getFAQAnswer':
+        return (() => getFAQAnswer(
+            args.sessionId   as string,
+            args.question as string
+        ));
     case 'getToolById':
-        return (() => tools.get(args.id));
+        return (() => tools.get({id:args.id}));
     case 'getToolByName':
         return (() => tools.getByName(args.name));
     case 'listTools':
@@ -33,7 +46,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             });
         });
     case 'getAssistantById':
-        return (() => assistants.get(args.id));
+        return (() => assistants.get({id:args.id}));
     case 'getAssistantByName':
         return (() => assistants.getByName(args.name));
     case 'listAssistants':
@@ -46,7 +59,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             });
         });
     case 'getSquadById':
-        return (() => squads.get(args.id));
+        return (() => squads.get({id:args.id}));
     case 'getSquadByName':
         return (() => squads.getByName(args.name));
     case 'listSquads':
@@ -100,6 +113,62 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             return squads.credate(
                 intempus.squadsByName[args.name](assistantsByName),
                 existingSquad
+            );
+        });
+    case 'credateTools':
+        return (async () => {
+            const [ 
+                contacts,
+                toolsByName
+            ] = await Promise.all([
+                Contacts.get(),
+                tools.listByName(),
+            ]);
+            return Promise.all(
+                Object.entries(intempus.toolsByName).map( ([toolName,getToolDto]) => {
+                    return tools.credate(
+                        getToolDto(contacts),
+                        toolsByName[toolName]
+                    );
+                })
+            );
+        });
+    case 'credateAssistants':
+        return (async () => {
+            const [
+                contacts,
+                toolsByName,
+                assistantsByName
+            ] = await Promise.all([
+                Contacts.get(),
+                tools.listByName(),
+                assistants.listByName(),
+            ]);
+            return Promise.all(
+                Object.entries(intempus.assistantsByName).map( ([assistantName,getAssistantDto]) => {
+                    return assistants.credate(
+                        getAssistantDto(contacts,toolsByName,undefined),
+                        assistantsByName[assistantName]
+                    );
+                })
+            );
+        });
+    case 'credateSquads':
+        return (async () => {
+            const [
+                assistantsByName,
+                squadsByName
+            ] = await Promise.all([
+                assistants.listByName(),
+                squads.listByName(),
+            ]);
+            return Promise.all(
+                Object.entries(intempus.squadsByName).map( ([squadName,getSquadDto]) => {
+                    return squads.credate(
+                        getSquadDto(assistantsByName),
+                        squadsByName[squadName]
+                    );
+                })
             );
         });
     case 'credateAll':

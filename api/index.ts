@@ -11,6 +11,8 @@ import dayjs                from '../day-timezone';
 import * as misc            from '../misc';
 
 import stateByAreaCode      from './stateByAreaCode';
+import getUserFromPhone     from './getUserFromPhone';
+import getFAQAnswer         from './getFAQAnswer';
 
 const sendResponse = ( 
     req     : expressCore.Request, 
@@ -139,6 +141,21 @@ const guessState = ( phoneNumber:string ) : string => {
         return 'unknown';
     return stateByAreaCode[match[2]] || 'unknown';
 }
+const guessSessionId = ( vapi_message:Vapi.ServerMessageToolCalls ) : string => {
+    if( vapi_message.call?.id )
+        return vapi_message.call.id;
+    // By experimentation it was found that the chat ID gets changed with every new chat message
+    // but the assistant ID remains the same throughout the session
+    //if( vapi_message.chat?.id )
+    //    return vapi_message.chat.id;
+    const assistant = vapi_message.assistant as typeof vapi_message.assistant & { id?:string };
+    if( vapi_message.chat?.createdAt )
+        return `${assistant?.id||'unknown_assistant'}_${vapi_message.chat.createdAt}`;
+    if( assistant?.id )
+        return assistant.id;
+    return 'unknown_session';
+}
+
 export default () => {
     const router   = express.Router();
     router.post('/tool',async (req:expressCore.Request,res:expressCore.Response) => {
@@ -204,6 +221,25 @@ export default () => {
                             toolCallId  : tc.id,
                             result      : guessState(vapi_message.customer?.number||'')
                         }
+                    case 'getUserFromPhone':
+                        // TODO:
+                        // Test if VAPI understands the JSON format of this answer
+                        return getUserFromPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'').then( userInfo => {
+                            return {
+                                toolCallId  : tc.id,
+                                result      : JSON.stringify(userInfo)
+                            };
+                        });
+                    case 'getFAQAnswer':
+                        // TODO:
+                        // Test if VAPI understands the JSON format of this answer
+                        // We we just need to return a simple string reply?
+                        return getFAQAnswer(guessSessionId(vapi_message),args.question as string).then( faqAnswer => {
+                            return {
+                                toolCallId  : tc.id,
+                                result      : JSON.stringify(faqAnswer)
+                            };
+                        });
                     }
                     return {
                         toolCallId  : tc.id,
@@ -213,7 +249,7 @@ export default () => {
             }
         });
     });
-    router.post('/assistant',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/assistant/*',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
                 throw Error(`Access denied`);
@@ -221,12 +257,13 @@ export default () => {
             // First try the easy way
             const serverMessage  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageMessage;
             server.module_log(module.filename,2,`Got assistant notification '${serverMessage.type||'??'}'`,{
-                status  : (serverMessage as any).status,
-                request : (serverMessage as any).request,
+                status          : (serverMessage as any).status,
+                request         : (serverMessage as any).request,
+                assistantsName  : serverMessage.assistant?.name,
             });
             if( serverMessage.type==='end-of-call-report') {
                 const messageItems = (serverMessage as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
-                let summaryEmailAddress = 'mkhesin@intempus.net'; // default
+                let summaryEmailAddress = 'constfilin@gmail.com'; // || 'mkhesin@intempus.net'; // default
                 try {
                     summaryEmailAddress = await guessSummaryEmailAddress(messageItems);
                 }
@@ -301,6 +338,7 @@ export default () => {
             };
         });
     });
+    /*
     router.post('/assistant/IntempusIVRHOA',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
@@ -315,6 +353,7 @@ export default () => {
             throw Error("Not implemented");
         });
     });
+    */
     router.post('/cmd',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )

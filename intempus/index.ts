@@ -8,13 +8,13 @@ import * as tools       from './tools';
 import * as squads      from './squads';
 
 export const assistantsByName = {
-    "IntempusBot"           : assistants.getBotOldVersion,
-    "Intempus HOA"          : assistants.getHOA,
-    "Intempus PropertyOwner": assistants.getPropertyOwner,
-    "Intempus DialByName"   : assistants.getDialByName,
-    "Intempus FAQ"          : assistants.getFAQ,
-    "Intempus CallbackForm" : assistants.getCallbackForm,
-    "Intempus Introduction" : assistants.getIntroduction,
+    "Intempus Main"             : assistants.getMain,
+    "Intempus Unk HOA"          : assistants.getUnkHOA,
+    "Intempus Unk PropertyOwner": assistants.getUnkPropertyOwner,
+    "Intempus Unk DialByName"   : assistants.getUnkDialByName,
+    "Intempus Unk CallbackForm" : assistants.getUnkCallbackForm,
+    "Intempus Unk Introduction" : assistants.getUnkIntroduction,
+    "IntempusBot"               : assistants.getBotOldVersion,
 } as Record<string,(
     contacts            : Contacts.Contact[], 
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
@@ -26,6 +26,8 @@ export const toolsByName = {
     'dispatchCall'          : tools.getDispatchCall,
     'sendEmail'             : tools.getSendEmail,
     'guessState'            : tools.getGuessState,
+    'getUserFromPhone'      : tools.getUserFromPhone,
+    'getFAQAnswer'          : tools.getFAQAnswer,
 } as Record<string,(
     contacts    : Contacts.Contact[]
 ) => Vapi.CreateToolsRequest>;

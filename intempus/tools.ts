@@ -316,15 +316,22 @@ export const getUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToo
             {
                 "type"      : "request-response-delayed",
                 "content"   : "Retrieving user information is taking a bit longer to respond"
-            },
+            },/*
             {
                 "role"      : "system",
                 "type"      : "request-complete",
                 "content"   : "Hangup"
-            },
+            },*/
+            // We do not want any messages when this tool is called,
+            // even if the tool fails. The assistant should handle
+            // the situation when no user is found
             {
                 "type"      : "request-failed",
-                "content"   : "Cannot retrieve user information"
+                "content"   : ""
+            },
+            {
+                "type"      : "request-start",
+                "content"   : ""
             }
         ],
         server : getToolsServer(),

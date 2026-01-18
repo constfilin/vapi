@@ -11,8 +11,7 @@ import dayjs                from '../day-timezone';
 import * as misc            from '../misc';
 
 import stateByAreaCode      from './stateByAreaCode';
-import getUserFromPhone     from './getUserFromPhone';
-import getFAQAnswer         from './getFAQAnswer';
+import * as VapeApi         from './VapeApi';
 
 const sendResponse = ( 
     req     : expressCore.Request, 
@@ -224,7 +223,7 @@ export default () => {
                     case 'getUserFromPhone':
                         // TODO:
                         // Test if VAPI understands the JSON format of this answer
-                        return getUserFromPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'').then( userInfo => {
+                        return VapeApi.getUserFromPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'').then( userInfo => {
                             return {
                                 toolCallId  : tc.id,
                                 result      : JSON.stringify(userInfo)
@@ -234,7 +233,7 @@ export default () => {
                         // TODO:
                         // Test if VAPI understands the JSON format of this answer
                         // We we just need to return a simple string reply?
-                        return getFAQAnswer(guessSessionId(vapi_message),args.question as string).then( faqAnswer => {
+                        return VapeApi.getFAQAnswer(guessSessionId(vapi_message),args.question as string).then( faqAnswer => {
                             return {
                                 toolCallId  : tc.id,
                                 result      : JSON.stringify(faqAnswer)

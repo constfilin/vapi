@@ -846,7 +846,7 @@ export const getMain = (
     - When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
     - Provide the answer to the user.
     - Repeat this process until user hangs up or says that it wants to end the call.
-3. If "getUserFromPhone" tool does not return a user, returns nothing or an error then *immediately* call "handoff_to_assistant" with "Intempus Unk Introduction".
+3. If "getUserFromPhone" tool does not return a user, returns nothing or an error then DO NOT wait for the user to speak first and IMMEDIATELY call "handoff_to_assistant" with "Intempus Unk Introduction". DO NOT announce the transfer to the user.
 
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`

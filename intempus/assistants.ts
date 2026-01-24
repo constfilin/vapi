@@ -248,7 +248,7 @@ export const getUnkHOA = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus Unk HOA";
+    const name = "Intempus HOA";
 
     const assistant = {
         // Basic metadata (from IntempusIVRIntroductionAssistant.json -> Intempus IVR HOA)
@@ -375,7 +375,7 @@ export const getUnkPropertyOwner = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus Unk PropertyOwner";
+    const name = "Intempus PropertyOwner";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -487,7 +487,7 @@ export const getFAQ = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus Unk FAQ";
+    const name = "Intempus FAQ";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -569,7 +569,7 @@ export const getUnkCallbackForm = (
 
     // See https://docs.vapi.ai/assistants/dynamic-variables#default-variables
     // about default variables like {{customer.number}}
-    const name = "Intempus Unk CallbackForm";
+    const name = "Intempus CallbackForm";
     const assistant = {
         // Basic metadata (property owner focused)
         name,
@@ -658,7 +658,7 @@ export const getUnkDialByName = (
         }),
         `${contacts.length+1}. If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result.`
     ];
-    const name = "Intempus Unk DialByName";
+    const name = "Intempus DialByName";
     const assistant = {
         // Basic metadata
         name,
@@ -749,7 +749,7 @@ export const getUnkIntroduction = (
         .map(n => toolsByName[n]?.id)
         .filter((id): id is string => typeof id === 'string');
 
-    const name = "Intempus Unk Introduction";
+    const name = "Intempus Introduction";
     const assistant = {
         name,
         voice: {
@@ -769,16 +769,16 @@ export const getUnkIntroduction = (
 2. Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
    a. "Are you a homeowner board member or a resident calling about /eɪtʃ oʊ eɪ/ and Community Management Services?"
       - Tell "I am forwarding your call to our HOA and Community Management Services."
-      - Call "handoff_to_assistant" with "Intempus Unk HOA".
+      - Call "handoff_to_assistant" with "Intempus HOA".
    b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
       - Tell "I am forwarding your call to our Property Management Services."
-      - Call "handoff_to_assistant" with "Intempus Unk PropertyOwner".
+      - Call "handoff_to_assistant" with "Intempus PropertyOwner".
    c. "Do you know the name of the person you would like to talk to?"
       - Tell "I am forwarding your call to our Dial By Name assistant"
-      - Call "handoff_to_assistant" with "Intempus Unk DialByName".
+      - Call "handoff_to_assistant" with "Intempus DialByName".
    d. "Would you like to leave your information for a callback from Intempus?"
       - Tell "I am forwarding your call to our Callback Form assistant"
-      - Call "handoff_to_assistant" with "Intempus Unk CallbackForm"
+      - Call "handoff_to_assistant" with "Intempus CallbackForm"
    e. "Would you like to hear these options again?"
       - Go to the first task again
 3. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.
@@ -846,7 +846,7 @@ export const getMain = (
     - When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
     - Provide the answer to the user.
     - Repeat this process until user hangs up or says that it wants to end the call.
-3. If "getUserFromPhone" tool does not return a user, returns nothing or an error then DO NOT wait for the user to speak first and IMMEDIATELY call "handoff_to_assistant" with "Intempus Unk Introduction". DO NOT announce the transfer to the user.
+3. If "getUserFromPhone" tool does not return a user, returns nothing or an error then DO NOT wait for the user to speak first and IMMEDIATELY call "handoff_to_assistant" with "Intempus Introduction". DO NOT announce the transfer to the user.
 
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`

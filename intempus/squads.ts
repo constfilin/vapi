@@ -12,7 +12,7 @@ export const getIVR = (
 
     const config            = Config.get();
     const existingMainAssistant         = existingAssistantsByName['Intempus Main'];
-    const existingIntroductionAssistant = existingAssistantsByName['Intempus Unk Introduction'];
+    const existingIntroductionAssistant = existingAssistantsByName['Intempus Introduction'];
     if( !existingIntroductionAssistant )
         throw Error(`Expected existing assistant Intempus Introduction to be present`);
     const excludedAssistantNames = [

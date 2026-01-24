@@ -13,6 +13,7 @@ export interface Config {
     provider                : string;
     open_ws                 : boolean;
     simulatedPhoneNumber    : string;
+    summaryEmailAddress     : string;
     web                     :   {
         path                :   string;
         loglevel            :   number;

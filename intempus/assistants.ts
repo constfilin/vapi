@@ -52,10 +52,10 @@ const _getToolIds = ( toolsByName: Record<string,Vapi.ListToolsResponseItem>, to
     });
 }
 const _completeAssistant = (
-    contacts    : Contacts.Contact[],
+    assistant   : Partial<Vapi.CreateAssistantDto>,
+    transcriber : Vapi.CreateAssistantDtoTranscriber,
     toolIds     : string[],
-    content     : string, 
-    assistant   : Partial<Vapi.CreateAssistantDto> 
+    content     : string
 ) : Vapi.CreateAssistantDto => {
     if( !assistant.name )
         throw Error("Assistant name is required");
@@ -64,6 +64,15 @@ const _completeAssistant = (
             throw Error(`firstMessage is required when firstMessageMode is '${assistant.firstMessageMode}'`);
     const config = Config.get();
     return {
+        voicemailDetection: {
+            provider    : 'vapi',
+            backoffPlan : {
+                maxRetries      : 6,
+                startAtSeconds  : 5,
+                frequencySeconds: 5
+            },
+            beepMaxAwaitSeconds: 0
+        },
         voicemailMessage    : "Please call back when you're available.",
         endCallFunctionEnabled: true,
         endCallMessage      : "Goodbye.",
@@ -119,7 +128,8 @@ const _completeAssistant = (
             //    } as Vapi.OpenAiModelToolsItem
             //]
         },
-        transcriber : _getTranscriber(contacts),
+        transcriber,
+        backgroundSound : "off",
         ...assistant
     }
 }
@@ -177,34 +187,16 @@ ${intempusConsts.securityAndSafetyOverrides}
         "If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result."
     ];
     return _completeAssistant(
-        contacts,
-        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        `${systemPromptHeader}
-<TASKS_AND_GOALS>
-${tasksAndGoals.map((tng,ndx) => {
-    return `${ndx+1}. ${tng}`;
-}).join("\n")}
-</TASKS_AND_GOALS>
-${intempusConsts.systemPromptFooter}`,
         {
-            name : "IntempusBot",
-            voicemailDetection: {
-                provider    : 'vapi',
-                backoffPlan : {
-                    maxRetries      : 6,
-                    startAtSeconds  : 5,
-                    frequencySeconds: 5
-                },
-                beepMaxAwaitSeconds: 0
-            },
+            name            : "IntempusBot",
+            firstMessage    : "Hello, this is Intempus Realty voice answering system. How may I assist you today?",
+            firstMessageMode: "assistant-speaks-first",
             // Note:
             // This seems to be ineffective
-            voicemailMessage        : "Call is going to voicemail",
-            firstMessage            : "Hello, this is Intempus Realty voice answering system. How may I assist you today?",
-            firstMessageMode        : "assistant-speaks-first",
+            voicemailMessage: "Call is going to voicemail",
             clientMessages  : [
-            //    "conversation-update",
-            //    "function-call"
+                // "conversation-update",
+                // "function-call"
             ],
             serverMessages  : [
                 //'conversation-update',
@@ -227,10 +219,6 @@ ${intempusConsts.systemPromptFooter}`,
             endCallPhrases  : [
                 "goodbye"
             ],
-            // @ts-expect-error
-            backchannelingEnabled: false,
-            backgroundSound: "off",
-            backgroundDenoisingEnabled: true,
             startSpeakingPlan: {
                 "smartEndpointingPlan": {
                     "provider" : "livekit",
@@ -238,7 +226,16 @@ ${intempusConsts.systemPromptFooter}`,
                 // @deprecated
                 "smartEndpointingEnabled": "livekit",
             }
-        }
+        },        
+        _getTranscriber(contacts),
+        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
+        `${systemPromptHeader}
+<TASKS_AND_GOALS>
+${tasksAndGoals.map((tng,ndx) => {
+    return `${ndx+1}. ${tng}`;
+}).join("\n")}
+</TASKS_AND_GOALS>
+${intempusConsts.systemPromptFooter}`
     );
 }
 export const getUnkHOA = (
@@ -247,7 +244,32 @@ export const getUnkHOA = (
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
     return _completeAssistant(
-        contacts,
+        { 
+            name            : "Intempus HOA",
+            firstMessage    : "This is Intempus Realty HOA menu. Would you like to request HOA maintenance, HOA payments, parking calls, or something else?",
+            firstMessageMode: "assistant-speaks-first",
+            voicemailMessage: "Please call back when you're available.",
+            serverMessages  : [
+                //'conversation-update',
+                //'end-of-call-report',
+                'function-call',
+                'hang',
+                //'model-output',
+                // phone call control has to be commented out
+                // See https://discord.com/channels/1211482211119796234/1211483291191083018/threads/1379590374393118860
+                //'phone-call-control',
+                //'speech-update',
+                'status-update',
+                //'transcript',
+                //'transcript[transcriptType="final"]',
+                'tool-calls',
+                'transfer-destination-request',
+                //'user-interrupted',
+                //'voice-input'
+            ],
+            startSpeakingPlan: { waitSeconds: 1.5 },
+        },
+        _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
@@ -277,31 +299,6 @@ export const getUnkHOA = (
 - If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus Introduction".
 </CALLROUTING>
 ${intempusConsts.systemPromptFooter}`,
-        { 
-            name            : "Intempus HOA",
-            firstMessage    : "This is Intempus Realty HOA menu. Would you like to request HOA maintenance, HOA payments, parking calls, or something else?",
-            firstMessageMode: "assistant-speaks-first",
-            voicemailMessage: "Please call back when you're available.",
-            serverMessages  : [
-                //'conversation-update',
-                //'end-of-call-report',
-                'function-call',
-                'hang',
-                //'model-output',
-                // phone call control has to be commented out
-                // See https://discord.com/channels/1211482211119796234/1211483291191083018/threads/1379590374393118860
-                //'phone-call-control',
-                //'speech-update',
-                'status-update',
-                //'transcript',
-                //'transcript[transcriptType="final"]',
-                'tool-calls',
-                'transfer-destination-request',
-                //'user-interrupted',
-                //'voice-input'
-            ],
-            startSpeakingPlan: { waitSeconds: 1.5 },
-        }
     );
 }
 export const getUnkPropertyOwner = (
@@ -310,7 +307,13 @@ export const getUnkPropertyOwner = (
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
     return _completeAssistant(
-        contacts,
+        {
+            name            : "Intempus PropertyOwner",
+            firstMessage    : "Hello, this is Intempus Realty. Are you calling about rental management, scheduling a showing, selling a property, or something else?",
+            firstMessageMode: "assistant-speaks-first",
+            startSpeakingPlan: { waitSeconds: 1.5 }
+        },
+        _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
@@ -347,13 +350,6 @@ export const getUnkPropertyOwner = (
 - If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus Introduction".
 </CALLROUTING>
 ${intempusConsts.systemPromptFooter}`,
-        {
-            // Basic metadata (property owner focused)
-            name            : "Intempus PropertyOwner",
-            firstMessage    : "Hello, this is Intempus Realty. Are you calling about rental management, scheduling a showing, selling a property, or something else?",
-            firstMessageMode: "assistant-speaks-first",
-            startSpeakingPlan: { waitSeconds: 1.5 }
-        }
     );
 }
 //https://intempusrealty.com/frequently-asked-questions/
@@ -363,20 +359,19 @@ export const getFAQ = (
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
     return _completeAssistant(
-        contacts,
+        {
+            name            : "Intempus FAQ",
+            firstMessage    : "Hello, this is Intempus Realty. Are you calling about rental management, scheduling a showing, selling a property, or something else?",
+            firstMessageMode: "assistant-speaks-first",
+        },        
+        _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
 Ask caller: "Do you want to return to previous menu?"
 If the caller responds affirmatively call "handoff_to_assistant" to "Intempus Introduction".
 </TASKS_AND_GOALS>
-${intempusConsts.systemPromptFooter}`,
-        {
-            // Basic metadata (property owner focused)
-            name            : "Intempus FAQ",
-            firstMessage    : "Hello, this is Intempus Realty. Are you calling about rental management, scheduling a showing, selling a property, or something else?",
-            firstMessageMode: "assistant-speaks-first",
-        }
+${intempusConsts.systemPromptFooter}`
     );
 }
 //https://intempuspropertymanagement.com/santa-clara-property-management/
@@ -386,7 +381,13 @@ export const getUnkCallbackForm = (
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
     return _completeAssistant(
-        contacts,
+        {
+            // Basic metadata (property owner focused)
+            name            : "Intempus CallbackForm",
+            firstMessage    : null,
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
+        },
+        _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
@@ -398,13 +399,7 @@ export const getUnkCallbackForm = (
 6. After collecting all the above information, tell the customer something like "You are an {{clientType}} client interested in {{propertyInterest}}. Your property address is {{propertyAddress}}. Your location of interest is {{locationInterest}}. Your name is {{name}}. Your email address is {{emailAddress}}. Your phone number is {{customer.number}}. Thank you for providing this information. A representative will reach out to you shortly.".
 7. If instead of the answer on any of the above questions the caller says something like "I want to return to the previous menu", then call "handoff_to_assistant" to "Intempus Introduction".
 </TASKS_AND_GOALS>
-${intempusConsts.systemPromptFooter}`,
-        {
-            // Basic metadata (property owner focused)
-            name            : "Intempus CallbackForm",
-            firstMessage    : null,
-            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
-        }
+${intempusConsts.systemPromptFooter}`
     );
 }
 export const getUnkDialByName = (
@@ -419,7 +414,12 @@ export const getUnkDialByName = (
         `${contacts.length+1}. If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result.`
     ];
     return _completeAssistant(
-        contacts,
+        {
+            name            : "Intempus DialByName",
+            firstMessage    : "Hello, this is Intempus Realty dial by name system. Who would you like to reach to?.",
+            firstMessageMode: "assistant-speaks-first"
+        },
+        _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
@@ -436,12 +436,7 @@ export const getUnkDialByName = (
 <CALLROUTING>
 ${callRoutingInstructions.join("\n")}
 </CALLROUTING>
-${intempusConsts.systemPromptFooter}`,
-        {
-            name            : "Intempus DialByName",
-            firstMessage    : "Hello, this is Intempus Realty dial by name system. Who would you like to reach to?.",
-            firstMessageMode: "assistant-speaks-first"
-        }
+${intempusConsts.systemPromptFooter}`
     );
 }
 export const getUnkIntroduction = (
@@ -450,11 +445,16 @@ export const getUnkIntroduction = (
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
     return _completeAssistant(
-        contacts,
+        {
+            name            : "Intempus Introduction",
+            firstMessage    : "Hello, I am Emily, an AI assistant for Intempus Realty, .... Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
+            firstMessageMode: "assistant-speaks-first"
+        },
+        _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-1. Immediately greet the caller and introduce yourself using information in <IDENTITY/> section.
+1. Immediately greet the caller and introduce yourself using information in IDENTITY section.
 2. Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
    a. "Are you a homeowner board member or a resident calling about /eɪtʃ oʊ eɪ/ and Community Management Services?"
       - Tell "I am forwarding your call to our HOA and Community Management Services."
@@ -473,11 +473,6 @@ export const getUnkIntroduction = (
 3. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`,
-        {
-            name            : "Intempus Introduction",
-            firstMessage    : "Hello, I am Emily, an AI assistant for Intempus Realty, .... Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
-            firstMessageMode: "assistant-speaks-first"
-        }
     );
 }
 export const getMain = (
@@ -486,7 +481,12 @@ export const getMain = (
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
     return _completeAssistant(
-        contacts,
+        {
+            name            : "Intempus Main",
+            firstMessage    : "Hello, I am Emily, an AI assistant for Intempus Realty",
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
+        },
+        _getTranscriber(contacts),
         _getToolIds(toolsByName,['getUserFromPhone','getFAQAnswer']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
@@ -497,11 +497,6 @@ export const getMain = (
     - Repeat this process until user hangs up or says that it wants to end the call.
 3. If "getUserFromPhone" tool does not return a user, returns nothing or an error then DO NOT wait for the user to speak first and IMMEDIATELY call "handoff_to_assistant" with "Intempus Introduction". DO NOT announce the transfer to the user.
 </TASKS_AND_GOALS>
-${intempusConsts.systemPromptFooter}`,
-        {
-            name            : "Intempus Main",
-            firstMessage    : "Hello, I am Emily, an AI assistant for Intempus Realty",
-            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
-        }
+${intempusConsts.systemPromptFooter}`
     );
 }

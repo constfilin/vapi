@@ -337,22 +337,6 @@ export default () => {
             };
         });
     });
-    /*
-    router.post('/assistant/IntempusIVRHOA',(req:expressCore.Request,res:expressCore.Response) => {
-        return sendResponse(req,res,() => {
-            if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
-                throw Error(`Access denied`);
-            // The customer requests an email to be sent to the customer if the call is transferred to a number
-            // First try the easy way
-            const serverMessage  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageMessage;
-            server.module_log(module.filename,2,`Got assistant notification '${serverMessage.type||'??'}'`,{
-                status  : (serverMessage as any).status,
-                request : (serverMessage as any).request,
-            });
-            throw Error("Not implemented");
-        });
-    });
-    */
     router.post('/cmd',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )

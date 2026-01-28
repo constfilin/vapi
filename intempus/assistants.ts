@@ -34,7 +34,7 @@ const _getTranscriber = ( contacts:Contacts.Contact[]) : Vapi.CreateAssistantDto
     ];
     return {
         provider            : "deepgram",
-        language            : "en",
+        language            : "multi",
         // model               : "nova-2-phonecall",
         model               : "nova-3",
         confidenceThreshold : 0.4,
@@ -81,15 +81,26 @@ const _completeAssistant = (
             hipaaEnabled: false,
             pciEnabled: false
         },
+        /*
         voice       : {
-            "cachingEnabled"        : true,
-            "voiceId"               : "luna",
-            "provider"              : "deepgram",
-            "model"                 : "aura-2",
+            provider              : "deepgram",
+            voiceId               : "luna",
+            cachingEnabled        : true,
+            model                 : "aura-2",
             // @ts-expect-error
             "inputPunctuationBoundaries": [
                 "."
             ]
+        },
+        */
+        voice : {
+            provider    : "azure",
+            voiceId     : "en-US-AriaNeural", // Primary voice
+            fallbackPlan: {
+                voices: [
+                    { provider: "azure", voiceId: "es-ES-ElviraNeural" },
+                ]
+            }
         },
         server      : {
             url             : `${config.publicUrl}/assistant/${assistant.name.replace(/[^a-zA-Z0-9-_]/g,"")}`,
@@ -483,7 +494,7 @@ export const getMain = (
     return _completeAssistant(
         {
             name            : "Intempus Main",
-            firstMessage    : "Hello, I am Emily, an AI assistant for Intempus Realty",
+            firstMessage    : "Hello, I am Emily, an AI assistant for Intempus Realty. I can assist you in English and Spanish.",
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),

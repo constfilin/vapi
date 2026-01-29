@@ -254,6 +254,7 @@ export const getUnkHOA = (
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
+    const config = Config.get();
     return _completeAssistant(
         { 
             name            : "Intempus HOA",
@@ -291,7 +292,7 @@ export const getUnkHOA = (
    - Ask for the name of the property
    - Confirm both details back to the caller
 3. ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
-   - To: "vkurganecki@gmail.com"
+   - To: "${config.summaryEmailAddress}"
    - Subject: "New Call: [Property Name] - From [Caller Name]"
    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"
 4. Only AFTER:
@@ -317,6 +318,7 @@ export const getUnkPropertyOwner = (
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
+    const config = Config.get();
     return _completeAssistant(
         {
             name            : "Intempus PropertyOwner",
@@ -335,7 +337,7 @@ export const getUnkPropertyOwner = (
    * Ask for the name of the property
    * Confirm both details back to the caller
 3. ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
-   - To: "vkurganecki@gmail.com"
+   - To: "${config.summaryEmailAddress}"
    - Subject: "New Call: [Property Name] - From [Caller Name]"
    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"
      Where [Caller's Request] is a short description such as:

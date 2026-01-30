@@ -227,7 +227,7 @@ export default () => {
                                 result      : JSON.stringify(userInfo)
                             };
                         });
-                    case 'dispathUserFromPhone':
+                    case 'dispatchUserFromPhone':
                         return VapeApi.getUserFromPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'')
                             .then( userInfo => {
                                 return {

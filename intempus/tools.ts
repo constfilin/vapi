@@ -340,6 +340,22 @@ export const getUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToo
 };
 export const dispatchUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
     // Same as getUserFromPhone but under a different name
+    // So .. why do we need this dispatchUserFromPhone if we have getUserFromPhone?
+    //
+    // The difference is that getUserFromPhone just returns user information and if the assistant
+    // calls getUserFromPhone then it does not know what to do and waits for a user to say something
+    // before the next step. No matter how hard I tried to avoid this wait, I wasn't able to create
+    // a system prompt that makes VAPI simply go to the next instruction.
+    //
+    // Instead I created dispatchUserFromPhone. This tool, in addition to the user information, 
+    // also returns the next "instructions" and the asistant system prompt (see getMain) says that
+    // the assistant needs to get those instructions from the result of dispatchUserFromPhone.
+    //
+    // This creates a situation when the main assistant first calls `dispatchUserFromPhone` and
+    // then if the user is not known, then it *immediately* calls `handoff_to_assistant` tool without
+    // waiting for the user to say something.
+    //
+    // A similar technique is employed by `dispatchCall` tool in dial-by-name assistant
     const tmp = getUserFromPhone(contacts);
     tmp['function'].name = 'dispatchUserFromPhone';
     return tmp;

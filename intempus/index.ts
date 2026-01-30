@@ -27,6 +27,7 @@ export const toolsByName = {
     'sendEmail'             : tools.getSendEmail,
     'guessState'            : tools.getGuessState,
     'getUserFromPhone'      : tools.getUserFromPhone,
+    'dispatchUserFromPhone' : tools.dispatchUserFromPhone,
     'getFAQAnswer'          : tools.getFAQAnswer,
 } as Record<string,(
     contacts    : Contacts.Contact[]

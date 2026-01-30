@@ -338,6 +338,12 @@ export const getUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToo
     } as Vapi.CreateFunctionToolDto
     return result;
 };
+export const dispatchUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
+    // Same as getUserFromPhone but under a different name
+    const tmp = getUserFromPhone(contacts);
+    tmp['function'].name = 'dispatchUserFromPhone';
+    return tmp;
+};
 export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
     const result = {
         'type'      : "function",

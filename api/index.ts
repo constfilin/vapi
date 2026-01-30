@@ -221,14 +221,31 @@ export default () => {
                             result      : guessState(vapi_message.customer?.number||'')
                         }
                     case 'getUserFromPhone':
-                        // TODO:
-                        // Test if VAPI understands the JSON format of this answer
                         return VapeApi.getUserFromPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'').then( userInfo => {
                             return {
                                 toolCallId  : tc.id,
                                 result      : JSON.stringify(userInfo)
                             };
                         });
+                    case 'dispathUserFromPhone':
+                        return VapeApi.getUserFromPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'')
+                            .then( userInfo => {
+                                return {
+                                    toolCallId  : tc.id,
+                                    result      : JSON.stringify({
+                                        ...userInfo,
+                                        instructions : 'Proceed to the next step'
+                                    })
+                                };
+                            })
+                            .catch( err => {
+                                return {
+                                    toolCallId  : tc.id,
+                                    result      : JSON.stringify({
+                                        instructions : `call "handoff_to_assistant" with "Intempus Introduction"`
+                                    })
+                                }
+                            });
                     case 'getFAQAnswer':
                         // TODO:
                         // Test if VAPI understands the JSON format of this answer
@@ -262,26 +279,26 @@ export default () => {
             });
             if( serverMessage.type==='end-of-call-report') {
                 const messageItems = (serverMessage as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
-                let summaryEmailAddress = server.config.summaryEmailAddress || 'mkhesin@intempus.net'; // default
+                let notificationEmailAddress = server.config.notificationEmailAddress || 'mkhesin@intempus.net'; // default
                 try {
-                    summaryEmailAddress = await guessSummaryEmailAddress(messageItems);
+                    notificationEmailAddress = await guessSummaryEmailAddress(messageItems);
                 }
                 catch( err ) {
-                    server.module_log(module.filename,1,`Cannot guess summary email address (${err.message}), defaulting to '${summaryEmailAddress}'`);
+                    server.module_log(module.filename,1,`Cannot guess summary email address (${err.message}), defaulting to '${notificationEmailAddress}'`);
                 }
-                if( getLastToolCallToAgrs(messageItems,'sendEmail',{}).to===summaryEmailAddress ) {
-                    server.module_log(module.filename,2,`Summary email already sent to '${summaryEmailAddress}'`);
+                if( getLastToolCallToAgrs(messageItems,'sendEmail',{}).to===notificationEmailAddress ) {
+                    server.module_log(module.filename,2,`Summary email already sent to '${notificationEmailAddress}'`);
                 }
                 else {
                     const summaryEmailText = serverMessage.analysis.summary||'Summary was not provided';
                     server.sendEmail({
-                        to      :   summaryEmailAddress,
+                        to      :   notificationEmailAddress,
                         subject :   `Call to ${serverMessage.assistant?.name}`,
                         text    :   summaryEmailText
                     }).then(() => {
-                        server.module_log(module.filename,2,`Sent email with call summary '${summaryEmailText}' to '${summaryEmailAddress}'`);
+                        server.module_log(module.filename,2,`Sent email with call summary '${summaryEmailText}' to '${notificationEmailAddress}'`);
                     }).catch( err => {
-                        server.module_log(module.filename,1,`Cannot send an email with call summary '${summaryEmailText}' to '${summaryEmailAddress}' (${err.message})`);
+                        server.module_log(module.filename,1,`Cannot send an email with call summary '${summaryEmailText}' to '${notificationEmailAddress}' (${err.message})`);
                     });
                 }
             }

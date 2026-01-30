@@ -7,6 +7,12 @@ import * as Contacts        from '../Contacts';
 
 import * as intempusConsts  from './consts';
 
+const _joinSteps = ( steps:string[] ) : string => {
+    return steps.map((s,ndx) => {
+        return `${ndx+1}. ${s}`;
+    }).join("\n");
+};
+
 const _getTranscriber = ( contacts:Contacts.Contact[]) : Vapi.CreateAssistantDtoTranscriber => {
     const keywords          = Object.values(contacts
         .map(c=>c.name.split(/\s+/))
@@ -242,9 +248,7 @@ ${intempusConsts.securityAndSafetyOverrides}
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${systemPromptHeader}
 <TASKS_AND_GOALS>
-${tasksAndGoals.map((tng,ndx) => {
-    return `${ndx+1}. ${tng}`;
-}).join("\n")}
+${_joinSteps(tasksAndGoals)}
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`
     );
@@ -258,7 +262,7 @@ export const getUnkHOA = (
     return _completeAssistant(
         { 
             name            : "Intempus HOA",
-            firstMessage    : "This is Intempus Realty HOA menu. Would you like to request HOA maintenance, HOA payments, parking calls, or something else?",
+            firstMessage    : "You have reaced Intempus HOA department. Would you like to request HOA maintenance, HOA payments, parking calls, or something else?",
             firstMessageMode: "assistant-speaks-first",
             voicemailMessage: "Please call back when you're available.",
             serverMessages  : [
@@ -285,24 +289,25 @@ export const getUnkHOA = (
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-1. Greet the caller and determine which category their call belongs to (HOA maintenance, HOA payments, parking calls, estoppel requests, application status, HOA community association management services sales, HOA emergency maintenance, or returning to the previous menu).
-   *This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools at this step.*
-2. Before transferring the call to ANY number, you must ALWAYS:
+${_joinSteps([
+    `Determine which category their call belongs to (HOA maintenance, HOA payments, parking calls, estoppel requests, application status, HOA community association management services sales, HOA emergency maintenance, or returning to the previous menu).
+    * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools at this step.*`,
+    `Before transferring the call to ANY number, you must ALWAYS:
    - Ask for the caller's name
    - Ask for the name of the property
-   - Confirm both details back to the caller
-3. ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
-   - To: "${config.summaryEmailAddress}"
+   - Confirm both details back to the caller`,
+   `ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
+   - To: "${config.notificationEmailAddress}"
    - Subject: "New Call: [Property Name] - From [Caller Name]"
-   - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"
-4. Only AFTER:
+   - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`,
+    `Only AFTER:
    - The caller's name is collected
    - The property name is collected
    - The details are confirmed
    - The email has been sent
-   THEN apply the correct routing as explained in the CALLROUTING section
+   THEN apply the correct routing as explained in the CALLROUTING section`
+])}
 </TASKS_AND_GOALS>
-
 <CALLROUTING>
 - For HOA maintenance: transfer the call to +15103404275.
 - For HOA payments, parking calls, estoppel requests, or application status: transfer to +15103404275.
@@ -322,7 +327,7 @@ export const getUnkPropertyOwner = (
     return _completeAssistant(
         {
             name            : "Intempus PropertyOwner",
-            firstMessage    : "Hello, this is Intempus Realty. Are you calling about rental management, scheduling a showing, selling a property, or something else?",
+            firstMessage    : "This is Intempus Realty Property Owner menu.",
             firstMessageMode: "assistant-speaks-first",
             startSpeakingPlan: { waitSeconds: 1.5 }
         },
@@ -330,30 +335,32 @@ export const getUnkPropertyOwner = (
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-1. Greet the caller and determine which category their call belongs to (rental management, scheduling a showing, selling a property, payments, rental property maintenance, or rental property emergency maintenance).
-   * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools after this step.*
-2. Before transferring the call to ANY number, you must ALWAYS:
-   * Ask for the caller's name
-   * Ask for the name of the property
-   * Confirm both details back to the caller
-3. ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
-   - To: "${config.summaryEmailAddress}"
-   - Subject: "New Call: [Property Name] - From [Caller Name]"
-   - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"
-     Where [Caller's Request] is a short description such as:
-       “scheduling a showing”
-       “emergency maintenance”
-       “rent payment”
-       “rental application”
-       “property management”
-       “selling their property”
-       etc.
-4. Only AFTER all of the following:
-   - The caller's name is collected
-   - The property name is collected
-   - The details are confirmed
-   - The email has been sent
-   THEN apply the correct routing as explained in the CALLROUTING section.
+${_joinSteps([
+    `Determine which category their call belongs to (rental management, scheduling a showing, selling a property, payments, rental property maintenance, or rental property emergency maintenance).
+    * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools after this step.*`,
+    `Before transferring the call to ANY number, you must ALWAYS:
+    * Ask for the caller's name
+    * Ask for the name of the property
+    * Confirm both details back to the caller`,
+    `ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
+    - To: "${config.notificationEmailAddress}"
+    - Subject: "New Call: [Property Name] - From [Caller Name]"
+    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"
+        Where [Caller's Request] is a short description such as:
+        “scheduling a showing”
+        “emergency maintenance”
+        “rent payment”
+        “rental application”
+        “property management”
+        “selling their property”
+        etc.`,
+    `Only AFTER all of the following:
+    - The caller's name is collected
+    - The property name is collected
+    - The details are confirmed
+    - The email has been sent
+    THEN apply the correct routing as explained in the CALLROUTING section.`
+])}
 </TASKS_AND_GOALS>
 <CALLROUTING>
 - For rental property maintenance: transfer the call to +15103404275.
@@ -374,15 +381,17 @@ export const getFAQ = (
     return _completeAssistant(
         {
             name            : "Intempus FAQ",
-            firstMessage    : "Hello, this is Intempus Realty. Are you calling about rental management, scheduling a showing, selling a property, or something else?",
+            firstMessage    : "Hello, this is Intempus Realty FAQ menu",
             firstMessageMode: "assistant-speaks-first",
         },        
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-Ask caller: "Do you want to return to previous menu?"
-If the caller responds affirmatively call "handoff_to_assistant" to "Intempus Introduction".
+${_joinSteps([
+    `Ask caller: "Do you want to return to previous menu?"`,
+    `If the caller responds affirmatively call "handoff_to_assistant" to "Intempus Introduction".`
+])}
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`
     );
@@ -404,13 +413,15 @@ export const getUnkCallbackForm = (
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-1. Ask caller: "Please let us know if you are an existing or prospective client" and save the answer as 'clientType'.
-2. Ask caller: "Are you looking to rent your property, looking to buy a property or deciding to between renting and selling?" and save the answer as 'propertyInterest'.
-3. If the caller is looking to rent their property, ask: "What is the address of your property" and save the answer as 'propertyAddress'. Otherwise ask: "What state, county or zip code you would like your to live in?" and save the answer as 'locationInterest'.
-4. Ask caller: "What is your first and last name?" and save the answer as 'name'.
-5. Ask caller: "Would you like to leave us your email address" and if the caller responds affirmatively, then ask "Please provide your email address", re-confirm it and after the re-confirmation save the answer as 'emailAddress'.
-6. After collecting all the above information, tell the customer something like "You are an {{clientType}} client interested in {{propertyInterest}}. Your property address is {{propertyAddress}}. Your location of interest is {{locationInterest}}. Your name is {{name}}. Your email address is {{emailAddress}}. Your phone number is {{customer.number}}. Thank you for providing this information. A representative will reach out to you shortly.".
-7. If instead of the answer on any of the above questions the caller says something like "I want to return to the previous menu", then call "handoff_to_assistant" to "Intempus Introduction".
+${_joinSteps([
+    `Ask caller: "Please let us know if you are an existing or prospective client" and save the answer as 'clientType'`,
+    `Ask caller: "Are you looking to rent your property, looking to buy a property or deciding to between renting and selling?" and save the answer as 'propertyInterest'.`,
+    `If the caller is looking to rent their property, ask: "What is the address of your property" and save the answer as 'propertyAddress'. Otherwise ask: "What state, county or zip code you would like your to live in?" and save the answer as 'locationInterest'.`,
+    `Ask caller: "What is your first and last name?" and save the answer as 'name'.`,
+    `Ask caller: "Would you like to leave us your email address" and if the caller responds affirmatively, then ask "Please provide your email address", re-confirm it and after the re-confirmation save the answer as 'emailAddress'.`,
+    `After collecting all the above information, tell the customer something like "You are an {{clientType}} client interested in {{propertyInterest}}. Your property address is {{propertyAddress}}. Your location of interest is {{locationInterest}}. Your name is {{name}}. Your email address is {{emailAddress}}. Your phone number is {{customer.number}}. Thank you for providing this information. A representative will reach out to you shortly.".`,
+    `If instead of the answer on any of the above questions the caller says something like "I want to return to the previous menu", then call "handoff_to_assistant" to "Intempus Introduction".`
+])}
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`
     );
@@ -421,30 +432,32 @@ export const getUnkDialByName = (
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
     const callRoutingInstructions = [
-        ...contacts.map( (c,ndx) => {
-            return `${ndx+1}. If the user asks for "${c.name}", call dispatchCall with "${c.name}", wait for result and immediately follow the instructions of the result.`;
+        ...contacts.map((c) => {
+            return `If the user asks for "${c.name}", call dispatchCall with "${c.name}", wait for result and immediately follow the instructions of the result.`;
         }),
         `${contacts.length+1}. If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result.`
     ];
     return _completeAssistant(
         {
             name            : "Intempus DialByName",
-            firstMessage    : "Hello, this is Intempus Realty dial by name system. Who would you like to reach to?.",
+            firstMessage    : "Hello, this is Intempus Realty dial by name directory. Who would you like to reach to?.",
             firstMessageMode: "assistant-speaks-first"
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-1. Your main task is to assist callers in reaching the appropriate contact within Intempus Realty by name.
-2. Greet the caller warmly and introduce yourself as Intempus Realty's IVR system.
-3. Ask the caller for the name of the person they wish to reach and make sure that this name is mentioned in CALLROUTING section.
-   * If it is not mentioned, politely inform the caller that the name was not found and ask them to repeat or provide additional details.
-4. Once you have the contact name, ask for the property name/address that the call is regarding.
-5. Then ask for the caller's name.
-6. After collecting all three pieces of information (contact name, property name, and caller name), confirm the details back to the caller.
-8. After the confirmation, follow the instructions for the contact name in the CALLROUTING section.
-10. Keep the caller informed about actions being taken and ensure they feel assisted throughout the process.
+${_joinSteps([
+    `Your main task is to assist callers in reaching the appropriate contact within Intempus Realty by name.`,
+    `Greet the caller by saying "You reach the Intempus Realty Dial By Name directory".`,
+    `Ask the caller for the name of the person they wish to reach and make sure that this name is mentioned in CALLROUTING section.,
+       * If it is not mentioned, politely inform the caller that the name was not found and ask them to repeat or provide additional details.`,
+    `Once you have the contact name, ask for the property name/address that the call is regarding.`,
+    `Then ask for the caller's name.`,
+    `After collecting all three pieces of information (contact name, property name, and caller name), confirm the details back to the caller.`,
+    `After the confirmation, follow the instructions for the contact name in the CALLROUTING section.`,
+    `Keep the caller informed about actions being taken and ensure they feel assisted throughout the process.`
+])}
 </TASKS_AND_GOALS>
 <CALLROUTING>
 ${callRoutingInstructions.join("\n")}
@@ -460,30 +473,31 @@ export const getUnkIntroduction = (
     return _completeAssistant(
         {
             name            : "Intempus Introduction",
-            firstMessage    : "Hello, I am Emily, an AI assistant for Intempus Realty, .... Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
+            firstMessage    : "You reached the Intempus Realty Main Menu. Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
             firstMessageMode: "assistant-speaks-first"
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `${intempusConsts.systemPromptHeader}
 <TASKS_AND_GOALS>
-1. Immediately greet the caller and introduce yourself using information in IDENTITY section.
-2. Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
-   a. "Are you a homeowner board member or a resident calling about /eɪtʃ oʊ eɪ/ and Community Management Services?"
-      - Tell "I am forwarding your call to our HOA and Community Management Services."
-      - Call "handoff_to_assistant" with "Intempus HOA".
-   b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
-      - Tell "I am forwarding your call to our Property Management Services."
-      - Call "handoff_to_assistant" with "Intempus PropertyOwner".
-   c. "Do you know the name of the person you would like to talk to?"
-      - Tell "I am forwarding your call to our Dial By Name assistant"
-      - Call "handoff_to_assistant" with "Intempus DialByName".
-   d. "Would you like to leave your information for a callback from Intempus?"
-      - Tell "I am forwarding your call to our Callback Form assistant"
-      - Call "handoff_to_assistant" with "Intempus CallbackForm"
-   e. "Would you like to hear these options again?"
-      - Go to the first task again
-3. Ensure the caller is kept informed about the next steps or actions being taken on their behalf.
+{${_joinSteps([
+    `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
+    a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
+        - Tell "I am forwarding your call to our HOA and Community Management Services."
+        - Call "handoff_to_assistant" with "Intempus HOA".
+    b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
+        - Tell "I am forwarding your call to our Property Management Services."
+        - Call "handoff_to_assistant" with "Intempus PropertyOwner".
+    c. "Do you know the name of the person you would like to talk to?"
+        - Tell "I am forwarding your call to our Dial By Name assistant"
+        - Call "handoff_to_assistant" with "Intempus DialByName".
+    d. "Would you like to leave your information for a callback from Intempus?"
+        - Tell "I am forwarding your call to our Callback Form assistant"
+        - Call "handoff_to_assistant" with "Intempus CallbackForm"
+    e. "Would you like to hear these options again?"
+        - Go to the first task again`,
+    `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
+])}
 </TASKS_AND_GOALS>
 ${intempusConsts.systemPromptFooter}`,
     );
@@ -501,15 +515,18 @@ export const getMain = (
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['getUserFromPhone','getFAQAnswer']),
-        `${intempusConsts.systemPromptHeader}
-<TASKS_AND_GOALS>
-1. Call the "getUserFromPhone" tool to retrieve the user's information.
-2. If "getUserFromPhone" tool returns a user then you must greet the user and then ask them what they would like assistance with today.
-    - When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
-    - Provide the answer to the user.
-    - Repeat this process until user hangs up or says that it wants to end the call.
-3. If "getUserFromPhone" tool does not return a user, returns nothing or an error then DO NOT wait for the user to speak first and IMMEDIATELY call "handoff_to_assistant" with "Intempus Introduction". DO NOT announce the transfer to the user.
-</TASKS_AND_GOALS>
-${intempusConsts.systemPromptFooter}`
+`${intempusConsts.systemPromptHeader}
+${intempusConsts.systemPromptFooter}
+
+<TASK>
+${_joinSteps([
+    `Call the "getUserFromPhone" tool to retrieve the user's information.`,
+    `If "getUserFromPhone" tool does not return a user then IMMEDIATELY call "handoff_to_assistant" with "Intempus Introduction".`, 
+    `If "getUserFromPhone" tool returns a user then you must greet the user by name and then ask them what they would like assistance with today.`,
+    `When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
+      - Provide the answer to the user.
+      - Repeat this process until user hangs up or says that it wants to end the call.`
+])}
+</TASK>`
     );
 }

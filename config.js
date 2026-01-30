@@ -13,7 +13,7 @@ export default {
     vapeApiToken                    : (process.env.VAPE_API_TOKEN||'[hidden]'),
     publicUrl                       : (process.env.PUBLIC_URL||'http://127.0.0.1:9876/api'),                          // https://demo.tectransit.com/api/vapi
     replPort                        : (process.env.REPL_PORT ? parseInt(process.env.REPL_PORT) : 1338),
-    summaryEmailAddress             : (process.env.SUMMARY_EMAIL_ADDRESS || ''),
+    notificationEmailAddress        : (process.env.NOTIFICATION_EMAIL_ADDRESS || ''),
     // global model defaults for assistants
     model                           : (process.env.MODEL || 'gemini-2.5-flash'),
     provider                        : (process.env.MODEL_PROVIDER || 'google'),

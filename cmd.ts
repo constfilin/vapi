@@ -11,11 +11,19 @@ const cmd = () => {
         { name : 'phoneNumber'  , alias: 'p', type: String },
         { name : 'question'     , alias: 'q', type: String },
     ]);
-    getCmdPromise(argv)().then( r => {
-        if( argv.stringify )
-            return console.log(JSON.stringify(r,null,4));
-        return console.log(r);
-    }).catch(console.error);
+    getCmdPromise(argv)()
+        .then( r => {
+            if( argv.stringify )
+                return console.log(JSON.stringify(r,null,4));
+            return console.log(r);
+        })
+        .catch( (err) => {
+            console.error(err);
+            process.exit(-1);
+        })
+        .finally(() => {
+            process.exit(0);
+        });
 }
 
 cmd();

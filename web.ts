@@ -10,7 +10,7 @@ import ejs          from 'ejs';
 import Server       from './Server';
 import api          from './api/';
 
-const web = async () => {
+const web = () => {
     const server = new Server();
     const app    = express();
     app.engine('ejs',(path,data,cb) => ejs.renderFile(path,data,cb));

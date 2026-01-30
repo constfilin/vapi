@@ -1,13 +1,11 @@
 import * as intempus    from './intempus/';
 import * as Contacts    from './Contacts';
-import Server           from './Server';
 import { VapiApi }      from './VapiApi';
 
 import * as VapeApi     from './api/VapeApi';
 
 export const getCmdPromise = ( args:Record<string,any> ) => {
 
-    const server        = new Server();
     const vapiApi       = new VapiApi();
     const tools         = vapiApi.getTools();
     const assistants    = vapiApi.getAssistants();
@@ -23,8 +21,8 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 warns,
             };
         });
-    case 'getUserFromPhone':
-        return (() => VapeApi.getUserFromPhone(
+    case 'getUserByPhone':
+        return (() => VapeApi.getUserByPhone(
             args.sessionId as string,
             args.phoneNumber as string
         ));

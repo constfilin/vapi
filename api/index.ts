@@ -220,15 +220,15 @@ export default () => {
                             toolCallId  : tc.id,
                             result      : guessState(vapi_message.customer?.number||'')
                         }
-                    case 'getUserFromPhone':
-                        return VapeApi.getUserFromPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'').then( userInfo => {
+                    case 'getUserByPhone':
+                        return VapeApi.getUserByPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'').then( userInfo => {
                             return {
                                 toolCallId  : tc.id,
                                 result      : JSON.stringify(userInfo)
                             };
                         });
-                    case 'dispatchUserFromPhone':
-                        return VapeApi.getUserFromPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'')
+                    case 'dispatchUserByPhone':
+                        return VapeApi.getUserByPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'')
                             .then( userInfo => {
                                 return {
                                     toolCallId  : tc.id,

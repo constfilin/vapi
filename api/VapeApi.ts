@@ -1,5 +1,4 @@
 import fetch                from 'node-fetch';
-import * as Config          from '../Config';
 import { server }           from '../Server';
 
 const makeApiCall = async (
@@ -11,7 +10,7 @@ const makeApiCall = async (
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Config.get().vapeApiToken}`
+            'Authorization': `Bearer ${server.config.vapeApiToken}`
         },
         body: JSON.stringify(payload)
     };
@@ -27,13 +26,13 @@ const makeApiCall = async (
     return (await response.json()) as Record<string, any>;
 };
 
-export const getUserFromPhone = async (sessionId: string, phoneNumber: string): Promise<Record<string, any>> => {
+export const getUserByPhone = async (sessionId: string, phoneNumber: string): Promise<Record<string, any>> => {
     const apiUrl= `https://api.insynergyapp.com/ai-voice-chat-user`;
     const resp  = await makeApiCall(
         apiUrl,
         {
             session_id  : sessionId,
-            phone       : Config.get().simulatedPhoneNumber || phoneNumber.replace(/^\+1/, '')
+            phone       : server.config.simulatedPhoneNumber || phoneNumber.replace(/^\+1/, '')
         },
         { sessionId, phoneNumber }
     );

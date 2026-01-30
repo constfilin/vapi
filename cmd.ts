@@ -1,5 +1,6 @@
-import commandLineArgs  from 'command-line-args';
-import { getCmdPromise } from './getCmdPromise';
+import commandLineArgs      from 'command-line-args';
+import { getCmdPromise }    from './getCmdPromise';
+import Server               from './Server';
 
 const cmd = () => {
     const argv = commandLineArgs([
@@ -11,6 +12,8 @@ const cmd = () => {
         { name : 'phoneNumber'  , alias: 'p', type: String },
         { name : 'question'     , alias: 'q', type: String },
     ]);
+    // Needed for log initialization.
+    const server = new Server();
     getCmdPromise(argv)()
         .then( r => {
             if( argv.stringify )

@@ -514,14 +514,14 @@ export const getMain = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),
-        _getToolIds(toolsByName,['dispatchUserFromPhone','getFAQAnswer']),
+        _getToolIds(toolsByName,['dispatchUserByPhone','getFAQAnswer']),
 `${intempusConsts.systemPromptHeader}
 ${intempusConsts.systemPromptFooter}
 
 <TASK>
 ${_joinSteps([
-    `Call the "dispatchUserFromPhone" tool,, wait for result and immediately follow the instructions in the result.`,
-    `If "dispatchUserFromPhone" tool returns a user then you must greet the user by name and then ask them what they would like assistance with today.`,
+    `Call the "dispatchUserByPhone" tool,, wait for result and immediately follow the instructions in the result.`,
+    `If "dispatchUserByPhone" tool returns a user then you must greet the user by name and then ask them what they would like assistance with today.`,
     `When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
       - Provide the answer to the user.
       - Repeat this process until user hangs up or says that it wants to end the call.`

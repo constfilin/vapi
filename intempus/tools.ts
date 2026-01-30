@@ -278,7 +278,7 @@ export const getGuessState = ( /*contacts:Contacts.Contact[]*/ ) : Vapi.CreateTo
             {
                 "role"      : "system",
                 "type"      : "request-complete",
-                "content"   : "Hangup"
+                "content"   : ""
             },
             {
                 "type"      : "request-failed",
@@ -289,12 +289,12 @@ export const getGuessState = ( /*contacts:Contacts.Contact[]*/ ) : Vapi.CreateTo
     } as Vapi.CreateFunctionToolDto;
     return result;
 }
-export const getUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
+export const getUserByPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
     const result = {
         'type'      : "function",
         "async"     : false,
         'function'  : {
-            "name"          : "getUserFromPhone",
+            "name"          : "getUserByPhone",
             "description"   : "Get user information from phone number",
             "parameters"    : {
                 "type"      :"object",
@@ -320,7 +320,7 @@ export const getUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToo
             {
                 "role"      : "system",
                 "type"      : "request-complete",
-                "content"   : "Hangup"
+                "content"   : ""
             },*/
             // We do not want any messages when this tool is called,
             // even if the tool fails. The assistant should handle
@@ -338,26 +338,28 @@ export const getUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToo
     } as Vapi.CreateFunctionToolDto
     return result;
 };
-export const dispatchUserFromPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
-    // Same as getUserFromPhone but under a different name
-    // So .. why do we need this dispatchUserFromPhone if we have getUserFromPhone?
+export const dispatchUserByPhone = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
+    // Same as getUserByPhone but under a different name
+    // So .. why do we need this dispatchUserByPhone if we have getUserByPhone?
     //
-    // The difference is that getUserFromPhone just returns user information and if the assistant
-    // calls getUserFromPhone then it does not know what to do and waits for a user to say something
+    // The difference is that getUserByPhone just returns user information and if the assistant
+    // calls getUserByPhone then it does not know what to do and waits for a user to say something
     // before the next step. No matter how hard I tried to avoid this wait, I wasn't able to create
     // a system prompt that makes VAPI simply go to the next instruction.
     //
-    // Instead I created dispatchUserFromPhone. This tool, in addition to the user information, 
-    // also returns the next "instructions" and the asistant system prompt (see getMain) says that
-    // the assistant needs to get those instructions from the result of dispatchUserFromPhone.
+    // Instead I created dispatchUserByPhone. This tool, in addition to the user information, 
+    // also returns the next "instructions" and the asisstant's system prompt says that the assistant
+    // needs to follow those instructions (see getMain) 
     //
-    // This creates a situation when the main assistant first calls `dispatchUserFromPhone` and
-    // then if the user is not known, then it *immediately* calls `handoff_to_assistant` tool without
-    // waiting for the user to say something.
+    // This creates a situation when the main assistant first calls `dispatchUserByPhone` and
+    // then if the user is not known, then it *immediately* calls `handoff_to_assistant` tool 
+    // without waiting for the user to say something.
     //
     // A similar technique is employed by `dispatchCall` tool in dial-by-name assistant
-    const tmp = getUserFromPhone(contacts);
-    tmp['function'].name = 'dispatchUserFromPhone';
+    const tmp = getUserByPhone(contacts);
+    const func = tmp['function'] as Vapi.OpenAiFunction;
+    func.name       = 'dispatchUserByPhone';
+    func.description= "Dispatch user call by user phone number"
     return tmp;
 };
 export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {

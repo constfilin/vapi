@@ -280,12 +280,12 @@ export default () => {
             if( serverMessage.type==='end-of-call-report') {
                 const messageItems = (serverMessage as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
                 let notificationEmailAddress = server.config.notificationEmailAddress || 'mkhesin@intempus.net'; // default
-                try {
-                    notificationEmailAddress = await guessSummaryEmailAddress(messageItems);
-                }
-                catch( err ) {
-                    server.module_log(module.filename,1,`Cannot guess summary email address (${err.message}), defaulting to '${notificationEmailAddress}'`);
-                }
+                //try {
+                //    notificationEmailAddress = await guessSummaryEmailAddress(messageItems);
+                //}
+                //catch( err ) {
+                //    server.module_log(module.filename,1,`Cannot guess summary email address (${err.message}), defaulting to '${notificationEmailAddress}'`);
+                //}
                 if( getLastToolCallToAgrs(messageItems,'sendEmail',{}).to===notificationEmailAddress ) {
                     server.module_log(module.filename,2,`Summary email already sent to '${notificationEmailAddress}'`);
                 }

@@ -246,10 +246,11 @@ ${intempusConsts.securityAndSafetyOverrides}
         },        
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        `${systemPromptHeader}
-<TASKS_AND_GOALS>
+        `<TASKS>
 ${_joinSteps(tasksAndGoals)}
-</TASKS_AND_GOALS>
+</TASKS>
+
+${systemPromptHeader}
 ${intempusConsts.systemPromptFooter}`
     );
 }
@@ -287,8 +288,7 @@ export const getUnkHOA = (
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        `${intempusConsts.systemPromptHeader}
-<TASKS_AND_GOALS>
+        `<TASKS>
 ${_joinSteps([
     `Determine which category their call belongs to (HOA maintenance, HOA payments, parking calls, estoppel requests, application status, HOA community association management services sales, HOA emergency maintenance, or returning to the previous menu).
     * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools at this step.*`,
@@ -307,7 +307,9 @@ ${_joinSteps([
    - The email has been sent
    THEN apply the correct routing as explained in the CALLROUTING section`
 ])}
-</TASKS_AND_GOALS>
+</TASKS>
+
+${intempusConsts.systemPromptHeader}
 <CALLROUTING>
 - For HOA maintenance: transfer the call to +15103404275.
 - For HOA payments, parking calls, estoppel requests, or application status: transfer to +15103404275.
@@ -333,8 +335,7 @@ export const getUnkPropertyOwner = (
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        `${intempusConsts.systemPromptHeader}
-<TASKS_AND_GOALS>
+        `<TASKS>
 ${_joinSteps([
     `Determine which category their call belongs to (rental management, scheduling a showing, selling a property, payments, rental property maintenance, or rental property emergency maintenance).
     * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools after this step.*`,
@@ -361,7 +362,9 @@ ${_joinSteps([
     - The email has been sent
     THEN apply the correct routing as explained in the CALLROUTING section.`
 ])}
-</TASKS_AND_GOALS>
+</TASKS>
+
+${intempusConsts.systemPromptHeader}
 <CALLROUTING>
 - For rental property maintenance: transfer the call to +15103404275.
 - For scheduling a showing, leasing, submitting a rental application, or making a rent payment: transfer to +14083593034.
@@ -386,13 +389,14 @@ export const getFAQ = (
         },        
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        `${intempusConsts.systemPromptHeader}
-<TASKS_AND_GOALS>
+        `<TASKS>
 ${_joinSteps([
     `Ask caller: "Do you want to return to previous menu?"`,
     `If the caller responds affirmatively call "handoff_to_assistant" to "Intempus Introduction".`
 ])}
-</TASKS_AND_GOALS>
+</TASKS>
+
+${intempusConsts.systemPromptHeader}
 ${intempusConsts.systemPromptFooter}`
     );
 }
@@ -411,8 +415,8 @@ export const getUnkCallbackForm = (
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        `${intempusConsts.systemPromptHeader}
-<TASKS_AND_GOALS>
+        `
+<TASKS>
 ${_joinSteps([
     `Ask caller: "Please let us know if you are an existing or prospective client" and save the answer as 'clientType'`,
     `Ask caller: "Are you looking to rent your property, looking to buy a property or deciding to between renting and selling?" and save the answer as 'propertyInterest'.`,
@@ -422,7 +426,9 @@ ${_joinSteps([
     `After collecting all the above information, tell the customer something like "You are an {{clientType}} client interested in {{propertyInterest}}. Your property address is {{propertyAddress}}. Your location of interest is {{locationInterest}}. Your name is {{name}}. Your email address is {{emailAddress}}. Your phone number is {{customer.number}}. Thank you for providing this information. A representative will reach out to you shortly.".`,
     `If instead of the answer on any of the above questions the caller says something like "I want to return to the previous menu", then call "handoff_to_assistant" to "Intempus Introduction".`
 ])}
-</TASKS_AND_GOALS>
+</TASKS>
+
+${intempusConsts.systemPromptHeader}
 ${intempusConsts.systemPromptFooter}`
     );
 }
@@ -435,7 +441,7 @@ export const getUnkDialByName = (
         ...contacts.map((c) => {
             return `If the user asks for "${c.name}", call dispatchCall with "${c.name}", wait for result and immediately follow the instructions of the result.`;
         }),
-        `${contacts.length+1}. If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result.`
+        `If user asks for anyone else then ask the user to repeat the name and then call dispatchCall with the name of the person. Wait for result and immediately follow the instructions of the result.`
     ];
     return _completeAssistant(
         {
@@ -445,8 +451,7 @@ export const getUnkDialByName = (
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        `${intempusConsts.systemPromptHeader}
-<TASKS_AND_GOALS>
+        `<TASKS>
 ${_joinSteps([
     `Your main task is to assist callers in reaching the appropriate contact within Intempus Realty by name.`,
     `Greet the caller by saying "You reach the Intempus Realty Dial By Name directory".`,
@@ -458,9 +463,11 @@ ${_joinSteps([
     `After the confirmation, follow the instructions for the contact name in the CALLROUTING section.`,
     `Keep the caller informed about actions being taken and ensure they feel assisted throughout the process.`
 ])}
-</TASKS_AND_GOALS>
+</TASKS>
+
+${intempusConsts.systemPromptHeader}
 <CALLROUTING>
-${callRoutingInstructions.join("\n")}
+${_joinSteps(callRoutingInstructions)}
 </CALLROUTING>
 ${intempusConsts.systemPromptFooter}`
     );
@@ -478,9 +485,8 @@ export const getUnkIntroduction = (
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        `${intempusConsts.systemPromptHeader}
-<TASKS_AND_GOALS>
-{${_joinSteps([
+        `<TASKS>
+${_joinSteps([
     `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
     a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
         - Tell "I am forwarding your call to our HOA and Community Management Services."
@@ -498,7 +504,9 @@ export const getUnkIntroduction = (
         - Go to the first task again`,
     `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
 ])}
-</TASKS_AND_GOALS>
+</TASKS>
+
+${intempusConsts.systemPromptHeader}
 ${intempusConsts.systemPromptFooter}`,
     );
 }
@@ -515,10 +523,7 @@ export const getMain = (
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['dispatchUserByPhone','getFAQAnswer']),
-`${intempusConsts.systemPromptHeader}
-${intempusConsts.systemPromptFooter}
-
-<TASK>
+`<TASKS>
 ${_joinSteps([
     `Call the "dispatchUserByPhone" tool,, wait for result and immediately follow the instructions in the result.`,
     `If "dispatchUserByPhone" tool returns a user then you must greet the user by name and then ask them what they would like assistance with today.`,
@@ -526,6 +531,9 @@ ${_joinSteps([
       - Provide the answer to the user.
       - Repeat this process until user hangs up or says that it wants to end the call.`
 ])}
-</TASK>`
+</TASKS>
+
+${intempusConsts.systemPromptHeader}
+${intempusConsts.systemPromptFooter}`
     );
 }

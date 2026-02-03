@@ -263,7 +263,7 @@ export const getUnkHOA = (
     return _completeAssistant(
         { 
             name            : "Intempus HOA",
-            firstMessage    : "You have reaced Intempus HOA department. Would you like to request HOA maintenance, HOA payments, parking calls, or something else?",
+            firstMessage    : "You have reached Intempus HOA department. Would you like to request HOA maintenance, HOA payments, parking calls, or something else?",
             firstMessageMode: "assistant-speaks-first",
             voicemailMessage: "Please call back when you're available.",
             serverMessages  : [
@@ -446,7 +446,7 @@ export const getUnkDialByName = (
     return _completeAssistant(
         {
             name            : "Intempus DialByName",
-            firstMessage    : "Hello, this is Intempus Realty dial by name directory. Who would you like to reach to?.",
+            firstMessage    : "Hello, this is Intempus Realty dial by name directory. Who would you like to reach?.",
             firstMessageMode: "assistant-speaks-first"
         },
         _getTranscriber(contacts),
@@ -480,7 +480,7 @@ export const getUnkIntroduction = (
     return _completeAssistant(
         {
             name            : "Intempus Introduction",
-            firstMessage    : "You reached the Intempus Realty Main Menu. Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
+            firstMessage    : "You've reached the Intempus Realty Main Menu. Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
             firstMessageMode: "assistant-speaks-first"
         },
         _getTranscriber(contacts),
@@ -518,7 +518,7 @@ export const getMain = (
     return _completeAssistant(
         {
             name            : "Intempus Main",
-            firstMessage    : "Hello, I am Emily, an AI assistant for Intempus Realty. I can assist you in English and Spanish.",
+            //firstMessage    : "Hello, I am Emily, an AI assistant for Intempus Realty. I can assist you in English and Spanish.",
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),

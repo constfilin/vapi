@@ -43,6 +43,20 @@ export const getIVR = (
                                 {
                                     type        : 'assistant',
                                     assistantId : existingIntroductionAssistant.id,
+                                    variableExtractionPlan : {
+                                        schema: {
+                                            type: 'object',
+                                            properties: {
+                                                language: {
+                                                    type: 'string',
+                                                    enum: ['English','Spanish'],
+                                                    description: 'Caller language preference extracted from the conversation for the purpose of passing it as a variable during call handoff to the next assistant',
+                                                    required: true
+                                                }
+                                            },
+                                            required: ['language']
+                                        }
+                                    }
                                     //assistantsName : existingIntroductionAssistant.name
                                 }
                             ]
@@ -71,6 +85,20 @@ export const getIVR = (
                                     return {
                                         type            : 'assistant',
                                         assistantId     : existingAssistant.id,
+                                        variableExtractionPlan : {
+                                            schema: {
+                                                type: 'object',
+                                                properties: {
+                                                    language: {
+                                                        type: 'string',
+                                                        enum: ['English','Spanish'],
+                                                        description: 'Caller language preference extracted from the conversation for the purpose of passing it as a variable during call handoff to the next assistant',
+                                                        required: true
+                                                    }
+                                                },
+                                                required: ['language']
+                                            }
+                                        }
                                         //assistantsName  : existingAssistant.name
                                     };
                                 })
@@ -100,6 +128,20 @@ export const getIVR = (
                                         {
                                             type        : 'assistant',
                                             assistantId : existingIntroductionAssistant.id,
+                                            variableExtractionPlan : {
+                                                schema: {
+                                                    type: 'object',
+                                                        properties: {
+                                                            language: {
+                                                                type: 'string',
+                                                                enum: ['English','Spanish'],
+                                                                description: 'Caller language preference extracted from the conversation for the purpose of passing it as a variable during call handoff to the next assistant',
+                                                                required: true
+                                                            }
+                                                        },
+                                                    required: ['language']
+                                                }
+                                                }
                                             //assistantsName : existingIntroductionAssistant.name
                                         }
                                     ]

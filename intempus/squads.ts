@@ -23,7 +23,6 @@ export const getIVR = (
     existingAssistantsByName    : Record<string,Vapi.Assistant>,
 ) : Vapi.CreateSquadDto => {
 
-    const config            = Config.get();
     const existingMainAssistant         = existingAssistantsByName['Intempus Main'];
     const existingIntroductionAssistant = existingAssistantsByName['Intempus Introduction'];
     if( !existingIntroductionAssistant )

@@ -101,10 +101,13 @@ const _completeAssistant = (
         */
         voice : {
             provider    : "azure",
-            voiceId     : "en-US-AriaNeural", // Primary voice
+            voiceId     : "en-US-AvaMultilingualNeural", // Primary voice
             fallbackPlan: {
                 voices: [
-                    { provider: "azure", voiceId: "es-ES-ElviraNeural" },
+                    {
+                        provider: "azure",
+                        voiceId: "es-ES-Elv1iraNeural",
+                    }
                 ]
             }
         },

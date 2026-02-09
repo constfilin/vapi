@@ -6,19 +6,6 @@ import * as Config          from '../Config';
 
 import * as intempus        from '.';
 
-const languageVariableExtractionSchema = {
-    type: 'object',
-    properties: {
-        language: {
-            type: 'string',
-            enum: ['English','Spanish'],
-            description: 'Caller language preference extracted from the conversation for the purpose of passing it as a variable during call handoff to the next assistant',
-            required: true
-        }
-    },
-    required: ['language']
-};
-
 export const getIVR = (
     existingAssistantsByName    : Record<string,Vapi.Assistant>,
 ) : Vapi.CreateSquadDto => {
@@ -33,6 +20,21 @@ export const getIVR = (
         'IntempusBot',                          // deprecated bot assistant
     ];
     const handoffAssistantNames  = Object.keys(intempus.assistantsByName).filter(name=>!excludedAssistantNames.includes(name))
+    const variableExtractionPlan = {
+        schema : {
+            type: 'object',
+            properties: {
+                language: {
+                    type: 'string',
+                    enum: ['English','Spanish'],
+                    description: 'Caller language preference extracted from the conversation for the purpose of passing it as a variable during call handoff to the next assistant',
+                    required: true
+                }
+            },
+            required: ['language']
+        }
+    };
+
 
     const result = {
         name: 'Intempus IVR',
@@ -55,9 +57,7 @@ export const getIVR = (
                                 {
                                     type        : 'assistant',
                                     assistantId : existingIntroductionAssistant.id,
-                                    variableExtractionPlan : {
-                                        schema: languageVariableExtractionSchema
-                                    }
+                                    variableExtractionPlan
                                     //assistantsName : existingIntroductionAssistant.name
                                 }
                             ]
@@ -86,9 +86,7 @@ export const getIVR = (
                                     return {
                                         type            : 'assistant',
                                         assistantId     : existingAssistant.id,
-                                        variableExtractionPlan : {
-                                            schema: languageVariableExtractionSchema
-                                        }
+                                        variableExtractionPlan
                                         //assistantsName  : existingAssistant.name
                                     };
                                 })
@@ -118,9 +116,7 @@ export const getIVR = (
                                         {
                                             type        : 'assistant',
                                             assistantId : existingIntroductionAssistant.id,
-                                            variableExtractionPlan : {
-                                                schema: languageVariableExtractionSchema
-                                            }
+                                            variableExtractionPlan
                                             //assistantsName : existingIntroductionAssistant.name
                                         }
                                     ]

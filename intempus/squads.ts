@@ -19,7 +19,10 @@ export const getIVR = (
         existingIntroductionAssistant.name,     // has to go first and mentioned explicitly
         'IntempusBot',                          // deprecated bot assistant
     ];
-    const handoffAssistantNames  = Object.keys(intempus.assistantsByName).filter(name=>!excludedAssistantNames.includes(name))
+    const handoffAssistantNames  = Object.keys(intempus.assistantsByName).filter(name=>!excludedAssistantNames.includes(name));
+    const contextEngineeringPlan = {
+        'type' : 'all'
+    } as Vapi.HandoffDestinationAssistantContextEngineeringPlan;
     const variableExtractionPlan = {
         schema : {
             type: 'object',
@@ -33,8 +36,7 @@ export const getIVR = (
             },
             required: ['language']
         }
-    };
-
+    } as Vapi.VariableExtractionPlan;
 
     const result = {
         name: 'Intempus IVR',
@@ -57,6 +59,7 @@ export const getIVR = (
                                 {
                                     type        : 'assistant',
                                     assistantId : existingIntroductionAssistant.id,
+                                    contextEngineeringPlan,
                                     variableExtractionPlan
                                     //assistantsName : existingIntroductionAssistant.name
                                 }
@@ -86,6 +89,7 @@ export const getIVR = (
                                     return {
                                         type            : 'assistant',
                                         assistantId     : existingAssistant.id,
+                                        contextEngineeringPlan,
                                         variableExtractionPlan
                                         //assistantsName  : existingAssistant.name
                                     };
@@ -116,6 +120,7 @@ export const getIVR = (
                                         {
                                             type        : 'assistant',
                                             assistantId : existingIntroductionAssistant.id,
+                                            contextEngineeringPlan,
                                             variableExtractionPlan
                                             //assistantsName : existingIntroductionAssistant.name
                                         }

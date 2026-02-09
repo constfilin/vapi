@@ -100,7 +100,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 existingAssistant
             );
         });
-    case 'credateSquadByName':
+    case 'credateSquad':
         return  (async () => {
             const [
                 assistantsByName,

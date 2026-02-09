@@ -34,7 +34,7 @@ export const toolsByName = {
 ) => Vapi.CreateToolsRequest>;
 
 export const squadsByName = {
-    'Intempus IVR Squad'    : squads.getIVR,
+    'Intempus IVR'          : squads.getIVR,
 } as Record<string,(
     assistantsByName    : Record<string,Vapi.Assistant>,
 ) => Vapi.CreateSquadDto>;

@@ -6,6 +6,19 @@ import * as Config          from '../Config';
 
 import * as intempus        from '.';
 
+const languageVariableExtractionSchema = {
+    type: 'object',
+    properties: {
+        language: {
+            type: 'string',
+            enum: ['English','Spanish'],
+            description: 'Caller language preference extracted from the conversation for the purpose of passing it as a variable during call handoff to the next assistant',
+            required: true
+        }
+    },
+    required: ['language']
+};
+
 export const getIVR = (
     existingAssistantsByName    : Record<string,Vapi.Assistant>,
 ) : Vapi.CreateSquadDto => {
@@ -44,18 +57,7 @@ export const getIVR = (
                                     type        : 'assistant',
                                     assistantId : existingIntroductionAssistant.id,
                                     variableExtractionPlan : {
-                                        schema: {
-                                            type: 'object',
-                                            properties: {
-                                                language: {
-                                                    type: 'string',
-                                                    enum: ['English','Spanish'],
-                                                    description: 'Caller language preference extracted from the conversation for the purpose of passing it as a variable during call handoff to the next assistant',
-                                                    required: true
-                                                }
-                                            },
-                                            required: ['language']
-                                        }
+                                        schema: languageVariableExtractionSchema
                                     }
                                     //assistantsName : existingIntroductionAssistant.name
                                 }
@@ -86,18 +88,7 @@ export const getIVR = (
                                         type            : 'assistant',
                                         assistantId     : existingAssistant.id,
                                         variableExtractionPlan : {
-                                            schema: {
-                                                type: 'object',
-                                                properties: {
-                                                    language: {
-                                                        type: 'string',
-                                                        enum: ['English','Spanish'],
-                                                        description: 'Caller language preference extracted from the conversation for the purpose of passing it as a variable during call handoff to the next assistant',
-                                                        required: true
-                                                    }
-                                                },
-                                                required: ['language']
-                                            }
+                                            schema: languageVariableExtractionSchema
                                         }
                                         //assistantsName  : existingAssistant.name
                                     };
@@ -129,19 +120,8 @@ export const getIVR = (
                                             type        : 'assistant',
                                             assistantId : existingIntroductionAssistant.id,
                                             variableExtractionPlan : {
-                                                schema: {
-                                                    type: 'object',
-                                                        properties: {
-                                                            language: {
-                                                                type: 'string',
-                                                                enum: ['English','Spanish'],
-                                                                description: 'Caller language preference extracted from the conversation for the purpose of passing it as a variable during call handoff to the next assistant',
-                                                                required: true
-                                                            }
-                                                        },
-                                                    required: ['language']
-                                                }
-                                                }
+                                                schema: languageVariableExtractionSchema
+                                            }
                                             //assistantsName : existingIntroductionAssistant.name
                                         }
                                     ]

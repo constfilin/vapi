@@ -271,7 +271,7 @@ export const getUnkHOA = (
         { 
             name            : "Intempus HOA",
             firstMessage    : "You have reached Intempus HOA department. Would you like to request HOA maintenance, HOA payments, parking calls, or something else?",
-            firstMessageMode: "assistant-speaks-first",
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
             voicemailMessage: "Please call back when you're available.",
             serverMessages  : [
                 //'conversation-update',
@@ -340,7 +340,7 @@ export const getUnkPropertyOwner = (
         {
             name            : "Intempus PropertyOwner",
             firstMessage    : "This is Intempus Realty Property Owner menu.",
-            firstMessageMode: "assistant-speaks-first",
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
             startSpeakingPlan: { waitSeconds: 1.5 }
         },
         _getTranscriber(contacts),
@@ -398,7 +398,7 @@ export const getFAQ = (
         {
             name            : "Intempus FAQ",
             firstMessage    : "Hello, this is Intempus Realty FAQ menu",
-            firstMessageMode: "assistant-speaks-first",
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },        
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
@@ -466,7 +466,7 @@ export const getUnkDialByName = (
         {
             name            : "Intempus DialByName",
             firstMessage    : "Hello, this is Intempus Realty dial by name directory. Who would you like to reach?.",
-            firstMessageMode: "assistant-speaks-first"
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message"
         },
         _getTranscriber(contacts),
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),

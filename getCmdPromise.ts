@@ -33,6 +33,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
         ));
     case 'getToolById':
         return (() => tools.get({id:args.id}));
+    case 'getTool':
     case 'getToolByName':
         return (() => tools.getByName(args.name));
     case 'listTools':
@@ -46,6 +47,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
         });
     case 'getAssistantById':
         return (() => assistants.get({id:args.id}));
+    case 'getAssistant':
     case 'getAssistantByName':
         return (() => assistants.getByName(args.name));
     case 'listAssistants':
@@ -59,6 +61,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
         });
     case 'getSquadById':
         return (() => squads.get({id:args.id}));
+    case 'getSquad':
     case 'getSquadByName':
         return (() => squads.getByName(args.name));
     case 'listSquads':

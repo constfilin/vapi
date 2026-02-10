@@ -270,7 +270,7 @@ export const getUnkHOA = (
     return _completeAssistant(
         { 
             name            : "Intempus HOA",
-            firstMessage    : "You have reached Intempus HOA department. Would you like to request HOA maintenance, HOA payments, parking calls, or something else?",
+            firstMessage    : "You have reached Intempus H-O-A department. Would you like to request H-O-A maintenance, H-O-A payments, parking calls, or something else?",
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
             voicemailMessage: "Please call back when you're available.",
             serverMessages  : [
@@ -300,7 +300,7 @@ export const getUnkHOA = (
         ]),
         `<TASKS>
 ${_joinSteps([
-    `Determine which category their call belongs to (HOA maintenance, HOA payments, parking calls, estoppel requests, application status, HOA community association management services sales, HOA emergency maintenance, or returning to the previous menu).
+    `Determine which category their call belongs to (H-O-A maintenance, H-O-A payments, parking calls, estoppel requests, application status, H-O-A community association management services sales, H-O-A emergency maintenance, or returning to the previous menu).
     * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools at this step.*`,
     `Before transferring the call to ANY number, you must ALWAYS:
    - Ask for the caller's name
@@ -321,10 +321,10 @@ ${_joinSteps([
 
 ${intempusConsts.systemPromptHeader}
 <CALLROUTING>
-- For HOA maintenance: transfer the call to +15103404275.
-- For HOA payments, parking calls, estoppel requests, or application status: transfer to +15103404275.
-- For HOA community association management services sales: transfer to +15103404275.
-- For HOA emergency maintenance: transfer to +19162358444.
+- For H-O-A maintenance: transfer the call to +15103404275.
+- For H-O-A payments, parking calls, estoppel requests, or application status: transfer to +15103404275.
+- For H-O-A community association management services sales: transfer to +15103404275.
+- For H-O-A emergency maintenance: transfer to +19162358444.
 - If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus Introduction".
 </CALLROUTING>
 ${intempusConsts.systemPromptFooter}`,
@@ -517,8 +517,8 @@ export const getUnkIntroduction = (
 ${_joinSteps([
     `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
     a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
-        - Tell "I am forwarding your call to our HOA and Community Management Services."
-        - Call "handoff_to_assistant" with "Intempus HOA".
+        - Tell "I am forwarding your call to our H-O-A and Community Management Services."
+        - Call "handoff_to_assistant" with "Intempus H-O-A".
     b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
         - Tell "I am forwarding your call to our Property Management Services."
         - Call "handoff_to_assistant" with "Intempus PropertyOwner".

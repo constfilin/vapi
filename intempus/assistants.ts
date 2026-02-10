@@ -6,6 +6,7 @@ import * as Config          from '../Config';
 import * as Contacts        from '../Contacts';
 
 import * as intempusConsts  from './consts';
+import getHandoffToolItem   from './getHandoffToolItem';
 
 const _joinSteps = ( steps:string[] ) : string => {
     return steps.map((s,ndx) => {
@@ -57,11 +58,12 @@ const _getToolIds = ( toolsByName: Record<string,Vapi.ListToolsResponseItem>, to
         return tool.id;
     });
 }
+const dummyModel = {} as Vapi.CreateAssistantDtoModel;
 const _completeAssistant = (
     assistant       : Partial<Vapi.CreateAssistantDto>,
     transcriber     : Vapi.CreateAssistantDtoTranscriber,
-    toolIds         : string[],
-    handoffToolsDto : (Vapi.CreateHandoffToolDto|undefined),
+    tools           : ((typeof dummyModel.tools)|undefined),
+    toolIds         : (string[]|undefined),
     content         : string,
 ) : Vapi.CreateAssistantDto => {
     if( !assistant.name )
@@ -72,7 +74,6 @@ const _completeAssistant = (
     const config = Config.get();
     const model = {
         model           : config.model,
-        toolIds         : toolIds,
         messages  : [
             {
                 "role"   : "system",
@@ -93,8 +94,10 @@ const _completeAssistant = (
         //    } as Vapi.OpenAiModelToolsItem
         //]
     } as Vapi.CreateAssistantDtoModel;
-    //if( handoffToolsDto )
-    //    model.tools = [handoffToolsDto];
+    //if( tools )
+    //    model.tools = tools;
+    if( toolIds )
+        model.toolIds = toolIds;
     return {
         voicemailDetection: {
             provider    : 'vapi',
@@ -251,8 +254,8 @@ ${intempusConsts.securityAndSafetyOverrides}
             }
         },        
         _getTranscriber(contacts),
-        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         undefined,
+        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `<TASKS>
 ${_joinSteps(tasksAndGoals)}
 </TASKS>
@@ -294,10 +297,8 @@ export const getUnkHOA = (
             startSpeakingPlan: { waitSeconds: 1.5 },
         },
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        intempusConsts.getHandoffToolItem([
-            {name:'Intempus Introduction'}
-        ]),
         `<TASKS>
 ${_joinSteps([
     `Determine which category their call belongs to (H-O-A maintenance, H-O-A payments, parking calls, estoppel requests, application status, H-O-A community association management services sales, H-O-A emergency maintenance, or returning to the previous menu).
@@ -344,10 +345,8 @@ export const getUnkPropertyOwner = (
             startSpeakingPlan: { waitSeconds: 1.5 }
         },
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        intempusConsts.getHandoffToolItem([
-            {name:'Intempus Introduction'}
-        ]),
         `<TASKS>
 ${_joinSteps([
     `Determine which category their call belongs to (rental management, scheduling a showing, selling a property, payments, rental property maintenance, or rental property emergency maintenance).
@@ -401,10 +400,8 @@ export const getFAQ = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },        
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        intempusConsts.getHandoffToolItem([
-            {name:'Intempus Introduction'}
-        ]),
         `<TASKS>
 ${_joinSteps([
     `Ask caller: "Do you want to return to previous menu?"`,
@@ -430,10 +427,8 @@ export const getUnkCallbackForm = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        intempusConsts.getHandoffToolItem([
-            {name:'Intempus Introduction'}
-        ]),
         `
 <TASKS>
 ${_joinSteps([
@@ -469,10 +464,8 @@ export const getUnkDialByName = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message"
         },
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        intempusConsts.getHandoffToolItem([
-            {name:'Intempus Introduction'}
-        ]),
         `<TASKS>
 ${_joinSteps([
     `Your main task is to assist callers in reaching the appropriate contact within Intempus Realty by name.`,
@@ -506,13 +499,15 @@ export const getUnkIntroduction = (
             firstMessageMode: "assistant-speaks-first"
         },
         _getTranscriber(contacts),
+        [
+            getHandoffToolItem([
+                {name:"Intempus HOA"},
+                {name:"Intempus PropertyOwner"},
+                {name:"Intempus DialByName"},
+                {name:"Intempus CallbackForm"}
+            ])
+        ],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
-        intempusConsts.getHandoffToolItem([
-            {name:"Intempus HOA"},
-            {name:"Intempus PropertyOwner"},
-            {name:"Intempus DialByName"},
-            {name:"Intempus CallbackForm"}
-        ]),
         `<TASKS>
 ${_joinSteps([
     `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
@@ -550,10 +545,8 @@ export const getMain = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','dispatchUserByPhone','getFAQAnswer']),
-        intempusConsts.getHandoffToolItem([
-            {name:'Intempus Introduction'}
-        ]),
 `<TASKS>
 ${_joinSteps([
     `Call the "dispatchUserByPhone" tool,, wait for result and immediately follow the instructions in the result.`,

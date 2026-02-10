@@ -1,7 +1,3 @@
-import {
-    Vapi
-}                           from '@vapi-ai/server-sdk';
-
 export const languageInstructions = `- You can speak and understand: English, Spanish.
 - You should never announce emoticons (e.g. smiling face) in any language.
 - Initially choose the language based on {{language}} variable. If the variable is not set then choose English.
@@ -66,44 +62,3 @@ export const systemPromptFooter = `
 ${errorHandlingAndFallback}
 </ERROR_HANDLING_AND_FALLBACK>`;
 
-export const getCreateHandoffToolDtoDestinationsItem = ( assistantInfo:{name?:string,id?:string} ) : Vapi.CreateHandoffToolDtoDestinationsItem => {
-    const result = {
-        type        : 'assistant',
-        contextEngineeringPlan : {
-            'type' : 'all'
-        } as Vapi.HandoffDestinationAssistantContextEngineeringPlan,
-        variableExtractionPlan : {
-            schema : {
-                type: 'object',
-                properties: {
-                    language: {
-                        type: 'string',
-                        enum: ['English','Spanish'],
-                        description: 'The language of the conversation (English or Spanish)',
-                        required: true
-                    }
-                },
-                required: ['language']
-            }
-        } as Vapi.VariableExtractionPlan
-        //assistantsName : existingIntroductionAssistant.name
-    } as Vapi.HandoffDestinationAssistant;
-    if( assistantInfo.id )
-        result.assistantId = assistantInfo.id;
-    else if( assistantInfo.name )
-        result.assistantName = assistantInfo.name;
-    return result;
-};
-
-export const getHandoffToolItem = ( assistantInfos:{name?:string,id?:string}[] ) : Vapi.CreateHandoffToolDto => {
-    return {
-        type        : 'handoff',
-        //'async'     : false,
-        'function'  : {
-            'name'  : 'handoff_to_assistant',
-        },
-        messages   : [],
-        // The Introduction assistant can hand off to all other assistants (except Main and Bot)
-        destinations : assistantInfos.map(getCreateHandoffToolDtoDestinationsItem)
-    };
-}

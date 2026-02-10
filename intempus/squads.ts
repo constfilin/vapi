@@ -2,7 +2,7 @@ import {
     Vapi
 }                           from '@vapi-ai/server-sdk';
 
-import * as intempusConsts  from './consts';
+import getHandoffToolItem   from './getHandoffToolItem';
 import * as intempus        from '.';
 
 export const getIVR = (
@@ -28,7 +28,7 @@ export const getIVR = (
                 assistantId : existingMainAssistant.id,
                 assistantOverrides : {
                     'tools:append' : [
-                        intempusConsts.getHandoffToolItem([{id:existingIntroductionAssistant.id}])
+                        getHandoffToolItem([{id:existingIntroductionAssistant.id}])
                     ]
                 }
             },
@@ -37,7 +37,7 @@ export const getIVR = (
                 assistantId : existingIntroductionAssistant.id,
                 assistantOverrides : {
                     'tools:append' : [
-                        intempusConsts.getHandoffToolItem(handoffAssistantNames.map( (name) => {
+                        getHandoffToolItem(handoffAssistantNames.map( (name) => {
                             const existingAssistant = existingAssistantsByName[name];
                             if( !existingAssistant )
                                 throw Error(`Expected existing assistant ${name} to be present`);
@@ -56,7 +56,7 @@ export const getIVR = (
                         assistantId : existingAssistant.id,
                         assistantOverrides : {
                             'tools:append' : [
-                                intempusConsts.getHandoffToolItem([{id:existingIntroductionAssistant.id}])
+                                getHandoffToolItem([{id:existingIntroductionAssistant.id}])
                             ]
                         }
                     };

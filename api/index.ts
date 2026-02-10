@@ -290,7 +290,7 @@ export default () => {
                     server.module_log(module.filename,2,`Summary email already sent to '${notificationEmailAddress}'`);
                 }
                 else {
-                    const summaryEmailText = serverMessage.analysis.summary||'Summary was not provided';
+                    const summaryEmailText = (serverMessage.analysis.summary||'Summary was not provided').replace(/in\s+tempest/i,'Intempus');
                     server.sendEmail({
                         to      :   notificationEmailAddress,
                         subject :   `Call to ${serverMessage.assistant?.name}`,

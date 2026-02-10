@@ -2,15 +2,13 @@ import {
     Vapi
 }                           from '@vapi-ai/server-sdk';
 
-import * as Config          from '../Config';
-
+import getHandoffToolItem   from './getHandoffToolItem';
 import * as intempus        from '.';
 
 export const getIVR = (
     existingAssistantsByName    : Record<string,Vapi.Assistant>,
 ) : Vapi.CreateSquadDto => {
 
-    const config            = Config.get();
     const existingMainAssistant         = existingAssistantsByName['Intempus Main'];
     const existingIntroductionAssistant = existingAssistantsByName['Intempus Introduction'];
     if( !existingIntroductionAssistant )
@@ -20,8 +18,7 @@ export const getIVR = (
         existingIntroductionAssistant.name,     // has to go first and mentioned explicitly
         'IntempusBot',                          // deprecated bot assistant
     ];
-    const handoffAssistantNames  = Object.keys(intempus.assistantsByName).filter(name=>!excludedAssistantNames.includes(name))
-
+    const handoffAssistantNames  = Object.keys(intempus.assistantsByName).filter(name=>!excludedAssistantNames.includes(name));
     const result = {
         name: 'Intempus IVR',
         //description: 'Squad for Intempus IVR system',
@@ -31,22 +28,7 @@ export const getIVR = (
                 assistantId : existingMainAssistant.id,
                 assistantOverrides : {
                     'tools:append' : [
-                        {
-                            type        : 'handoff',
-                            //'async'     : false,
-                            'function'  : {
-                                'name'  : 'handoff_to_assistant',
-                            },
-                            messages   : [],
-                            // The main assistant sometimes hands off to the Introduction assistant
-                            destinations : [
-                                {
-                                    type        : 'assistant',
-                                    assistantId : existingIntroductionAssistant.id,
-                                    //assistantsName : existingIntroductionAssistant.name
-                                }
-                            ]
-                        }
+                        getHandoffToolItem([{id:existingIntroductionAssistant.id}])
                     ]
                 }
             },
@@ -55,26 +37,12 @@ export const getIVR = (
                 assistantId : existingIntroductionAssistant.id,
                 assistantOverrides : {
                     'tools:append' : [
-                        {
-                            type        : 'handoff',
-                            //'async'     : false,
-                            'function'  : {
-                                'name'  : 'handoff_to_assistant',
-                            },
-                            messages   : [],
-                            // The Introduction assistant can hand off to all other assistants (except Main and Bot)
-                            destinations : handoffAssistantNames
-                                .map( (name) => {
-                                    const existingAssistant = existingAssistantsByName[name];
-                                    if( !existingAssistant )
-                                        throw Error(`Expected existing assistant ${name} to be present`);
-                                    return {
-                                        type            : 'assistant',
-                                        assistantId     : existingAssistant.id,
-                                        //assistantsName  : existingAssistant.name
-                                    };
-                                })
-                        }
+                        getHandoffToolItem(handoffAssistantNames.map( (name) => {
+                            const existingAssistant = existingAssistantsByName[name];
+                            if( !existingAssistant )
+                                throw Error(`Expected existing assistant ${name} to be present`);
+                            return {id:existingAssistant.id};
+                        }))
                     ]
                 }
             },
@@ -88,22 +56,7 @@ export const getIVR = (
                         assistantId : existingAssistant.id,
                         assistantOverrides : {
                             'tools:append' : [
-                                {
-                                    type        : 'handoff',
-                                    //'async'     : false,
-                                    'function'  : {
-                                        'name'  : 'handoff_to_assistant',
-                                    },
-                                    messages   : [],
-                                    // All other assistants hand off to the Introduction assistant
-                                    destinations : [
-                                        {
-                                            type        : 'assistant',
-                                            assistantId : existingIntroductionAssistant.id,
-                                            //assistantsName : existingIntroductionAssistant.name
-                                        }
-                                    ]
-                                }
+                                getHandoffToolItem([{id:existingIntroductionAssistant.id}])
                             ]
                         }
                     };

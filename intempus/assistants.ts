@@ -6,6 +6,7 @@ import * as Config          from '../Config';
 import * as Contacts        from '../Contacts';
 
 import * as intempusConsts  from './consts';
+import getHandoffToolItem   from './getHandoffToolItem';
 
 const _joinSteps = ( steps:string[] ) : string => {
     return steps.map((s,ndx) => {
@@ -57,11 +58,13 @@ const _getToolIds = ( toolsByName: Record<string,Vapi.ListToolsResponseItem>, to
         return tool.id;
     });
 }
+const dummyModel = {} as Vapi.CreateAssistantDtoModel;
 const _completeAssistant = (
-    assistant   : Partial<Vapi.CreateAssistantDto>,
-    transcriber : Vapi.CreateAssistantDtoTranscriber,
-    toolIds     : string[],
-    content     : string
+    assistant       : Partial<Vapi.CreateAssistantDto>,
+    transcriber     : Vapi.CreateAssistantDtoTranscriber,
+    tools           : ((typeof dummyModel.tools)|undefined),
+    toolIds         : (string[]|undefined),
+    content         : string,
 ) : Vapi.CreateAssistantDto => {
     if( !assistant.name )
         throw Error("Assistant name is required");
@@ -69,6 +72,32 @@ const _completeAssistant = (
         if( !assistant.firstMessage )
             throw Error(`firstMessage is required when firstMessageMode is '${assistant.firstMessageMode}'`);
     const config = Config.get();
+    const model = {
+        model           : config.model,
+        messages  : [
+            {
+                "role"   : "system",
+                "content": content
+            }
+        ],
+        provider        : config.provider,
+        maxTokens       : 300,
+        temperature     : 0.3,
+        //"tools"         : [
+        //    // TODO:
+        //    // This set of tools allows registrations of tool callbacks _immediately_ with registration
+        //    // of the assistant. The type of the entries in `tools` array is `Vapi.OpenAiModelToolsItem`
+        //    // We just need to fill this array out
+        //    {
+        //        async : false,
+        //        type  : "voicemail"
+        //    } as Vapi.OpenAiModelToolsItem
+        //]
+    } as Vapi.CreateAssistantDtoModel;
+    //if( tools )
+    //    model.tools = tools;
+    if( toolIds )
+        model.toolIds = toolIds;
     return {
         voicemailDetection: {
             provider    : 'vapi',
@@ -101,10 +130,13 @@ const _completeAssistant = (
         */
         voice : {
             provider    : "azure",
-            voiceId     : "en-US-AriaNeural", // Primary voice
+            voiceId     : "en-US-AvaMultilingualNeural", // Primary voice
             fallbackPlan: {
                 voices: [
-                    { provider: "azure", voiceId: "es-ES-ElviraNeural" },
+                    {
+                        provider: "azure",
+                        voiceId: "es-ES-Elv1iraNeural",
+                    }
                 ]
             }
         },
@@ -121,30 +153,7 @@ const _completeAssistant = (
                 "X-Secret"  : config.vapiToolSecret
             }
         },
-        model       : {
-            model           : config.model,
-            toolIds         : toolIds,
-            messages  : [
-                {
-                    "role"   : "system",
-                    "content": content
-                }
-            ],
-            // @ts-expect-error
-            provider        : config.provider,
-            "maxTokens"     : 300,
-            "temperature"   : 0.3,
-            //"tools"         : [
-            //    // TODO:
-            //    // This set of tools allows registrations of tool callbacks _immediately_ with registration
-            //    // of the assistant. The type of the entries in `tools` array is `Vapi.OpenAiModelToolsItem`
-            //    // We just need to fill this array out
-            //    {
-            //        async : false,
-            //        type  : "voicemail"
-            //    } as Vapi.OpenAiModelToolsItem
-            //]
-        },
+        model,
         transcriber,
         backgroundSound : "off",
         ...assistant
@@ -245,6 +254,7 @@ ${intempusConsts.securityAndSafetyOverrides}
             }
         },        
         _getTranscriber(contacts),
+        undefined,
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `<TASKS>
 ${_joinSteps(tasksAndGoals)}
@@ -263,8 +273,8 @@ export const getUnkHOA = (
     return _completeAssistant(
         { 
             name            : "Intempus HOA",
-            firstMessage    : "You have reached Intempus HOA department. Would you like to request HOA maintenance, HOA payments, parking calls, or something else?",
-            firstMessageMode: "assistant-speaks-first",
+            firstMessage    : "You have reached Intempus H-O-A department. Would you like to request H-O-A maintenance, H-O-A payments, parking calls, or something else?",
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
             voicemailMessage: "Please call back when you're available.",
             serverMessages  : [
                 //'conversation-update',
@@ -287,10 +297,11 @@ export const getUnkHOA = (
             startSpeakingPlan: { waitSeconds: 1.5 },
         },
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `<TASKS>
 ${_joinSteps([
-    `Determine which category their call belongs to (HOA maintenance, HOA payments, parking calls, estoppel requests, application status, HOA community association management services sales, HOA emergency maintenance, or returning to the previous menu).
+    `Determine which category their call belongs to (H-O-A maintenance, H-O-A payments, parking calls, estoppel requests, application status, H-O-A community association management services sales, H-O-A emergency maintenance, or returning to the previous menu).
     * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools at this step.*`,
     `Before transferring the call to ANY number, you must ALWAYS:
    - Ask for the caller's name
@@ -311,10 +322,10 @@ ${_joinSteps([
 
 ${intempusConsts.systemPromptHeader}
 <CALLROUTING>
-- For HOA maintenance: transfer the call to +15103404275.
-- For HOA payments, parking calls, estoppel requests, or application status: transfer to +15103404275.
-- For HOA community association management services sales: transfer to +15103404275.
-- For HOA emergency maintenance: transfer to +19162358444.
+- For H-O-A maintenance: transfer the call to +15103404275.
+- For H-O-A payments, parking calls, estoppel requests, or application status: transfer to +15103404275.
+- For H-O-A community association management services sales: transfer to +15103404275.
+- For H-O-A emergency maintenance: transfer to +19162358444.
 - If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus Introduction".
 </CALLROUTING>
 ${intempusConsts.systemPromptFooter}`,
@@ -330,10 +341,11 @@ export const getUnkPropertyOwner = (
         {
             name            : "Intempus PropertyOwner",
             firstMessage    : "This is Intempus Realty Property Owner menu.",
-            firstMessageMode: "assistant-speaks-first",
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
             startSpeakingPlan: { waitSeconds: 1.5 }
         },
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `<TASKS>
 ${_joinSteps([
@@ -385,9 +397,10 @@ export const getFAQ = (
         {
             name            : "Intempus FAQ",
             firstMessage    : "Hello, this is Intempus Realty FAQ menu",
-            firstMessageMode: "assistant-speaks-first",
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },        
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `<TASKS>
 ${_joinSteps([
@@ -414,6 +427,7 @@ export const getUnkCallbackForm = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `
 <TASKS>
@@ -447,9 +461,10 @@ export const getUnkDialByName = (
         {
             name            : "Intempus DialByName",
             firstMessage    : "Hello, this is Intempus Realty dial by name directory. Who would you like to reach?.",
-            firstMessageMode: "assistant-speaks-first"
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message"
         },
         _getTranscriber(contacts),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `<TASKS>
 ${_joinSteps([
@@ -484,13 +499,21 @@ export const getUnkIntroduction = (
             firstMessageMode: "assistant-speaks-first"
         },
         _getTranscriber(contacts),
+        [
+            getHandoffToolItem([
+                {name:"Intempus HOA"},
+                {name:"Intempus PropertyOwner"},
+                {name:"Intempus DialByName"},
+                {name:"Intempus CallbackForm"}
+            ])
+        ],
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
         `<TASKS>
 ${_joinSteps([
     `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
     a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
-        - Tell "I am forwarding your call to our HOA and Community Management Services."
-        - Call "handoff_to_assistant" with "Intempus HOA".
+        - Tell "I am forwarding your call to our H-O-A and Community Management Services."
+        - Call "handoff_to_assistant" with "Intempus H-O-A".
     b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
         - Tell "I am forwarding your call to our Property Management Services."
         - Call "handoff_to_assistant" with "Intempus PropertyOwner".
@@ -522,7 +545,8 @@ export const getMain = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),
-        _getToolIds(toolsByName,['dispatchUserByPhone','getFAQAnswer']),
+        [getHandoffToolItem([{name:'Intempus Introduction'}])],
+        _getToolIds(toolsByName,['redirectCall','dispatchUserByPhone','getFAQAnswer']),
 `<TASKS>
 ${_joinSteps([
     `Call the "dispatchUserByPhone" tool,, wait for result and immediately follow the instructions in the result.`,

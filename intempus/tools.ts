@@ -150,7 +150,7 @@ export const getRedirectCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateTool
         {
             type        : 'number',
             number      : '+15103404275',
-            message     : 'I am forwarding your call to Maintenance HOA',
+            message     : 'I am forwarding your call to Maintenance H-O-A',
             description : 'Maintenance HOA',
         },
         {

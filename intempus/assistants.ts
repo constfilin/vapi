@@ -83,16 +83,6 @@ const _completeAssistant = (
         provider        : config.provider,
         maxTokens       : 300,
         temperature     : 0.3,
-        //"tools"         : [
-        //    // TODO:
-        //    // This set of tools allows registrations of tool callbacks _immediately_ with registration
-        //    // of the assistant. The type of the entries in `tools` array is `Vapi.OpenAiModelToolsItem`
-        //    // We just need to fill this array out
-        //    {
-        //        async : false,
-        //        type  : "voicemail"
-        //    } as Vapi.OpenAiModelToolsItem
-        //]
     } as Vapi.CreateAssistantDtoModel;
     //if( tools )
     //    model.tools = tools;

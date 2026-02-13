@@ -361,10 +361,10 @@ ${_joinSteps([
 
 ${intempusConsts.systemPromptHeader}
 <CALLROUTING>
-- For rental property maintenance: transfer the call to +15103404275.
-- For scheduling a showing, leasing, submitting a rental application, or making a rent payment: transfer to +14083593034.
-- For selling a property: transfer to +15103404275.
-- For rental property emergency maintenance: transfer to +19162358444.
+- For rental property maintenance: call the redirectCall tool with +15103404275.
+- For scheduling a showing, leasing, submitting a rental application, or making a rent payment: call the redirectCall tool with +14083593034.
+- For selling a property: call the redirectCall tool with +15103404275.
+- For rental property emergency maintenance: call the redirectCall tool with +19162358444.
 - If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus Introduction".
 </CALLROUTING>
 ${intempusConsts.systemPromptFooter}`,

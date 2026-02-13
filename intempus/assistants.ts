@@ -288,7 +288,7 @@ export const getUnkHOA = (
         },
         _getTranscriber(contacts),
         undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
-        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState','handoffToAgent']),
+        _getToolIds(toolsByName,['redirectCall','sendEmail','handoffToAssistant']),
         `<TASKS>
 ${_joinSteps([
     `Determine which category their call belongs to (H-O-A maintenance, H-O-A payments, parking calls, estoppel requests, application status, H-O-A community association management services sales, H-O-A emergency maintenance, or returning to the previous menu).
@@ -329,7 +329,7 @@ export const getUnkPropertyOwner = (
         },
         _getTranscriber(contacts),
         undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
-        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
+        _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
     `Determine which category their call belongs to (rental management, scheduling a showing, selling a property, payments, rental property maintenance, or rental property emergency maintenance).
@@ -384,7 +384,7 @@ export const getFAQ = (
         },        
         _getTranscriber(contacts),
         undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
-        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
+        _getToolIds(toolsByName,['redirectCall','handoffToAssistant']),
         `<TASKS>
 ${_joinSteps([
     `Ask caller: "Do you want to return to previous menu?"`,
@@ -411,7 +411,7 @@ export const getUnkCallbackForm = (
         },
         _getTranscriber(contacts),
         undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
-        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
+        _getToolIds(toolsByName,['redirectCall','handoffToAssistant']),
         `
 <TASKS>
 ${_joinSteps([
@@ -448,7 +448,7 @@ export const getUnkDialByName = (
         },
         _getTranscriber(contacts),
         undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
-        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState']),
+        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall']),
         `<TASKS>
 ${_joinSteps([
     `Your main task is to assist callers in reaching the appropriate contact within Intempus Realty by name.`,
@@ -490,7 +490,7 @@ export const getUnkIntroduction = (
                 {name:"Intempus CallbackForm"}
             ])
         ]*/
-        _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall','guessState','handoffToAgent']),
+        _getToolIds(toolsByName,['redirectCall','sendEmail','handoffToAssistant']),
         `<TASKS>
 ${_joinSteps([
     `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
@@ -529,7 +529,7 @@ export const getMain = (
         },
         _getTranscriber(contacts),
         undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
-        _getToolIds(toolsByName,['redirectCall','dispatchUserByPhone','getFAQAnswer','handoffToAgent']),
+        _getToolIds(toolsByName,['redirectCall','dispatchUserByPhone','getFAQAnswer','handoffToAssistant']),
 `<TASKS>
 ${_joinSteps([
     `Call the "dispatchUserByPhone" tool,, wait for result and immediately follow the instructions in the result.`,

@@ -29,6 +29,7 @@ export const toolsByName = {
     'getUserByPhone'        : tools.getUserByPhone,
     'dispatchUserByPhone'   : tools.dispatchUserByPhone,
     'getFAQAnswer'          : tools.getFAQAnswer,
+    'handoffToAssistant'    : tools.getHandoffToAssistant,
 } as Record<string,(
     contacts    : Contacts.Contact[]
 ) => Vapi.CreateToolsRequest>;

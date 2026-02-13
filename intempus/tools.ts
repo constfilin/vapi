@@ -2,10 +2,12 @@ import {
     Vapi
 }                       from '@vapi-ai/server-sdk';
 
-import * as intempusConsts from './consts';
-import * as Config      from '../Config';
-import * as Contacts    from '../Contacts';
-import { server }       from '../Server';
+import * as intempusConsts  from './consts';
+import * as Config          from '../Config';
+import * as Contacts        from '../Contacts';
+import { server }           from '../Server';
+import { assistantsByName } from '.';
+import getHandoffToolItem   from './getHandoffToolItem';
 
 const getToolsServer = () : Vapi.Server => {
     const config = Config.get();
@@ -391,6 +393,12 @@ export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRe
             }
         ],
         server : getToolsServer(),
-    } as Vapi.CreateFunctionToolDto
+    } as Vapi.CreateFunctionToolDto;
     return result;
 };
+
+export const getHandoffToAssistant = ( contacts:Contacts.Contact[] ) : Vapi.CreateToolsRequest => {
+    return getHandoffToolItem(Object.keys(assistantsByName).map( name => {
+        return {name};
+    }));
+}

@@ -2,7 +2,7 @@ import {
     Vapi
 }                           from '@vapi-ai/server-sdk';
 
-export const getCreateHandoffToolDtoDestinationsItem = ( assistantInfo:{name?:string,id?:string} ) : Vapi.CreateHandoffToolDtoDestinationsItem => {
+export const getCreateHandoffToolDtoDestinationsItem = ( assistantInfo:{name?:string,id?:string,description?:string} ) : Vapi.CreateHandoffToolDtoDestinationsItem => {
     const result = {
         type        : 'assistant',
         contextEngineeringPlan : {
@@ -28,10 +28,12 @@ export const getCreateHandoffToolDtoDestinationsItem = ( assistantInfo:{name?:st
         result.assistantId = assistantInfo.id;
     else if( assistantInfo.name )
         result.assistantName = assistantInfo.name;
+    if( assistantInfo.description )
+        result.description = assistantInfo.description
     return result;
 };
 
-export const getHandoffToolItem = ( assistantInfos:{name?:string,id?:string}[] ) : Vapi.CreateHandoffToolDto => {
+export const getHandoffToolItem = ( assistantInfos:{name?:string,id?:string,description?:string}[] ) : Vapi.CreateHandoffToolDto => {
     return {
         type        : 'handoff',
         //'async'     : false,

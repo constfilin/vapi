@@ -2,8 +2,10 @@ import {
     Vapi
 }                       from '@vapi-ai/server-sdk';
 
+import * as intempusConsts from './consts';
 import * as Config      from '../Config';
 import * as Contacts    from '../Contacts';
+import { server }       from '../Server';
 
 const getToolsServer = () : Vapi.Server => {
     const config = Config.get();
@@ -99,6 +101,23 @@ export const getRedirectCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateTool
         messages    : [] as Vapi.ToolMessageStart[],
     } as Vapi.CreateTransferCallToolDto;
     const destinationEnums  = result['function']!.parameters!.properties!.destination!.enum!;
+    // Special group extensions
+    Object.entries(intempusConsts.groupExtensions).forEach( ([name,number]) => {
+        if( !destinationEnums.includes(number) )
+            destinationEnums.push(number);
+        if( !(result.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number===number)) ) {
+            result.destinations!.push({
+                type        : "number",
+                number      : number,
+                message     : `I am forwarding your call to ${name}`,
+                description : name
+            } as Vapi.TransferDestinationNumber);
+        }
+        else {
+            server.log(1,`Transfer destination already exists`,{name,number});
+        }
+    });
+    // Contacts
     contacts.forEach( c => {
         // TODO:
         // The same phone number can be listed in the contacts multiple times
@@ -109,32 +128,37 @@ export const getRedirectCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateTool
         const fullPhone     = `+1${c.phoneNumbers[0]}`;
         if( !destinationEnums.includes(fullPhone) )
             destinationEnums.push(fullPhone);
-        result.destinations!.push({
-            'type'      :   'number',
-            number      :   fullPhone,
-            //message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
-            description :   c.description ? `${c.name} - ${c.description}` : c.name,
-            //callerId    :   `+17254446330`,
-            transferPlan : {
-                mode        : 'warm-transfer-say-message',
-                message     : 'Incoming call from Intempus',
-                //sipVerb     : 'refer',
-                summaryPlan : {
-                    enabled : true,
-                    messages : [
-                        {
-                            role    : "system",
-                            content : "Please provide a summary of the call"
-                        },
-                        {
-                            role    : "user",
-                            content : "Here is the transcript: {{transcript}} "
-                        }
+        if( !(result.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number===fullPhone)) ) {
+            result.destinations!.push({
+                'type'      :   'number',
+                number      :   fullPhone,
+                //message     :   `I am forwarding your call to ${c.name}. Please stay on the line`,
+                description :   c.description ? `${c.name} - ${c.description}` : c.name,
+                //callerId    :   `+17254446330`,
+                transferPlan : {
+                    mode        : 'warm-transfer-say-message',
+                    message     : 'Incoming call from Intempus',
+                    //sipVerb     : 'refer',
+                    summaryPlan : {
+                        enabled : true,
+                        messages : [
+                            {
+                                role    : "system",
+                                content : "Please provide a summary of the call"
+                            },
+                            {
+                                role    : "user",
+                                content : "Here is the transcript: {{transcript}} "
+                            }
 
-                    ]
+                        ]
+                    }
                 }
-            }
-        } as Vapi.TransferDestinationNumber);
+            } as Vapi.TransferDestinationNumber);
+        }
+        else {
+            server.log(1,`Transfer destination already exists`,c);
+        }
         // tool.messages!.push({
         //     'type'      : 'request-start',
         //     content     : `I am forwarding your call to ${c.name}. Please stay on the line`,
@@ -144,32 +168,6 @@ export const getRedirectCall = ( contacts:Contacts.Contact[] ) : Vapi.CreateTool
         //         value   : c.name as unknown as Record<string,unknown>
         //     }]
         // } as Vapi.CreateTransferCallToolDtoMessagesItem);
-    });
-    // Special group extensions
-    [
-        {
-            type        : 'number',
-            number      : '+15103404275',
-            message     : 'I am forwarding your call to Maintenance H-O-A',
-            description : 'Maintenance HOA',
-        },
-        {
-            type        : 'number',
-            number      : '+19162358444',
-            message     : 'I am forwarding your call to Emergency Group',
-            description : 'Emergency Group',
-        },
-        {
-            type        : 'number',
-            number      : '+14083593034',
-            message     : 'I am forwarding your call to Leasing Group',
-            description : 'Leasing Group',
-        }
-    ].forEach( dest => {
-        if( !destinationEnums.includes(dest.number) )
-            destinationEnums.push(dest.number);
-        if( !(result.destinations as Vapi.TransferDestinationNumber[]).some(d=>(d.number===dest.number)) )
-            result.destinations!.push(dest as Vapi.TransferDestinationNumber);
     });
     // In case if the call is forwarded to unknown contact
     /*

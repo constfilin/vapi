@@ -62,3 +62,8 @@ export const systemPromptFooter = `
 ${errorHandlingAndFallback}
 </ERROR_HANDLING_AND_FALLBACK>`;
 
+export const groupExtensions = {
+    "Maintenance H-O-A" : "+15103404275",
+    "Emergency Group"   : "+19162358444",
+    "Leasing Group"     : "+14083593034"
+}

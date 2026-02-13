@@ -6,7 +6,6 @@ import * as Config          from '../Config';
 import * as Contacts        from '../Contacts';
 
 import * as intempusConsts  from './consts';
-import getHandoffToolItem   from './getHandoffToolItem';
 
 const _joinSteps = ( steps:string[] ) : string => {
     return steps.map((s,ndx) => {
@@ -287,7 +286,7 @@ export const getUnkHOA = (
             startSpeakingPlan: { waitSeconds: 1.5 },
         },
         _getTranscriber(contacts),
-        undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
+        undefined,
         _getToolIds(toolsByName,['redirectCall','sendEmail','handoffToAssistant']),
         `<TASKS>
 ${_joinSteps([
@@ -306,7 +305,7 @@ ${_joinSteps([
    - If the caller asks for payments, parking calls, estoppel requests, or application status: call the redirectCall tool with +15103404275.
    - If the caller asks for community association management services sales: call the redirectCall tool with +15103404275.
    - If the caller asks for emergency maintenance: call the redirectCall tool with  +19162358444.
-   - If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus Introduction".`
+   - If the caller wants to return to the previous menu: call "handoffToAssistant" to "Intempus Introduction".`
 ])}
 </TASKS>
 
@@ -328,7 +327,7 @@ export const getUnkPropertyOwner = (
             startSpeakingPlan: { waitSeconds: 1.5 }
         },
         _getTranscriber(contacts),
-        undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
+        undefined,
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
@@ -365,7 +364,7 @@ ${intempusConsts.systemPromptHeader}
 - For scheduling a showing, leasing, submitting a rental application, or making a rent payment: call the redirectCall tool with +14083593034.
 - For selling a property: call the redirectCall tool with +15103404275.
 - For rental property emergency maintenance: call the redirectCall tool with +19162358444.
-- If the caller wants to return to the previous menu: call "handoff_to_assistant" to "Intempus Introduction".
+- If the caller wants to return to the previous menu: call "handoffToAssistant" to "Intempus Introduction".
 </CALLROUTING>
 ${intempusConsts.systemPromptFooter}`,
     );
@@ -383,12 +382,12 @@ export const getFAQ = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },        
         _getTranscriber(contacts),
-        undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
+        undefined,
         _getToolIds(toolsByName,['redirectCall','handoffToAssistant']),
         `<TASKS>
 ${_joinSteps([
     `Ask caller: "Do you want to return to previous menu?"`,
-    `If the caller responds affirmatively call "handoff_to_assistant" to "Intempus Introduction".`
+    `If the caller responds affirmatively call "handoffToAssistant" to "Intempus Introduction".`
 ])}
 </TASKS>
 
@@ -410,7 +409,7 @@ export const getUnkCallbackForm = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),
-        undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
+        undefined,
         _getToolIds(toolsByName,['redirectCall','handoffToAssistant']),
         `
 <TASKS>
@@ -421,7 +420,7 @@ ${_joinSteps([
     `Ask caller: "What is your first and last name?" and save the answer as 'name'.`,
     `Ask caller: "Would you like to leave us your email address" and if the caller responds affirmatively, then ask "Please provide your email address", re-confirm it and after the re-confirmation save the answer as 'emailAddress'.`,
     `After collecting all the above information, tell the customer something like "You are an {{clientType}} client interested in {{propertyInterest}}. Your property address is {{propertyAddress}}. Your location of interest is {{locationInterest}}. Your name is {{name}}. Your email address is {{emailAddress}}. Your phone number is {{customer.number}}. Thank you for providing this information. A representative will reach out to you shortly.".`,
-    `If instead of the answer on any of the above questions the caller says something like "I want to return to the previous menu", then call "handoff_to_assistant" to "Intempus Introduction".`
+    `If instead of the answer on any of the above questions the caller says something like "I want to return to the previous menu", then call "handoffToAssistant" to "Intempus Introduction".`
 ])}
 </TASKS>
 
@@ -447,7 +446,7 @@ export const getUnkDialByName = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message"
         },
         _getTranscriber(contacts),
-        undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
+        undefined,
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall']),
         `<TASKS>
 ${_joinSteps([
@@ -496,16 +495,16 @@ ${_joinSteps([
     `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
     a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
         - Tell "I am forwarding your call to our H-O-A and Community Management Services."
-        - Call "handoff_to_assistant" with "Intempus HOA".
+        - Call "handoffToAssistant" with "Intempus HOA".
     b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
         - Tell "I am forwarding your call to our Property Management Services."
-        - Call "handoff_to_assistant" with "Intempus PropertyOwner".
+        - Call "handoffToAssistant" with "Intempus PropertyOwner".
     c. "Do you know the name of the person you would like to talk to?"
         - Tell "I am forwarding your call to our Dial By Name assistant"
-        - Call "handoff_to_assistant" with "Intempus DialByName".
+        - Call "handoffToAssistant" with "Intempus DialByName".
     d. "Would you like to leave your information for a callback from Intempus?"
         - Tell "I am forwarding your call to our Callback Form assistant"
-        - Call "handoff_to_assistant" with "Intempus CallbackForm"
+        - Call "handoffToAssistant" with "Intempus CallbackForm"
     e. "Would you like to hear these options again?"
         - Go to the first task again`,
     `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
@@ -528,7 +527,7 @@ export const getMain = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),
-        undefined, // [getHandoffToolItem([{name:'Intempus Introduction'}])],
+        undefined,
         _getToolIds(toolsByName,['redirectCall','dispatchUserByPhone','getFAQAnswer','handoffToAssistant']),
 `<TASKS>
 ${_joinSteps([

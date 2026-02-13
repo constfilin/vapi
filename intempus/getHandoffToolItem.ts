@@ -38,7 +38,7 @@ export const getHandoffToolItem = ( assistantInfos:{name?:string,id?:string,desc
         type        : 'handoff',
         //'async'     : false,
         'function'  : {
-            'name'  : 'handoff_to_assistant',
+            'name'  : 'handoffToAssistant',
         },
         messages   : [],
         // The Introduction assistant can hand off to all other assistants (except Main and Bot)

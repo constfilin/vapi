@@ -242,7 +242,7 @@ export default () => {
                                 return {
                                     toolCallId  : tc.id,
                                     result      : JSON.stringify({
-                                        instructions : `call "handoff_to_assistant" with "Intempus Introduction"`
+                                        instructions : `call "handoffToAssistant" with "Intempus Introduction"`
                                     })
                                 }
                             });

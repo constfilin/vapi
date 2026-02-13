@@ -352,7 +352,7 @@ export const dispatchUserByPhone = ( contacts:Contacts.Contact[] ) : Vapi.Create
     // needs to follow those instructions (see getMain) 
     //
     // This creates a situation when the main assistant first calls `dispatchUserByPhone` and
-    // then if the user is not known, then it *immediately* calls `handoff_to_assistant` tool 
+    // then if the user is not known, then it *immediately* calls `handoffToAssistant` tool 
     // without waiting for the user to say something.
     //
     // A similar technique is employed by `dispatchCall` tool in dial-by-name assistant

@@ -6,6 +6,7 @@ import * as Config          from '../Config';
 import * as Contacts        from '../Contacts';
 
 import * as intempusConsts  from './consts';
+import getHandoffToolItem   from './getHandoffToolItem';
 
 const _joinSteps = ( steps:string[] ) : string => {
     return steps.map((s,ndx) => {
@@ -286,11 +287,15 @@ export const getUnkHOA = (
             startSpeakingPlan: { waitSeconds: 1.5 },
         },
         _getTranscriber(contacts),
-        undefined,
-        _getToolIds(toolsByName,['redirectCall','sendEmail','handoffToAssistant']),
+        undefined /*[
+            getHandoffToolItem([
+                { name : "Intempus Introduction"}
+            ])
+        ]*/,
+        _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
-    `Determine which category their call belongs to (H-O-A maintenance, H-O-A payments, parking calls, estoppel requests, application status, H-O-A community association management services sales, H-O-A emergency maintenance, or returning to the previous menu).
+    `Ask the caller which category their call belongs to (H-O-A maintenance, H-O-A payments, parking calls, estoppel requests, application status, H-O-A community association management services sales, H-O-A emergency maintenance, or returning to the previous menu).
     * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools at this step.*`,
     `Before transferring the call to ANY number, you must ALWAYS:
    - Ask for the caller's name
@@ -300,11 +305,11 @@ ${_joinSteps([
    - To: "${config.notificationEmailAddress}"
    - Subject: "New Call: [Property Name] - From [Caller Name]"
    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`,
-   `ONLY AFTER the email was sent, then transfer the call as follows:
-   - If the caller asks for maintenance: call the redirectCall tool +15103404275.
-   - If the caller asks for payments, parking calls, estoppel requests, or application status: call the redirectCall tool with +15103404275.
-   - If the caller asks for community association management services sales: call the redirectCall tool with +15103404275.
-   - If the caller asks for emergency maintenance: call the redirectCall tool with  +19162358444.
+   `Once the email is sent, then transfer the call as follows:
+   - If the caller asks for maintenance: call "redirectCall" with +15103404275.
+   - If the caller asks for payments, parking calls, estoppel requests, or application status: call "redirectCall" with +15103404275.
+   - If the caller asks for community association management services sales: call "redirectCall" with +15103404275.
+   - If the caller asks for emergency maintenance: call "redirectCall" with  +19162358444.
    - If the caller wants to return to the previous menu: call "handoffToAssistant" to "Intempus Introduction".`
 ])}
 </TASKS>
@@ -327,7 +332,11 @@ export const getUnkPropertyOwner = (
             startSpeakingPlan: { waitSeconds: 1.5 }
         },
         _getTranscriber(contacts),
-        undefined,
+        undefined /*[
+            getHandoffToolItem([
+                { name : "Intempus Introduction"}
+            ])
+        ]*/,
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
@@ -382,8 +391,12 @@ export const getFAQ = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },        
         _getTranscriber(contacts),
-        undefined,
-        _getToolIds(toolsByName,['redirectCall','handoffToAssistant']),
+        undefined /*[
+            getHandoffToolItem([
+                { name : "Intempus Introduction"}
+            ])
+        ]*/,
+        _getToolIds(toolsByName,['redirectCall']),
         `<TASKS>
 ${_joinSteps([
     `Ask caller: "Do you want to return to previous menu?"`,
@@ -409,8 +422,12 @@ export const getUnkCallbackForm = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),
-        undefined,
-        _getToolIds(toolsByName,['redirectCall','handoffToAssistant']),
+        undefined /*[
+            getHandoffToolItem([
+                { name : "Intempus Introduction"}
+            ])
+        ]*/,
+        _getToolIds(toolsByName,['redirectCall']),
         `
 <TASKS>
 ${_joinSteps([
@@ -446,7 +463,11 @@ export const getUnkDialByName = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message"
         },
         _getTranscriber(contacts),
-        undefined,
+        undefined /*[
+            getHandoffToolItem([
+                { name : "Intempus Introduction"}
+            ])
+        ]*/,
         _getToolIds(toolsByName,['redirectCall','sendEmail','dispatchCall']),
         `<TASKS>
 ${_joinSteps([
@@ -481,21 +502,21 @@ export const getUnkIntroduction = (
             firstMessageMode: "assistant-speaks-first"
         },
         _getTranscriber(contacts),
-        undefined, /*[
+        undefined /*[
             getHandoffToolItem([
                 {name:"Intempus HOA"},
                 {name:"Intempus PropertyOwner"},
                 {name:"Intempus DialByName"},
                 {name:"Intempus CallbackForm"}
             ])
-        ]*/
-        _getToolIds(toolsByName,['redirectCall','sendEmail','handoffToAssistant']),
+        ]*/,
+        _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
     `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
     a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
         - Tell "I am forwarding your call to our H-O-A and Community Management Services."
-        - Call "handoffToAssistant" with "Intempus HOA".
+        - handoff to assistant "Intempus HOA".
     b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
         - Tell "I am forwarding your call to our Property Management Services."
         - Call "handoffToAssistant" with "Intempus PropertyOwner".
@@ -527,8 +548,10 @@ export const getMain = (
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
         },
         _getTranscriber(contacts),
-        undefined,
-        _getToolIds(toolsByName,['redirectCall','dispatchUserByPhone','getFAQAnswer','handoffToAssistant']),
+        undefined /*[getHandoffToolItem([
+            {name : "Intempus Introduction"}
+        ])]*/,
+        _getToolIds(toolsByName,['redirectCall','dispatchUserByPhone','getFAQAnswer']),
 `<TASKS>
 ${_joinSteps([
     `Call the "dispatchUserByPhone" tool,, wait for result and immediately follow the instructions in the result.`,

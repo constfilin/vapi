@@ -11,6 +11,8 @@ const cmd = () => {
         { name : 'sessionId'    ,             type: String },
         { name : 'phoneNumber'  , alias: 'p', type: String },
         { name : 'question'     , alias: 'q', type: String },
+        { name : 'callId'       , alias: 'k', type: String },
+        { name : 'limit'        , alias: 'l', type: Number },
     ]);
     // Needed for log initialization.
     const server = new Server();

@@ -23,6 +23,11 @@ type MySquads = (typeof dummyVapiClient.squads) & {
     listByName() : Promise<Record<string,Vapi.Squad>>;
     credate( payload:Vapi.CreateSquadDto, squad:(Vapi.Squad|undefined) ) : Promise<Vapi.Squad>;
 }
+type MyStructuredOutputs = (typeof dummyVapiClient.structuredOutputs) & {
+    getByName( name?:string ) : Promise<Vapi.StructuredOutput|undefined>;
+    listByName() : Promise<Record<string,Vapi.StructuredOutput>>;
+    credate( payload:Vapi.CreateStructuredOutputDto, structuredOutput:(Vapi.StructuredOutput|undefined) ) : Promise<Vapi.StructuredOutput>;
+}
 export class VapiApi extends VapiClient {
     constructor() {
         const config  = Config.get();
@@ -113,5 +118,42 @@ export class VapiApi extends VapiClient {
             }) : squads.create(payload)
         };
         return squads;
+    }
+    getStructuredOutputs() : MyStructuredOutputs {
+        const structuredOutputs = super.structuredOutputs as MyStructuredOutputs;
+        structuredOutputs.getByName = ( name?:string ) : Promise<Vapi.StructuredOutput|undefined> => {
+            if( !name )
+                throw Error(`name should be provided`);
+            return structuredOutputs.structuredOutputControllerFindAll().then( response => {
+                return response.results?.find(o=>(o.name===name));
+            });
+        };
+        structuredOutputs.listByName = () : Promise<Record<string,Vapi.StructuredOutput>> => {
+            return structuredOutputs.structuredOutputControllerFindAll().then( response => {
+                return (response.results || []).reduce( (acc,o) => {
+                    acc[o.name] = o;
+                    return acc;
+                },{} as Record<string,Vapi.StructuredOutput>);
+            });
+        }
+        structuredOutputs.credate = ( payload:Vapi.CreateStructuredOutputDto, structuredOutput:(Vapi.StructuredOutput|undefined) ) : Promise<Vapi.StructuredOutput> => {
+            if( structuredOutput ) {
+                // For update, map CreateDto to UpdateDto
+                const updatePayload: Vapi.UpdateStructuredOutputDto = {
+                    id: structuredOutput.id,
+                    schemaOverride: JSON.stringify(payload.schema),
+                    name: payload.name,
+                    description: payload.description,
+                    assistantIds: payload.assistantIds,
+                    workflowIds: payload.workflowIds,
+                    model: payload.model,
+                    compliancePlan: payload.compliancePlan
+                };
+                return structuredOutputs.structuredOutputControllerUpdate(updatePayload);
+            }
+            console.log(`Creating structured output ${payload.name} with schema:`, payload);
+            return structuredOutputs.structuredOutputControllerCreate(payload);
+        };
+        return structuredOutputs;
     }
 }

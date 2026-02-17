@@ -7,7 +7,7 @@ type CreateStructuredOutputDtoWithType = Vapi.CreateStructuredOutputDto & {
 
 const _getDefaultAssistantIds = (
     assistantsByName?: Record<string, Vapi.Assistant>
-): string[] | undefined => {
+): (string[]|undefined) => {
     if (!assistantsByName)
         return undefined;
     return Object.values(assistantsByName)
@@ -27,7 +27,7 @@ const _getDefaultAssistantIds = (
 export const getCallSummary = (
     contacts            : Contacts.Contact[],
     assistantsByName?   : Record<string,Vapi.Assistant>
-): CreateStructuredOutputDtoWithType => {
+) : CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
         name        : "CallSummary",
@@ -104,7 +104,7 @@ export const getCallSummary = (
 export const getCustomerFeedback = (
     contacts            : Contacts.Contact[],
     assistantsByName?   : Record<string,Vapi.Assistant>
-): CreateStructuredOutputDtoWithType => {
+) : CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
         name        : "CustomerFeedback",
@@ -151,7 +151,7 @@ export const getCustomerFeedback = (
 export const getMaintenanceRequest = (
     contacts            : Contacts.Contact[],
     assistantsByName?   : Record<string, Vapi.Assistant>
-): CreateStructuredOutputDtoWithType => {
+) : CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
         name        : "MaintenanceRequest",
@@ -222,7 +222,7 @@ export const getMaintenanceRequest = (
 export const getLeasingInquiry = (
     contacts            : Contacts.Contact[],
     assistantsByName?   : Record<string, Vapi.Assistant>
-): CreateStructuredOutputDtoWithType => {
+) : CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
         name            : "LeasingInquiry",
@@ -289,7 +289,7 @@ export const getLeasingInquiry = (
 export const getPropertyOwnerRequest = (
     contacts            : Contacts.Contact[],
     assistantsByName?   : Record<string, Vapi.Assistant>
-): CreateStructuredOutputDtoWithType => {
+) : CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
         name            : "PropertyOwnerRequest",
@@ -368,14 +368,14 @@ export const getCallSuccessRating = (
             type: "object",
             properties: {
                 issueResolved: {
-                    type: "boolean",
-                    description: "Whether the customer's issue or inquiry was resolved during the call"
+                    type        : "boolean",
+                    description : "Whether the customer's issue or inquiry was resolved during the call"
                 },
                 successRating: {
-                    type: "integer",
-                    minimum: 1,
-                    maximum: 10,
-                    description: "Rate the success of the call in resolving the customer's needs on a scale of 1 to 10"
+                    type        : "integer",
+                    minimum     : 1,
+                    maximum     : 10,
+                    description : "Rate the success of the call in resolving the customer's needs on a scale of 1 to 10"
                 }
             },
             required: ["issueResolved", "successRating"]

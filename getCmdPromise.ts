@@ -1,9 +1,8 @@
-import * as intempus    from './intempus/';
-import * as Contacts    from './Contacts';
-import { VapiApi }      from './VapiApi';
-import * as callOutput   from './api/callOutput';
+import * as intempus        from './intempus/';
+import * as Contacts        from './Contacts';
+import { VapiApi }          from './VapiApi';
 
-import * as VapeApi     from './api/VapeApi';
+import * as VapeApi         from './api/VapeApi';
 
 export const getCmdPromise = ( args:Record<string,any> ) => {
 
@@ -270,13 +269,13 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             ]);
         });
     case 'getCallSuccessRate':
-        return (() => callOutput.getCallSuccessRate(args.callId));
+        return (() => vapiApi.getCallSuccessRate(args.id));
     case 'getAverageCallSuccessRate':
-        return (() => callOutput.getAverageCallSuccessRate(args.limit));
+        return (() => vapiApi.getAverageCallSuccessRate(args.limit));
     case 'getCallStructuredOutputs':
-        return (() => callOutput.getCallStructuredOutputs(args.callId));
-    case 'getCallList':
-        return (() => callOutput.getCallList(args.limit));
+        return (() => vapiApi.getCallStructuredOutputs(args.id));
+    case 'listCalls':
+        return (() => vapiApi.listCalls(args.limit));
     }
     // Nothing is found
     return () => {

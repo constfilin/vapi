@@ -25,14 +25,14 @@ const _getDefaultAssistantIds = (
  * - Sentiment
  */
 export const getCallSummary = (
-    contacts: Contacts.Contact[],
-    assistantsByName?: Record<string, Vapi.Assistant>
+    contacts            : Contacts.Contact[],
+    assistantsByName?   : Record<string,Vapi.Assistant>
 ): CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
-        name: "CallSummary",
-        description: "Extracts structured call summary data including caller information, property details, inquiry type, and action items from the conversation.",
-        type: "ai",
+        name        : "CallSummary",
+        description : "Extracts structured call summary data including caller information, property details, inquiry type, and action items from the conversation.",
+        type        : "ai",
         assistantIds,
         schema: {
             type: "object",
@@ -102,15 +102,15 @@ export const getCallSummary = (
  * Extracts feedback and satisfaction data from customer interactions
  */
 export const getCustomerFeedback = (
-    contacts: Contacts.Contact[],
-    assistantsByName?: Record<string, Vapi.Assistant>
+    contacts            : Contacts.Contact[],
+    assistantsByName?   : Record<string,Vapi.Assistant>
 ): CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
-        name: "CustomerFeedback",
-        description: "Extracts customer feedback and satisfaction metrics from conversations.",
+        name        : "CustomerFeedback",
+        description : "Extracts customer feedback and satisfaction metrics from conversations.",
+        type        : "ai",
         assistantIds,
-        type: "ai",
         schema: {
             type: "object",
             properties: {
@@ -149,15 +149,15 @@ export const getCustomerFeedback = (
  * Captures specific details about maintenance requests
  */
 export const getMaintenanceRequest = (
-    contacts: Contacts.Contact[],
-    assistantsByName?: Record<string, Vapi.Assistant>
+    contacts            : Contacts.Contact[],
+    assistantsByName?   : Record<string, Vapi.Assistant>
 ): CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
-        name: "MaintenanceRequest",
-        description: "Extracts detailed information about maintenance requests including urgency, type, and location.",
+        name        : "MaintenanceRequest",
+        description : "Extracts detailed information about maintenance requests including urgency, type, and location.",
+        type        : "ai",
         assistantIds,
-        type: "ai",
         schema: {
             type: "object",
             properties: {
@@ -213,22 +213,22 @@ export const getMaintenanceRequest = (
             required: ["propertyAddress", "urgencyLevel", "maintenanceType", "issueDescription"]
         }
     };
-};
+}
 
 /**
  * Structured Output: Leasing Inquiry
  * Captures information from potential tenants
  */
 export const getLeasingInquiry = (
-    contacts: Contacts.Contact[],
-    assistantsByName?: Record<string, Vapi.Assistant>
+    contacts            : Contacts.Contact[],
+    assistantsByName?   : Record<string, Vapi.Assistant>
 ): CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
-        name: "LeasingInquiry",
-        description: "Extracts information from prospective tenant inquiries about available properties.",
+        name            : "LeasingInquiry",
+        description     : "Extracts information from prospective tenant inquiries about available properties.",
+        type            : "ai",
         assistantIds,
-        type: "ai",
         schema: {
             type: "object",
             properties: {
@@ -280,22 +280,22 @@ export const getLeasingInquiry = (
             required: ["prospectName", "desiredLocation", "moveInDate"]
         }
     };
-};
+}
 
 /**
  * Structured Output: Property Owner Request
  * Captures information from property owners
  */
 export const getPropertyOwnerRequest = (
-    contacts: Contacts.Contact[],
-    assistantsByName?: Record<string, Vapi.Assistant>
+    contacts            : Contacts.Contact[],
+    assistantsByName?   : Record<string, Vapi.Assistant>
 ): CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
-        name: "PropertyOwnerRequest",
-        description: "Extracts information from property owner inquiries about management services, rentals, or sales.",
+        name            : "PropertyOwnerRequest",
+        description     : "Extracts information from property owner inquiries about management services, rentals, or sales.",
+        type            : "ai",
         assistantIds,
-        type: "ai",
         schema: {
             type: "object",
             properties: {
@@ -352,18 +352,18 @@ export const getPropertyOwnerRequest = (
             required: ["ownerName", "propertyAddress", "serviceType"]
         }
     };
-};
+}
 
 export const getCallSuccessRating = (
-    contacts: Contacts.Contact[],
-    assistantsByName?: Record<string, Vapi.Assistant>
-): CreateStructuredOutputDtoWithType => {
+    contacts            : Contacts.Contact[],
+    assistantsByName?   : Record<string,Vapi.Assistant>
+) : CreateStructuredOutputDtoWithType => {
     const assistantIds = _getDefaultAssistantIds(assistantsByName);
     return {
-        name: "CallSuccessRating",
-        description: "Determines whether the call successfully resolved the customer's issue or inquiry.",
+        name        : "CallSuccessRating",
+        description : "Determines whether the call successfully resolved the customer's issue or inquiry.",
+        type        : "ai",
         assistantIds,
-        type: "ai",
         schema: {
             type: "object",
             properties: {
@@ -381,4 +381,4 @@ export const getCallSuccessRating = (
             required: ["issueResolved", "successRating"]
         }
     };
-};
+}

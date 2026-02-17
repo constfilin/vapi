@@ -47,7 +47,7 @@ export const structuredOutputsByName = {
     'MaintenanceRequest'    : structuredOutputs.getMaintenanceRequest,
     'LeasingInquiry'        : structuredOutputs.getLeasingInquiry,
     'PropertyOwnerRequest'  : structuredOutputs.getPropertyOwnerRequest,
-    'CallSuccessRating'    : structuredOutputs.getCallSuccessRating,
+    'CallSuccessRating'     : structuredOutputs.getCallSuccessRating,
 } as Record<string,(
     contacts: Contacts.Contact[],
     assistantsByName?: Record<string,Vapi.Assistant>

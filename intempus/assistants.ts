@@ -302,7 +302,7 @@ ${_joinSteps([
    - Ask for the name of the property
    - Confirm both details back to the caller`,
    `ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
-   - To: "${config.notificationEmailAddress}"
+   - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
    - Subject: "New Call: [Property Name] - From [Caller Name]"
    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`,
    `Once the email is sent, then transfer the call as follows:
@@ -347,7 +347,7 @@ ${_joinSteps([
     * Ask for the name of the property
     * Confirm both details back to the caller`,
     `ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
-    - To: "${config.notificationEmailAddress}"
+    - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
     - Subject: "New Call: [Property Name] - From [Caller Name]"
     - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"
         Where [Caller's Request] is a short description such as:

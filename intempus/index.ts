@@ -6,6 +6,7 @@ import * as Contacts    from '../Contacts';
 import * as assistants  from './assistants';
 import * as tools       from './tools';
 import * as squads      from './squads';
+import * as structuredOutputs from './structuredOutputs';
 
 export const assistantsByName = {
     "Intempus Main"         : assistants.getMain,
@@ -39,3 +40,15 @@ export const squadsByName = {
 } as Record<string,(
     assistantsByName    : Record<string,Vapi.Assistant>,
 ) => Vapi.CreateSquadDto>;
+
+export const structuredOutputsByName = {
+    'CallSummary'           : structuredOutputs.getCallSummary,
+    'CustomerFeedback'      : structuredOutputs.getCustomerFeedback,
+    'MaintenanceRequest'    : structuredOutputs.getMaintenanceRequest,
+    'LeasingInquiry'        : structuredOutputs.getLeasingInquiry,
+    'PropertyOwnerRequest'  : structuredOutputs.getPropertyOwnerRequest,
+    'CallSuccessRating'     : structuredOutputs.getCallSuccessRating,
+} as Record<string,(
+    contacts: Contacts.Contact[],
+    assistantsByName?: Record<string,Vapi.Assistant>
+) => Vapi.CreateStructuredOutputDto>;

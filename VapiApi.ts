@@ -23,6 +23,11 @@ type MySquads = (typeof dummyVapiClient.squads) & {
     listByName() : Promise<Record<string,Vapi.Squad>>;
     credate( payload:Vapi.CreateSquadDto, squad:(Vapi.Squad|undefined) ) : Promise<Vapi.Squad>;
 }
+type MyStructuredOutputs = (typeof dummyVapiClient.structuredOutputs) & {
+    getByName( name?:string ) : Promise<Vapi.StructuredOutput|undefined>;
+    listByName() : Promise<Record<string,Vapi.StructuredOutput>>;
+    credate( payload:Vapi.CreateStructuredOutputDto, structuredOutput:(Vapi.StructuredOutput|undefined) ) : Promise<Vapi.StructuredOutput>;
+}
 export class VapiApi extends VapiClient {
     constructor() {
         const config  = Config.get();
@@ -114,4 +119,72 @@ export class VapiApi extends VapiClient {
         };
         return squads;
     }
+    getStructuredOutputs() : MyStructuredOutputs {
+        const structuredOutputs = super.structuredOutputs as MyStructuredOutputs;
+        structuredOutputs.getByName = ( name?:string ) : Promise<Vapi.StructuredOutput|undefined> => {
+            if( !name )
+                throw Error(`name should be provided`);
+            return structuredOutputs.structuredOutputControllerFindAll().then( response => {
+                return response.results?.find(o=>(o.name===name));
+            });
+        };
+        structuredOutputs.listByName = () : Promise<Record<string,Vapi.StructuredOutput>> => {
+            return structuredOutputs.structuredOutputControllerFindAll().then( response => {
+                return (response.results || []).reduce( (acc,o) => {
+                    acc[o.name] = o;
+                    return acc;
+                },{} as Record<string,Vapi.StructuredOutput>);
+            });
+        }
+        structuredOutputs.credate = ( payload:Vapi.CreateStructuredOutputDto, structuredOutput:(Vapi.StructuredOutput|undefined) ) : Promise<Vapi.StructuredOutput> => {
+            if( structuredOutput ) {
+                // For update, map CreateDto to UpdateDto
+                const updatePayload: Vapi.UpdateStructuredOutputDto = {
+                    id: structuredOutput.id,
+                    schemaOverride: JSON.stringify(payload.schema),
+                    name: payload.name,
+                    description: payload.description,
+                    assistantIds: payload.assistantIds,
+                    workflowIds: payload.workflowIds,
+                    model: payload.model,
+                    compliancePlan: payload.compliancePlan
+                };
+                return structuredOutputs.structuredOutputControllerUpdate(updatePayload);
+            }
+            console.log(`Creating structured output ${payload.name} with schema:`, payload);
+            return structuredOutputs.structuredOutputControllerCreate(payload);
+        };
+        return structuredOutputs;
+    }
+    async listCalls( limit:number = 10 ) {
+        const calls = await super.calls.list({limit: limit});
+        return calls.map( c => {
+            return {
+                id          : c.id,
+                createdAt   : c.createdAt,
+            }
+        });
+    }
+    async getCallStructuredOutputs( callId:string ) {
+        const call = await super.calls.get({id:callId});
+        const structuredOutputs = call?.artifact?.structuredOutputs;
+        if( !structuredOutputs || typeof structuredOutputs !== 'object' )
+            throw Error(`No structured outputs found for call ${callId}`);
+        return structuredOutputs as Record<string,Record<string,any>>;
+    }
+    async getCallSuccessRate( callId:string ) {
+        const structuredOutputs = await this.getCallStructuredOutputs(callId);
+        return Object.values(structuredOutputs||{}).find((o:Record<string,any>) => o.name === 'CallSuccessRating' )?.result?.successRating;
+    }
+    async getAverageCallSuccessRate( limit:number=10 ) {
+        const calls = await this.listCalls(limit);
+        const settledRates = await Promise.allSettled(calls.map(c=>this.getCallSuccessRate(c.id)));
+        const validSuccessRates = settledRates
+            .filter( s => s.status === 'fulfilled' && typeof s.value === 'number' && !Number.isNaN(s.value) )
+            .map( s => (s as PromiseFulfilledResult<number>).value );
+        if( validSuccessRates.length === 0 )
+            throw Error(`No valid CallSuccessRating structured outputs found for the last ${limit} calls`);
+        const averageSuccessRate = validSuccessRates.reduce( (acc,r) => acc + r, 0 ) / validSuccessRates.length;
+        return averageSuccessRate;
+    };    
 }

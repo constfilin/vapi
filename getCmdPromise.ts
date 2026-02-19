@@ -1,8 +1,8 @@
-import * as intempus    from './intempus/';
-import * as Contacts    from './Contacts';
-import { VapiApi }      from './VapiApi';
+import * as intempus        from './intempus/';
+import * as Contacts        from './Contacts';
+import { VapiApi }          from './VapiApi';
 
-import * as VapeApi     from './api/VapeApi';
+import * as VapeApi         from './api/VapeApi';
 
 export const getCmdPromise = ( args:Record<string,any> ) => {
 
@@ -10,6 +10,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
     const tools         = vapiApi.getTools();
     const assistants    = vapiApi.getAssistants();
     const squads        = vapiApi.getSquads();
+    const structuredOutputs = vapiApi.getStructuredOutputs();
 
     // Commands to manage tools
     switch( args.cmd ) {
@@ -73,6 +74,22 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 }
             });
         });
+    case 'getStructuredOutputById':
+        return (() => structuredOutputs.structuredOutputControllerFindOne({id:args.id}));
+    case 'getStructuredOutput':
+    case 'getStructuredOutputByName':
+        return (() => structuredOutputs.getByName(args.name));
+    case 'listStructuredOutputs':
+        return (async () => {
+            const response = await structuredOutputs.structuredOutputControllerFindAll();
+            return (response.results || []).map( so => {
+                return {
+                    id          : so.id,
+                    name        : so.name,
+                    description : so.description
+                }
+            });
+        });
     case 'credateTool':
         return  (async () => {
             const [
@@ -115,6 +132,22 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             return squads.credate(
                 intempus.squadsByName[args.name](assistantsByName),
                 existingSquad
+            );
+        });
+    case 'credateStructuredOutput':
+        return  (async () => {
+            const [
+                contacts,
+                assistantsByName,
+                existingStructuredOutput,
+            ] = await Promise.all([
+                Contacts.get(),
+                assistants.listByName(),
+                structuredOutputs.getByName(args.name),
+            ]);
+            return structuredOutputs.credate(
+                intempus.structuredOutputsByName[args.name](contacts, assistantsByName),
+                existingStructuredOutput
             );
         });
     case 'credateTools':
@@ -173,18 +206,40 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 })
             );
         });
+    case 'credateStructuredOutputs':
+        return (async () => {
+            const [
+                contacts,
+                assistantsByName,
+                structuredOutputsByName
+            ] = await Promise.all([
+                Contacts.get(),
+                assistants.listByName(),
+                structuredOutputs.listByName(),
+            ]);
+            return Promise.all(
+                Object.entries(intempus.structuredOutputsByName).map( ([outputName,getOutputDto]) => {
+                    return structuredOutputs.credate(
+                        getOutputDto(contacts, assistantsByName),
+                        structuredOutputsByName[outputName]
+                    );
+                })
+            );
+        });
     case 'credateAll':
         return (async () => {
             const [
                 contacts,
                 toolsByName,
                 assistantsByName,
-                squadsByName
+                squadsByName,
+                structuredOutputsByName
             ] = await Promise.all([
                 Contacts.get(),
                 tools.listByName(),
                 assistants.listByName(),
                 squads.listByName(),
+                structuredOutputs.listByName(),
             ]);
             return Promise.all([
                 ...Object.entries(intempus.assistantsByName).map( ([assistantName,getAssistantDto]) => {
@@ -204,9 +259,23 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                         getSquadDto(assistantsByName),
                         squadsByName[squadName]
                     );
+                }),
+                ...Object.entries(intempus.structuredOutputsByName).map( ([outputName,getOutputDto]) => {
+                    return structuredOutputs.credate(
+                        getOutputDto(contacts, assistantsByName),
+                        structuredOutputsByName[outputName]
+                    );
                 })
             ]);
         });
+    case 'getCallSuccessRate':
+        return (() => vapiApi.getCallSuccessRate(args.id));
+    case 'getAverageCallSuccessRate':
+        return (() => vapiApi.getAverageCallSuccessRate(args.limit));
+    case 'getCallStructuredOutputs':
+        return (() => vapiApi.getCallStructuredOutputs(args.id));
+    case 'listCalls':
+        return (() => vapiApi.listCalls(args.limit));
     }
     // Nothing is found
     return () => {

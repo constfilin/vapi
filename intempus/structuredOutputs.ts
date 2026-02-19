@@ -92,7 +92,7 @@ export const getCallSummary = (
                     description: "Name or department the call was transferred to, if applicable"
                 }
             },
-            required: ["callerName","callerPhone","callerEmail","propertyAddress","inquiryType", "inquirySummary", "actionItems", "sentiment", "callTransferred", "transferredTo"],
+            required: ["inquiryType", "inquirySummary", "callTransferred"],
         }
     };
 };
@@ -139,7 +139,7 @@ export const getCustomerFeedback = (
                     description: "Areas mentioned for potential improvement"
                 }
             },
-            required: ["satisfactionLevel", "feedbackText", "issuesResolved"]
+            required: []
         }
     };
 };
@@ -210,7 +210,7 @@ export const getMaintenanceRequest = (
                     description: "Best time to contact the tenant for scheduling"
                 }
             },
-            required: ["propertyAddress", "urgencyLevel", "maintenanceType", "issueDescription"]
+            required: []
         }
     };
 }
@@ -277,7 +277,7 @@ export const getLeasingInquiry = (
                     description: "Any special requirements or preferences"
                 }
             },
-            required: ["prospectName", "desiredLocation", "moveInDate"]
+            required: []
         }
     };
 }
@@ -349,7 +349,7 @@ export const getPropertyOwnerRequest = (
                     description: "Preferred time for callback"
                 }
             },
-            required: ["ownerName", "propertyAddress", "serviceType"]
+            required: []
         }
     };
 }

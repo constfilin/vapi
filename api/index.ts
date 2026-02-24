@@ -208,7 +208,7 @@ export default () => {
                             const vmPrompt = contact.vmPrompt || `to describe its issue to '${canonicalName}'`;
                             const result =  ([0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour)) ?
                                 `ask the user ${vmPrompt}, save its answer to a text and call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from ${vapi_message?.customer?.number||'n/a'}" and that text` :
-                                `ask user to confirm that the user wants to talk to '${canonicalName}'. If user says yes, then call redirectCall with +1${contact.phoneNumbers[0]}. Otherwise ask user again the user wants to speak to.`;
+                                `ask user to confirm that the user wants to talk to '${canonicalName}'. If user confirms, then call redirectCall with +1${contact.phoneNumbers[0]}. Otherwise ask user again the user wants to speak to.`;
                             server.module_log(module.filename,2,`Handled '${tc['function'].name}'`,args,result);
                             return {
                                 toolCallId  : tc.id,

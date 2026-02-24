@@ -284,7 +284,7 @@ export const getUnkHOA = (
                 //'user-interrupted',
                 //'voice-input'
             ],
-            startSpeakingPlan: { waitSeconds: 1.5 },
+            startSpeakingPlan: { waitSeconds: 0.5 },
         },
         _getTranscriber(contacts),
         undefined /*[
@@ -307,7 +307,7 @@ ${_joinSteps([
    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`,
    `Once the email is sent, then transfer the call as follows:
    - If the caller asks for maintenance: call "redirectCall" with +15103404275.
-   - If the caller asks for payments, parking calls, estoppel requests, or application status: call "redirectCall" with +15103404275.
+   - If the caller asks for payments, parking calls, estoppel requests, or application status: say that you are forwarding to Payments and call "redirectCall" with +15103404275.
    - If the caller asks for community association management services sales: call "redirectCall" with +15103404275.
    - If the caller asks for emergency maintenance: call "redirectCall" with  +19162358444.
    - If the caller wants to return to the previous menu: call "handoffToAssistant" to "Intempus Introduction".`
@@ -329,7 +329,7 @@ export const getUnkPropertyOwner = (
             name            : "Intempus PropertyOwner",
             firstMessage    : "This is Intempus Realty Property Owner menu.",
             firstMessageMode: "assistant-speaks-first-with-model-generated-message",
-            startSpeakingPlan: { waitSeconds: 1.5 }
+            startSpeakingPlan: { waitSeconds: 0.5 }
         },
         _getTranscriber(contacts),
         undefined /*[

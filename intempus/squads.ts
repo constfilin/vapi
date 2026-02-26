@@ -4,6 +4,7 @@ import {
 
 import getHandoffToolItem   from './getHandoffToolItem';
 import * as intempus        from '.';
+import * as intempusConsts  from './consts';
 
 export const getIVR = (
     existingAssistantsByName    : Record<string,Vapi.Assistant>,
@@ -26,25 +27,29 @@ export const getIVR = (
             // First goes the Main assistant
             {
                 assistantId : existingMainAssistant.id,
-                assistantOverrides : {
-                    'tools:append' : [
-                        getHandoffToolItem([{id:existingIntroductionAssistant.id}])
-                    ]
-                }
+                ...(intempusConsts.handoffsAttachedToSquads ? {
+                    assistantOverrides : {
+                        'tools:append' : [
+                            getHandoffToolItem([{id:existingIntroductionAssistant.id}])
+                        ]
+                    }} : {}
+                )
             },
             // Second goes the Unknown Introduction assistant
             {
                 assistantId : existingIntroductionAssistant.id,
-                assistantOverrides : {
-                    'tools:append' : [
-                        getHandoffToolItem(handoffAssistantNames.map( (name) => {
-                            const existingAssistant = existingAssistantsByName[name];
-                            if( !existingAssistant )
-                                throw Error(`Expected existing assistant ${name} to be present`);
-                            return {id:existingAssistant.id};
-                        }))
-                    ]
-                }
+                ...(intempusConsts.handoffsAttachedToSquads ? {
+                    assistantOverrides : {
+                        'tools:append' : [
+                            getHandoffToolItem(handoffAssistantNames.map( (name) => {
+                                const existingAssistant = existingAssistantsByName[name];
+                                if( !existingAssistant )
+                                    throw Error(`Expected existing assistant ${name} to be present`);
+                                return {id:existingAssistant.id};
+                            }))
+                        ]
+                    }} : {}
+                )
             },
             // Then go all other assistants except, of course, the introduction and IntempusBot
             ...handoffAssistantNames
@@ -54,11 +59,13 @@ export const getIVR = (
                         throw Error(`Expected existing assistant ${name} to be present`);
                     return {
                         assistantId : existingAssistant.id,
-                        assistantOverrides : {
-                            'tools:append' : [
-                                getHandoffToolItem([{id:existingIntroductionAssistant.id}])
-                            ]
-                        }
+                        ...(intempusConsts.handoffsAttachedToSquads ? {
+                            assistantOverrides : {
+                                'tools:append' : [
+                                    getHandoffToolItem([{id:existingIntroductionAssistant.id}])
+                                ]
+                            }} : {}
+                        )
                     };
                 })
         ]

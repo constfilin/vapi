@@ -67,3 +67,5 @@ export const groupExtensions = {
     "Emergency Group"   : "+19162358444",
     "Leasing Group"     : "+14083593034"
 }
+
+export const handoffsAttachedToSquads = false;

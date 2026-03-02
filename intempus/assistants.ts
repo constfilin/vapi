@@ -9,6 +9,10 @@ import getHandoffToolItem   from './getHandoffToolItem';
 import * as intempusConsts  from './consts';
 
 const _joinSteps = ( steps:string[] ) : string => {
+    if( steps.length === 0 )
+        throw Error("steps is empty");
+    if( steps.length === 1 )
+        return steps[0];
     return steps.map((s,ndx) => {
         return `${ndx+1}. ${s}`;
     }).join("\n");
@@ -513,27 +517,31 @@ export const getUnkIntroduction = (
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
-    `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
-    If the caller names one of the categories below, then execute the corresponding instruction immediately without asking the next questions. 
-    If the caller does not respond affirmatively to any of the questions, then repeat the questions again in a loop until you get an affirmative response. 
-    The questions and instructions are as follows: 
-    a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
-        - Tell "I am forwarding your call to our H-O-A and Community Management Services."
-        - handoff to assistant "Intempus HOA".
-    b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
-        - Tell "I am forwarding your call to our Property Management Services."
-        - Call "handoffToAssistant" with "Intempus PropertyOwner".
-    c. "Do you know the name of the person you would like to talk to?"
-        - Tell "I am forwarding your call to our Dial By Name assistant"
-        - Call "handoffToAssistant" with "Intempus DialByName".
-    d. "Would you like to leave your information for a callback from Intempus?"
-        - Tell "I am forwarding your call to our Callback Form assistant"
-        - Call "handoffToAssistant" with "Intempus CallbackForm"
-    e. "Do you need emergency maintenance assistance?"
-        - Call "redirectCall" with  +19162358444
-    f. "Would you like to hear these options again?"
-        - Go to the first task again`,
-    `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
+    `At any point during the call (even if you are in the middle of asking a question) if the caller mentions 
+    a specific service, department, keyword or need, *stop the script immediately* and execute the corresponding action. 
+    Do not wait for them to answer a "yes/no" question if they have already provided their intent.
+    
+    *Routing Logic & Keywords:*
+    Monitor the caller's speech for the following intents:
+    | Category / Intent | Keywords to Listen For | Action to Take |
+    | :--- | :--- | :--- |
+    | *HOA Management* | HOA, Homeowners Association, Board Member, Community Management. | Tell: "I am forwarding you to HOA and Community Management.". Call handoffToAssistant with "Intempus HOA" |
+    | *Property Management* | Rental, Tenant, Owner, Showing, Selling, Renting, Property Manager. | Tell: "I am forwarding you to Property Management Services." Call handoffToAssistant with "Intempus PropertyOwner" |
+    | *Dial By Name* | Specific person's name, Directory, Talk to [Name]. | Tell: "I am forwarding you to our Dial By Name assistant." Call handoffToAssistant with "Intempus DialByName" |
+    | *Callback* | Call me back, Leave my info, Representative, Callback. | Tell: "I am forwarding you to our Callback Form assistant." Call handoffToAssistant with "Intempus CallbackForm" |
+    | *Emergency* | Emergency, Maintenance Emergency, Leak, Urgent Repair. | Redirect Call: +19162358444 |
+
+    *Secondary Directive (The Menu Sequence)*:
+    If the caller has not expressed a specific intent, guide them by asking the following questions one-by-one. After each question, pause and listen.
+    1. "Are you calling about HOA or Community Management Services?"
+    2. "Are you calling about rental management, a property showing, or selling a home?"
+    3. "Do you know the name of the person you’d like to speak with?"
+    4. "Would you like to leave your information for a callback?"
+    5. "Do you have an urgent maintenance emergency?"
+
+    *Fallback*:
+    If the caller goes through all options without a match, say: "I'm sorry, I didn't catch that. Would you like to hear the options again, or can you tell me in a few words how I can help you?" 
+    Then, restart the sequence if requested.`
 ])}
 </TASKS>
 

@@ -300,10 +300,7 @@ export const getUnkHOA = (
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
-    `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
-    If the caller proactively identifies one of the categories below, then execute the corresponding instruction immediately without asking the next questions.
-    If the caller does not respond affirmatively to *ANY* of the questions, then repeat the questions again in a loop until you get an affirmative response.
-    The questions and instructions are as follows:
+    `${intempusConsts.callerIntentMenuInstructions}:
     a. "Are you calling about regular maintenance, parking calls or application status?"
         - Follow the instructions in the EMAILING_STEPS section.
         - Tell "I am forwarding your call to our regular maintenance services."
@@ -322,6 +319,8 @@ ${_joinSteps([
 ])}
 </TASKS>
 
+${intempusConsts.systemPromptHeader}
+
 <EMAILING_STEPS>
 ${_joinSteps([
     "Ask for the caller's name",
@@ -329,12 +328,11 @@ ${_joinSteps([
     "Confirm both details back to the caller",
     `ONLY AFTER confirming the caller's name and the property name, send an email using the 'sendEmail' tool with:
     - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
-    - Subject: "New Call: [Property Name] - From [Caller Name]"
+    - Subject: "New Call to HOA: [Property Name] - From [Caller Name]"
     - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`
 ])}
 </EMAILING_STEPS>
 
-${intempusConsts.systemPromptHeader}
 ${intempusConsts.systemPromptFooter}`,
     );
 }
@@ -368,33 +366,42 @@ export const getUnkPropertyOwner = (
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
-    `Determine which category their call belongs to (${callCategories.join(', ')}).
-    * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools after this step.*`,
-    `Before transferring the call to ANY number, you must ALWAYS:
-    * Ask for the caller's name
-    * Ask for the name of the property
-    * Confirm both details back to the caller`,
-    `ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
-    - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
-    - Subject: "New Call: [Property Name] - From [Caller Name]"
-    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [call category]"`,
-    `Only AFTER all of the following:
-    - The caller's name is collected
-    - The property name is collected
-    - The details are confirmed
-    - The email has been sent
-    THEN apply the correct routing as explained in the CALLROUTING section.`
+    `${intempusConsts.callerIntentMenuInstructions}:
+    a. "Are you calling about rental property maintenance?"
+        - Follow the instructions in the EMAILING_STEPS section.
+        - Tell "I am forwarding your call to our regular maintenance services."
+        - Call "redirectCall" with +15103404275.
+    b. "Are you calling about scheduling a showing, leasing, submitting a rental application, or making a rent payment?"
+        - Follow the instructions in the EMAILING_STEPS section.
+        - Tell "I am forwarding your call to our community association management payments."
+        - Call "redirectCall" with +14083593034.
+    c. "Are you calling about selling a property?"
+        - Follow the instructions in the EMAILING_STEPS section.
+        - Call "redirectCall" with  +15103404275.
+    d. "Are you calling about rental property emergency maintenance?"
+        - Call the redirectCall tool with +19162358444.
+    e. "Would you like to hear these options again?"
+        - Go to the first task again
+    f. "Do you want to return to the previous menu?"
+        - Call "handoffToAssistant" to "Intempus Introduction"`,
+    `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`,
 ])}
 </TASKS>
 
 ${intempusConsts.systemPromptHeader}
-<CALLROUTING>
-- For rental property maintenance: call the redirectCall tool with +15103404275.
-- For scheduling a showing, leasing, submitting a rental application, or making a rent payment: call the redirectCall tool with +14083593034.
-- For selling a property: call the redirectCall tool with +15103404275.
-- For rental property emergency maintenance: call the redirectCall tool with +19162358444.
-- If the caller wants to return to the previous menu: call "handoffToAssistant" to "Intempus Introduction".
-</CALLROUTING>
+
+<EMAILING_STEPS>
+${_joinSteps([
+    "Ask for the caller's name",
+    "Ask for the name of the property",
+    "Confirm both details back to the caller",
+    `ONLY AFTER confirming the caller's name and the property name, send an email using the 'sendEmail' tool with:
+    - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
+    - Subject: "New Call to PropertyOwner: [Property Name] - From [Caller Name]"
+    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`
+])}
+</EMAILING_STEPS>
+
 ${intempusConsts.systemPromptFooter}`,
     );
 }
@@ -459,7 +466,7 @@ ${_joinSteps([
     `Ask caller: "Would you like to leave us your email address" and if the caller responds affirmatively, then ask "Please provide your email address", re-confirm it and after the re-confirmation save the answer as 'emailAddress'.`,
     `If the caller confirms the information, then tell them: "Thank you for providing this information. A representative will reach out to you shortly." and send an email:
         - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
-        - Subject: "New Call: [Property Name] - From [Caller Name]"
+        - Subject: "New Call for CallbackForm: [Property Name] - From [Caller Name]"
         - Body: "A client {{clientType}} is interested in {{propertyInterest}}. Property address is {{propertyAddress}}. Location of interest is {{locationInterest}}. Client name is {{name}}, email address is {{emailAddress}}, phone number is {{customer.number}}.`,
     `If instead of the answer on any of the above questions the caller says something like "I want to return to the previous menu", then call "handoffToAssistant" to "Intempus Introduction".`
 ])}
@@ -498,7 +505,8 @@ ${_joinSteps([
     `Your main task is to assist callers in reaching the appropriate contact within Intempus Realty by name.`,
     `Greet the caller by saying "You reach the Intempus Realty Dial By Name directory".`,
     `Ask the caller for the name of the person they wish to reach and make sure that this name is mentioned in CALLROUTING section.,
-       * If it is not mentioned, politely inform the caller that the name was not found and ask them to repeat or provide additional details.`,
+       * If it is not mentioned, politely inform the caller that the name was not found and ask them to repeat or provide additional details.
+       * If the caller asks for previous menu, then call "handoffToAssistant" to "Intempus Introduction".`,
     `Once you have the contact name, ask for the property name/address that the call is regarding.`,
     `Then ask for the caller's name.`,
     `After collecting all three pieces of information (contact name, property name, and caller name), confirm the details back to the caller.`,
@@ -537,10 +545,7 @@ export const getUnkIntroduction = (
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
-    `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
-    If the caller proactively identifies one of the categories below, then execute the corresponding instruction immediately without asking the next questions. 
-    If the caller does not respond affirmatively to any of the questions, then repeat the questions again in a loop until you get an affirmative response. 
-    The questions and instructions are as follows: 
+    `${intempusConsts.callerIntentMenuInstructions}: 
     a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
         - Tell "I am forwarding your call to our H-O-A and Community Management Services."
         - Call "handoffToAssistant" with "Intempus HOA".

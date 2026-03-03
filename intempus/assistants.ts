@@ -159,6 +159,7 @@ export const getBotOldVersion = (
     existingAssistant   : (Vapi.Assistant|undefined)
  ) : Vapi.CreateAssistantDto => {
 
+    const config = Config.get();
     // let's look at existing assistant
     const firstSystemMessageContent = existingAssistant?.model?.messages?.find( m => {
         return m.role==='system'
@@ -183,7 +184,7 @@ ${intempusConsts.securityAndSafetyOverrides}
 <GEOGRAPHIC_SERVICE_AREA_RESTRICTION>
 - Intempus Realty only provides services in California, Indiana, Florida, Nevada, South Carolina, Georgia, Ohio, and Tennessee.
 - If the caller provides a name of a city or county, you will guess the state based on the provided location and re-confirm the state with the caller.
-- If the caller request involves a location outside of these states, then tell "we have a business partner that is providing service in this state, please leave your name, the best time and phone number to reach you and someone will get back to you.". Collect the caller's response to a text and send an email to mkhesin@intemput.net with subject "New Inquiry for {{callerLocation}}" and body "Caller Name: {{callerName}}, Phone: {{callerPhone}}, Message: {{callerMessage}}". Then end the call.
+- If the caller request involves a location outside of these states, then tell "we have a business partner that is providing service in this state, please leave your name, the best time and phone number to reach you and someone will get back to you.". Collect the caller's response to a text and send an email to ${config.notificationEmailAddress||'mkhesin@intemput.net'} with subject "New Inquiry for {{callerLocation}}" and body "Caller Name: {{callerName}}, Phone: {{callerPhone}}, Message: {{callerMessage}}". Then end the call.
 - If the caller asks for H-O-A then call guessState. If the result is unknown then clarify which state they are referring to. If the state is California, then act as if the caller asks for California H-O-A. If the state is Florida then act as if the caller asks for Florida H-O-A. Otherwise act as if the caller asks for "General H-O-A".
 - If the caller asks for Property Management then guessState. If the result is unknown then clarify which state they are referring to. If the state is California or Indiana, then act as if the caller asks for "Property Management for California, Indiana". Otherwise act as if the caller asks for "Property Management for Tennessee, Georgia, South Carolina, Ohio, Florida".
 - If the caller asks for Leasing then call guessState. If the result is unknown then clarify which state they are referring to. If the state is Indiana, then act as if the caller asks for "Leasing for Indiana". For any other state, including California, act as if the caller asks for "Leasing Inquiries".
@@ -299,22 +300,30 @@ export const getUnkHOA = (
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
-    `Ask the caller which category their call belongs to (H-O-A maintenance, H-O-A payments, parking calls, estoppel requests, application status, H-O-A community association management services sales, H-O-A emergency maintenance, or returning to the previous menu).
-    * This step is ONLY for classification. Do NOT transfer the call at this point and do NOT call any tools at this step.*`,
+    `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
+    If the caller proactively identifies one of the categories below, then execute the corresponding instruction immediately without asking the next questions.
+    If the caller does not respond affirmatively to *ANY* of the questions, then repeat the questions again in a loop until you get an affirmative response.
+    The questions and instructions are as follows:
+    a. "Are you calling about regular maintenance, parking calls or application status?"
+        - Call "redirectCall" with +15103404275.
+    b. "Are you calling about payments, estoppel requests, or community association management services sales?"
+        - Call "redirectCall" with +15103404275.
+    c. "Do you need an emergency maintenance assistance?"
+        - Call "redirectCall" with  +19162358444
+    d. "Would you like to hear these options again?"
+        - Go to the first task again
+    e. "Do you want to return to the previous menu?"
+        - Call "handoffToAssistant" to "Intempus Introduction"`,
+    `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`,
     `Before transferring the call to ANY number, you must ALWAYS:
-   - Ask for the caller's name
-   - Ask for the name of the property
-   - Confirm both details back to the caller`,
-   `ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
-   - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
-   - Subject: "New Call: [Property Name] - From [Caller Name]"
-   - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`,
-   `Once the email is sent, then transfer the call as follows:
-   - If the caller asks for maintenance: call "redirectCall" with +15103404275.
-   - If the caller asks for payments, parking calls, estoppel requests, or application status: say that you are forwarding to Payments and call "redirectCall" with +15103404275.
-   - If the caller asks for community association management services sales: call "redirectCall" with +15103404275.
-   - If the caller asks for emergency maintenance: call "redirectCall" with  +19162358444.
-   - If the caller wants to return to the previous menu: call "handoffToAssistant" to "Intempus Introduction".`
+    - Ask for the caller's name
+    - Ask for the name of the property
+    - Confirm both details back to the caller
+    ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
+    - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
+    - Subject: "New Call: [Property Name] - From [Caller Name]"
+    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`,
+   `Once the email is sent, then transfer the call as instructed above.`
 ])}
 </TASKS>
 
@@ -418,6 +427,7 @@ export const getUnkCallbackForm = (
     toolsByName         : Record<string,Vapi.ListToolsResponseItem>,
     existingAssistant   : (Vapi.Assistant|undefined),
 ) : Vapi.CreateAssistantDto => {
+    const config = Config.get();
     return _completeAssistant(
         {
             // Basic metadata (property owner focused)
@@ -440,7 +450,10 @@ ${_joinSteps([
     `If the caller is looking to rent their property, ask: "What is the address of your property" and save the answer as 'propertyAddress'. Otherwise ask: "What state, county or zip code you would like your to live in?" and save the answer as 'locationInterest'.`,
     `Ask caller: "What is your first and last name?" and save the answer as 'name'.`,
     `Ask caller: "Would you like to leave us your email address" and if the caller responds affirmatively, then ask "Please provide your email address", re-confirm it and after the re-confirmation save the answer as 'emailAddress'.`,
-    `After collecting all the above information, tell the customer something like "You are an {{clientType}} client interested in {{propertyInterest}}. Your property address is {{propertyAddress}}. Your location of interest is {{locationInterest}}. Your name is {{name}}. Your email address is {{emailAddress}}. Your phone number is {{customer.number}}. Thank you for providing this information. A representative will reach out to you shortly.".`,
+    `If the caller confirms the information, then tell them: "Thank you for providing this information. A representative will reach out to you shortly." and send an email:
+        - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
+        - Subject: "New Call: [Property Name] - From [Caller Name]"
+        - Body: "A client {{clientType}} is interested in {{propertyInterest}}. Property address is {{propertyAddress}}. Location of interest is {{locationInterest}}. Client name is {{name}}, email address is {{emailAddress}}, phone number is {{customer.number}}.`,
     `If instead of the answer on any of the above questions the caller says something like "I want to return to the previous menu", then call "handoffToAssistant" to "Intempus Introduction".`
 ])}
 </TASKS>
@@ -517,31 +530,27 @@ export const getUnkIntroduction = (
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
-    `At any point during the call (even if you are in the middle of asking a question) if the caller mentions 
-    a specific service, department, keyword or need, *stop the script immediately* and execute the corresponding action. 
-    Do not wait for them to answer a "yes/no" question if they have already provided their intent.
-    
-    *Routing Logic & Keywords:*
-    Monitor the caller's speech for the following intents:
-    | Category / Intent | Keywords to Listen For | Action to Take |
-    | :--- | :--- | :--- |
-    | *HOA Management* | HOA, Homeowners Association, Board Member, Community Management. | Tell: "I am forwarding you to HOA and Community Management.". Call handoffToAssistant with "Intempus HOA" |
-    | *Property Management* | Rental, Tenant, Owner, Showing, Selling, Renting, Property Manager. | Tell: "I am forwarding you to Property Management Services." Call handoffToAssistant with "Intempus PropertyOwner" |
-    | *Dial By Name* | Specific person's name, Directory, Talk to [Name]. | Tell: "I am forwarding you to our Dial By Name assistant." Call handoffToAssistant with "Intempus DialByName" |
-    | *Callback* | Call me back, Leave my info, Representative, Callback. | Tell: "I am forwarding you to our Callback Form assistant." Call handoffToAssistant with "Intempus CallbackForm" |
-    | *Emergency* | Emergency, Maintenance Emergency, Leak, Urgent Repair. | Redirect Call: +19162358444 |
-
-    *Secondary Directive (The Menu Sequence)*:
-    If the caller has not expressed a specific intent, guide them by asking the following questions one-by-one. After each question, pause and listen.
-    1. "Are you calling about HOA or Community Management Services?"
-    2. "Are you calling about rental management, a property showing, or selling a home?"
-    3. "Do you know the name of the person you’d like to speak with?"
-    4. "Would you like to leave your information for a callback?"
-    5. "Do you have an urgent maintenance emergency?"
-
-    *Fallback*:
-    If the caller goes through all options without a match, say: "I'm sorry, I didn't catch that. Would you like to hear the options again, or can you tell me in a few words how I can help you?" 
-    Then, restart the sequence if requested.`
+    `Ask the caller the next series of yes/no questions one-by-one. Pause after each question to give the user a chance to answer. Execute the instruction after each question as soon as you get an affirmative answer.
+    If the caller proactively identifies one of the categories below, then execute the corresponding instruction immediately without asking the next questions. 
+    If the caller does not respond affirmatively to any of the questions, then repeat the questions again in a loop until you get an affirmative response. 
+    The questions and instructions are as follows: 
+    a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
+        - Tell "I am forwarding your call to our H-O-A and Community Management Services."
+        - Call "handoffToAssistant" with "Intempus HOA".
+    b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
+        - Tell "I am forwarding your call to our Property Management Services."
+        - Call "handoffToAssistant" with "Intempus PropertyOwner".
+    c. "Do you know the name of the person you would like to talk to?"
+        - Tell "I am forwarding your call to our Dial By Name assistant"
+        - Call "handoffToAssistant" with "Intempus DialByName".
+    d. "Would you like to leave your information for a callback from Intempus?"
+        - Tell "I am forwarding your call to our Callback Form assistant"
+        - Call "handoffToAssistant" with "Intempus CallbackForm"
+    e. "Do you need emergency maintenance assistance?"
+        - Call "redirectCall" with  +19162358444
+    f. "Would you like to hear these options again?"
+        - Go to the first task again`,
+    `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
 ])}
 </TASKS>
 

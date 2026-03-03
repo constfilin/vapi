@@ -305,8 +305,12 @@ ${_joinSteps([
     If the caller does not respond affirmatively to *ANY* of the questions, then repeat the questions again in a loop until you get an affirmative response.
     The questions and instructions are as follows:
     a. "Are you calling about regular maintenance, parking calls or application status?"
+        - Follow the instructions in the EMAILING_STEPS section.
+        - Tell "I am forwarding your call to our regular maintenance services."
         - Call "redirectCall" with +15103404275.
     b. "Are you calling about payments, estoppel requests, or community association management services sales?"
+        - Follow the instructions in the EMAILING_STEPS section.
+        - Tell "I am forwarding your call to our community association management payments."
         - Call "redirectCall" with +15103404275.
     c. "Do you need an emergency maintenance assistance?"
         - Call "redirectCall" with  +19162358444
@@ -314,18 +318,21 @@ ${_joinSteps([
         - Go to the first task again
     e. "Do you want to return to the previous menu?"
         - Call "handoffToAssistant" to "Intempus Introduction"`,
-    `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`,
-    `Before transferring the call to ANY number, you must ALWAYS:
-    - Ask for the caller's name
-    - Ask for the name of the property
-    - Confirm both details back to the caller
-    ONLY AFTER confirming the caller's name and the property name, send an email using the "sendEmail" tool with:
-    - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
-    - Subject: "New Call: [Property Name] - From [Caller Name]"
-    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`,
-   `Once the email is sent, then transfer the call as instructed above.`
+    `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
 ])}
 </TASKS>
+
+<EMAILING_STEPS>
+${_joinSteps([
+    "Ask for the caller's name",
+    "Ask for the name of the property",
+    "Confirm both details back to the caller",
+    `ONLY AFTER confirming the caller's name and the property name, send an email using the 'sendEmail' tool with:
+    - To: "${config.notificationEmailAddress||'mkhesin@intempus.net'}"
+    - Subject: "New Call: [Property Name] - From [Caller Name]"
+    - Body: "A caller named [Caller Name] is inquiring about property [Property Name] and is asking about [Caller's Request]"`
+])}
+</EMAILING_STEPS>
 
 ${intempusConsts.systemPromptHeader}
 ${intempusConsts.systemPromptFooter}`,
@@ -540,7 +547,7 @@ ${_joinSteps([
     b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
         - Tell "I am forwarding your call to our Property Management Services."
         - Call "handoffToAssistant" with "Intempus PropertyOwner".
-    c. "Do you know the name of the person you would like to talk to?"
+    c. "Would you like to get a name directory and know the name of the person you would like to talk to?"
         - Tell "I am forwarding your call to our Dial By Name assistant"
         - Call "handoffToAssistant" with "Intempus DialByName".
     d. "Would you like to leave your information for a callback from Intempus?"

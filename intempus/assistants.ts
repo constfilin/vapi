@@ -531,7 +531,7 @@ export const getUnkIntroduction = (
         {
             name            : "Intempus Introduction",
             firstMessage    : "You've reached the Intempus Realty Main Menu. Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
-            firstMessageMode: "assistant-speaks-first"
+            firstMessageMode: "assistant-speaks-first-with-model-generated-message"
         },
         _getTranscriber(contacts),
         intempusConsts.handoffsAttachedToSquads ? undefined  : [
@@ -545,6 +545,7 @@ export const getUnkIntroduction = (
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
+    `Introduce yourself based on the information in the IDENTITY section.`,
     `${intempusConsts.callerIntentMenuInstructions}: 
     a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
         - Tell "I am forwarding your call to our H-O-A and Community Management Services."

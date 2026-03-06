@@ -70,8 +70,7 @@ export const groupExtensions = {
 
 export const handoffsAttachedToSquads = false;
 
-export const callerIntentMenuInstructions = `Ask the user the next series of yes/no questions one-by-one. 
-    Each question identifies a category of the user call.
+export const callerIntentMenuInstructions = `Identify the category of the call by asking the next series of yes/no questions one-by-one. 
     Pause after each question to give the user a chance to answer. 
     Execute the instructions after each question as soon as you get an affirmative answer.
     If the user proactively identifies one of the categories below, then execute the corresponding instructions immediately.

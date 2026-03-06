@@ -545,23 +545,39 @@ export const getUnkIntroduction = (
         _getToolIds(toolsByName,['redirectCall','sendEmail']),
         `<TASKS>
 ${_joinSteps([
-    `Introduce yourself based on the information in the IDENTITY section.`,
-    `${intempusConsts.callerIntentMenuInstructions}: 
-    a. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
+    `Briefly introduce yourself using the information in the IDENTITY section.`,
+    `*Primary Directive (Priority)*: 
+    At any point during the call (even if you are in the middle of asking a question) if the caller mentions a specific service, department, 
+    or need, stop the script immediately and execute the corresponding action. Do not wait for them to answer a "yes/no" question if they 
+    have already provided their intent or keyword. If the caller does not promptly provide the intent after then proceed to the menu sequence.
+
+    *Routing Logic & Keywords*:
+    Monitor the caller's speech for the following intents:
+    | Indent Keywords to Listen For | Action to Take |
+    | :--- | :--- |
+    | Leasing, Rentals | Call "redirectCall" with +14083593034 |
+    | Maintenance, Repair | Call "redirectCall" with +15103404275 |
+    | Emergency | Call "redirectCall" with +19162358444 |
+    | Finance, Accounting, Payments, Accounts Payable, Account Receivable, Operator | Call "redirectCall" with +14089131082 |
+    | Sales | Call "redirectCall" with +14089635182 |
+    | Property Management | Call "handoffToAssistant" with "Intempus PropertyOwner" |
+    | HOA Management | Call "handoffToAssistant" with "Intempus HOA" |
+
+    *Secondary Directive (The Menu Sequence)*:
+    If the caller has not expressed a specific intent, guide them by asking the following questions one-by-one. After each question, pause and listen.
+    1. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
         - Tell "I am forwarding your call to our H-O-A and Community Management Services."
         - Call "handoffToAssistant" with "Intempus HOA".
-    b. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
+    2. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
         - Tell "I am forwarding your call to our Property Management Services."
         - Call "handoffToAssistant" with "Intempus PropertyOwner".
-    c. "Would you like to get a name directory and know the name of the person you would like to talk to?"
+    3. "Would you like to get a name directory and know the name of the person you would like to talk to?"
         - Tell "I am forwarding your call to our Dial By Name assistant"
         - Call "handoffToAssistant" with "Intempus DialByName".
-    d. "Would you like to leave your information for a callback from Intempus?"
+    4. "Would you like to leave your information for a callback from Intempus?"
         - Tell "I am forwarding your call to our Callback Form assistant"
         - Call "handoffToAssistant" with "Intempus CallbackForm"
-    e. "Do you need emergency maintenance assistance?"
-        - Call "redirectCall" with  +19162358444
-    f. "Would you like to hear these options again?"
+    5. "Would you like to hear these options again?"
         - Go to the first task again`,
     `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
 ])}

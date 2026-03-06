@@ -575,9 +575,10 @@ ${_joinSteps([
     | Leasing, Rentals | Call "redirectCall" with +14083593034 |
     | Maintenance, Repair | Call "redirectCall" with +15103404275 |
     | Emergency | Call "redirectCall" with +19162358444 |
-    | Finance, Accounting, Payments, Accounts Payable, Account Receivable, Operator | Call "redirectCall" with +14089131082 |
+    | Finance, Accounting, Payments, Accounts Payable, Account Receivable, Operator, Representative | Call "redirectCall" with +14089131082 |
     | Sales | Call "redirectCall" with +14089635182 |
     | Property Management | Call "handoffToAssistant" with "Intempus PropertyOwner" |
+    | Directory | Call "handoffToAssistant" with "Intempus DialByName" |
     | HOA Management | Call "handoffToAssistant" with "Intempus HOA" |
     | Menu | Follow the instructions in MENU_SEQUENCE section |
     </KEYWORDS_AND_ACTIONS>`,

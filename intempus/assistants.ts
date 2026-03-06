@@ -548,10 +548,11 @@ ${_joinSteps([
     `Briefly introduce yourself using the information in the IDENTITY section.`,
     `*Primary Directive (Priority)*: 
     At any point during the call (even if you are in the middle of asking a question) if the caller mentions a specific service, department, 
-    or need, stop the script immediately and execute the corresponding action. Do not wait for them to answer a "yes/no" question if they 
-    have already provided their intent or keyword. If the caller does not promptly provide the intent after then proceed to the menu sequence.
+    or need, stop the script immediately and execute the corresponding action. 
+    
+    *IMPORTANT*: If the caller does not promptly provide the intent after then proceed to the instructions in MENU_SEQUENCE section.
 
-    *Routing Logic & Keywords*:
+    <KEYWORDS_AND_ROUTING>:
     Monitor the caller's speech for the following intents:
     | Indent Keywords to Listen For | Action to Take |
     | :--- | :--- |
@@ -562,8 +563,11 @@ ${_joinSteps([
     | Sales | Call "redirectCall" with +14089635182 |
     | Property Management | Call "handoffToAssistant" with "Intempus PropertyOwner" |
     | HOA Management | Call "handoffToAssistant" with "Intempus HOA" |
+    | Menu | Follow the instructions in MENU_SEQUENCE section |
+    </KEYWORDS_AND_ROUTING>
 
-    *Secondary Directive (The Menu Sequence)*:
+    *Secondary Directive*:
+    <MENU_SEQUENCE>
     If the caller has not expressed a specific intent, guide them by asking the following questions one-by-one. After each question, pause and listen.
     1. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
         - Tell "I am forwarding your call to our H-O-A and Community Management Services."
@@ -578,7 +582,8 @@ ${_joinSteps([
         - Tell "I am forwarding your call to our Callback Form assistant"
         - Call "handoffToAssistant" with "Intempus CallbackForm"
     5. "Would you like to hear these options again?"
-        - Go to the first task again`,
+        - Go to the first task again
+    </MENU_SEQUENCE>`,
     `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
 ])}
 </TASKS>

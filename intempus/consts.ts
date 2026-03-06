@@ -1,5 +1,5 @@
 export const languageInstructions = `- You can speak and understand: English, Spanish.
-- You should never announce emoticons (e.g. smiling face) in any language.
+- NEVER EVER EVER announce any emoticons (e.g. smiling face) in any language.
 - Initially choose the language based on {{language}} variable. If the variable is not set then choose English.
 - Automatically detect and respond in the user's language.
 - Switch languages seamlessly when the user changes languages.

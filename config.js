@@ -7,9 +7,14 @@ export default {
     simulatedPhoneNumber            : (process.env.SIMULATED_PHONE_NUMBER || ''),
     googleApiKey                    : (process.env.GOOGLE_API_KEY||'[hidden]'),
     worksheetName                   : (process.env.WORKSHEET_NAME||'Contacts'),
+    elevenLabsToolSecret            : (process.env.ELEVENLABS_TOOL_SECRET||'[hidden]'),
+    elevenLabsPrivateKey            : (process.env.ELEVENLABS_PRIVATE_KEY||''),
+    elevenLabsWorkspaceId           : (process.env.ELEVENLABS_WORKSPACE_ID||'[hidden]'),
+    // Will be deleted soon
     vapiOrgId                       : (process.env.VAPI_ORG_ID||'[hidden]'),
     vapiPrivateKey                  : (process.env.VAPI_PRIVATE_KEY||''),
     vapiToolSecret                  : (process.env.VAPI_TOOLS_SECRET||'[hidden]'),
+    
     vapeApiToken                    : (process.env.VAPE_API_TOKEN||'[hidden]'),
     publicUrl                       : (process.env.PUBLIC_URL||'http://127.0.0.1:9876/api'),                          // https://demo.tectransit.com/api/vapi
     replPort                        : (process.env.REPL_PORT ? parseInt(process.env.REPL_PORT) : 1338),

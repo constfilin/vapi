@@ -138,13 +138,13 @@ const _completeAssistant = (
             url             : `${config.publicUrl}/assistant/${assistant.name.replace(/[^a-zA-Z0-9-_]/g,"")}`,
             timeoutSeconds  : 30,
             // @ts-expect-error
-            secret          : config.vapiToolSecret,
+            secret          : config.elevenLabsToolSecret,
             // I've seen a situation VAPI _dost not_ submit the secret key in "X-Vapi-Secret" header
             // even though it is configured to do so. I am not surprised given all kinds of other
             // mess there (see https://discord.com/channels/1211482211119796234/1353414660212391937/1353415037166944412)
             // So, as a workaround, let's just have our own secret header
             headers: {
-                "X-Secret"  : config.vapiToolSecret
+                "X-Secret"  : config.elevenLabsToolSecret
             }
         },
         model,

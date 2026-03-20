@@ -1,14 +1,17 @@
 import * as intempus        from './intempus/';
+import * as elevenLabs      from './elevenlabs';
 import * as Contacts        from './Contacts';
 import { VapiApi }          from './VapiApi';
+import { ElevenLabsApi } from './ElevenLabsApi';
 
 import * as VapeApi         from './api/VapeApi';
 
 export const getCmdPromise = ( args:Record<string,any> ) => {
 
     const vapiApi       = new VapiApi();
-    const tools         = vapiApi.getTools();
-    const assistants    = vapiApi.getAssistants();
+    const elevenLabsApi = new ElevenLabsApi();
+    const tools         = elevenLabsApi.getTools();
+    const agents        = elevenLabsApi.getAgents();
     const squads        = vapiApi.getSquads();
     const structuredOutputs = vapiApi.getStructuredOutputs();
 
@@ -33,33 +36,21 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             args.question as string
         ));
     case 'getToolById':
-        return (() => tools.get({id:args.id}));
+        return (() => tools.get(args.id as string));
     case 'getTool':
     case 'getToolByName':
         return (() => tools.getByName(args.name));
     case 'listTools':
         return (async () => {
-            return (await tools.list()).map( t => {
-                return {
-                    id : t.id,
-                    'function.name' : t['function']?.name
-                }
-            });
+            return (await tools.list());
         });
-    case 'getAssistantById':
-        return (() => assistants.get({id:args.id}));
-    case 'getAssistant':
-    case 'getAssistantByName':
-        return (() => assistants.getByName(args.name));
-    case 'listAssistants':
-        return (async () => {
-            return (await assistants.list()).map( a => {
-                return {
-                    id      : a.id,
-                    name    : a.name
-                }
-            });
-        });
+    case 'getAgentById':
+        return (() => agents.get(args.id));
+    case 'getAgent':
+    case 'getAgentByName':
+        return (() => agents.getByName(args.name));
+    case 'listAgents':
+        return (() => agents.list());
     case 'getSquadById':
         return (() => squads.get({id:args.id}));
     case 'getSquad':
@@ -100,24 +91,26 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 tools.getByName(args.name),
             ]);
             return tools.credate(
-                intempus.toolsByName[args.name](contacts),
+                elevenLabs.toolsByName[args.name](contacts),
                 existingTool
             );
         });
-    case 'credateAssistant':
+    case 'credateAgent':
         return  (async () => {
             const [
                 contacts,
                 toolsByName,
-                existingAssistant,
+                existingAgent,
+                agentsByName,
             ] = await Promise.all([
                 Contacts.get(),
                 tools.listByName(),
-                assistants.getByName(args.name),
+                agents.getByName(args.name),
+                agents.listByName(),
             ]);
-            return assistants.credate(
-                intempus.assistantsByName[args.name](contacts,toolsByName,existingAssistant),
-                existingAssistant
+            return agents.credate(
+                elevenLabs.agentsByName[args.name](contacts,toolsByName, agentsByName),
+                existingAgent
             );
         });
     case 'credateSquad':
@@ -126,7 +119,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 assistantsByName,
                 existingSquad,
             ] = await Promise.all([
-                assistants.listByName(),
+                agents.listByName(),
                 squads.getByName(args.name),
             ]);
             return squads.credate(
@@ -142,7 +135,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 existingStructuredOutput,
             ] = await Promise.all([
                 Contacts.get(),
-                assistants.listByName(),
+                agents.listByName(),
                 structuredOutputs.getByName(args.name),
             ]);
             return structuredOutputs.credate(
@@ -160,7 +153,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 tools.listByName(),
             ]);
             return Promise.all(
-                Object.entries(intempus.toolsByName).map( ([toolName,getToolDto]) => {
+                Object.entries(elevenLabs.toolsByName).map( ([toolName,getToolDto]) => {
                     return tools.credate(
                         getToolDto(contacts),
                         toolsByName[toolName]
@@ -168,22 +161,22 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 })
             );
         });
-    case 'credateAssistants':
+    case 'credateAgents':
         return (async () => {
             const [
                 contacts,
                 toolsByName,
-                assistantsByName
+                agentsByName,
             ] = await Promise.all([
                 Contacts.get(),
                 tools.listByName(),
-                assistants.listByName(),
+                agents.listByName(),
             ]);
             return Promise.all(
-                Object.entries(intempus.assistantsByName).map( ([assistantName,getAssistantDto]) => {
-                    return assistants.credate(
-                        getAssistantDto(contacts,toolsByName,undefined),
-                        assistantsByName[assistantName]
+                Object.entries(elevenLabs.agentsByName).map( ([agentName,getAgentDto]) => {
+                    return agents.credate(
+                        getAgentDto(contacts,toolsByName, agentsByName),
+                        agentsByName[agentName]
                     );
                 })
             );
@@ -194,7 +187,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 assistantsByName,
                 squadsByName
             ] = await Promise.all([
-                assistants.listByName(),
+                agents.listByName(),
                 squads.listByName(),
             ]);
             return Promise.all(
@@ -214,7 +207,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 structuredOutputsByName
             ] = await Promise.all([
                 Contacts.get(),
-                assistants.listByName(),
+                agents.listByName(),
                 structuredOutputs.listByName(),
             ]);
             return Promise.all(
@@ -231,24 +224,24 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             const [
                 contacts,
                 toolsByName,
-                assistantsByName,
+                agentsByName,
                 squadsByName,
                 structuredOutputsByName
             ] = await Promise.all([
                 Contacts.get(),
                 tools.listByName(),
-                assistants.listByName(),
+                agents.listByName(),
                 squads.listByName(),
                 structuredOutputs.listByName(),
             ]);
             return Promise.all([
-                ...Object.entries(intempus.assistantsByName).map( ([assistantName,getAssistantDto]) => {
-                    return assistants.credate(
-                        getAssistantDto(contacts,toolsByName,assistantsByName[assistantName]),
-                        assistantsByName[assistantName]
+                ...Object.entries(elevenLabs.agentsByName).map( ([agentName,getAgentDto]) => {
+                    return agents.credate(
+                        getAgentDto(contacts,toolsByName),
+                        agentsByName[agentName]
                     );
                 }),
-                ...Object.entries(intempus.toolsByName).map( ([toolName,getToolDto]) => {
+                ...Object.entries(elevenLabs.toolsByName).map( ([toolName,getToolDto]) => {
                     return tools.credate(
                         getToolDto(contacts),
                         toolsByName[toolName]
@@ -256,13 +249,13 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 }),
                 ...Object.entries(intempus.squadsByName).map( ([squadName,getSquadDto]) => {
                     return squads.credate(
-                        getSquadDto(assistantsByName),
+                        getSquadDto(agentsByName),
                         squadsByName[squadName]
                     );
                 }),
                 ...Object.entries(intempus.structuredOutputsByName).map( ([outputName,getOutputDto]) => {
                     return structuredOutputs.credate(
-                        getOutputDto(contacts, assistantsByName),
+                        getOutputDto(contacts, agentsByName),
                         structuredOutputsByName[outputName]
                     );
                 })

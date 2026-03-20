@@ -4,9 +4,14 @@ export interface Config {
     vapeApiToken            : string;
     googleApiKey            : string;
     worksheetName           : string;
+    elevenLabsToolSecret    : string;
+    elevenLabsPrivateKey    : string;
+    elevenLabsWorkspaceId   : string;
+    // Will be deleted soon
     vapiOrgId               : string;
     vapiPrivateKey          : string;
     vapiToolSecret          : string;
+    
     publicUrl               : string;
     replPort                : number;
     model                   : string;

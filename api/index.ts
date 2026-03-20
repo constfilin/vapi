@@ -3,7 +3,7 @@ import util                 from 'node:util';
 import WebSocket            from 'ws';
 import express              from 'express';
 import * as expressCore     from 'express-serve-static-core';
-import { Vapi }             from '@vapi-ai/server-sdk';
+// import { Vapi }             from '@vapi-ai/server-sdk';
 
 import { server }           from '../Server';
 import { getCmdPromise }    from '../getCmdPromise';
@@ -114,24 +114,6 @@ const getLastToolCallToAgrs = (
         (typeof lastToolCallFunction.arguments==='string') ? misc.jsonParse(lastToolCallFunction.arguments as unknown as string,dflt) :
         dflt;
 }
-const guessSummaryEmailAddress = async ( messageItems:Vapi.CallMessagesItem[] ) : Promise<string> => {
-    // Let's see who the email needs to be sent to.
-    // 1. Find the latest call to `dispatchCall` tool
-    // 2. Fish out the arguments of that call
-    // 3. Lookup the name in the arguments in the contacts list
-    // 4. Return the email address of that contact
-    const lastDispatchCallToolArgs = getLastToolCallToAgrs(messageItems,'dispatchCall',{});
-    if( typeof lastDispatchCallToolArgs.name !== 'string' )
-        throw Error(`Cannot find name in lastDispatchCallToolArgs`);
-    const canonicalName             = misc.canonicalizePersonName(lastDispatchCallToolArgs.name);
-    const contact                   = (await server.getContacts()).find( c => {
-        // Note: column names are case sensitive
-        return c.name===canonicalName;
-    });
-    if( !contact )
-        throw Error(`Cannot find contact for name '${canonicalName}' in ${server.config.worksheetName}`);
-    return contact.emailAddresses[0];
-}
 const guessState = ( phoneNumber:string ) : string => {
     // Guess the state from the phone number
     const re = /^(\+1)?(\d{3})\d{7}/;
@@ -140,134 +122,118 @@ const guessState = ( phoneNumber:string ) : string => {
         return 'unknown';
     return stateByAreaCode[match[2]] || 'unknown';
 }
-const guessSessionId = ( vapi_message:Vapi.ServerMessageToolCalls ) : string => {
-    if( vapi_message.call?.id )
-        return vapi_message.call.id;
-    // By experimentation it was found that the chat ID gets changed with every new chat message
-    // but the assistant ID remains the same throughout the session
-    //if( vapi_message.chat?.id )
-    //    return vapi_message.chat.id;
-    const assistant = vapi_message.assistant as typeof vapi_message.assistant & { id?:string };
-    if( vapi_message.chat?.createdAt )
-        return `${assistant?.id||'unknown_assistant'}_${vapi_message.chat.createdAt}`;
-    if( assistant?.id )
-        return assistant.id;
-    return 'unknown_session';
-}
+// probably not needed on elevenlabs
+// const guessSessionId = ( vapi_message:Vapi.ServerMessageToolCalls ) : string => {
+//     if( vapi_message.call?.id )
+//         return vapi_message.call.id;
+//     // By experimentation it was found that the chat ID gets changed with every new chat message
+//     // but the assistant ID remains the same throughout the session
+//     //if( vapi_message.chat?.id )
+//     //    return vapi_message.chat.id;
+//     const assistant = vapi_message.assistant as typeof vapi_message.assistant & { id?:string };
+//     if( vapi_message.chat?.createdAt )
+//         return `${assistant?.id||'unknown_assistant'}_${vapi_message.chat.createdAt}`;
+//     if( assistant?.id )
+//         return assistant.id;
+//     return 'unknown_session';
+// }
 
 export default () => {
     const router   = express.Router();
-    router.post('/tool',async (req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/tool/sendEmail',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
                 throw Error(`Access denied`);
-            const vapi_message  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageToolCalls;
-            const tool_calls    = vapi_message?.toolCallList;
-            if( !Array.isArray(tool_calls) )
+            const { to, subject, text } = req.body as Record<string,any>;
+            if( !to || !subject || !text )
                 throw Error(`Invalid arguments`);
-            return {
-                // For each tool in the `toolCalls` return a result
-                results : await Promise.all(tool_calls.map( tc => {
-                    const args = tc['function'].arguments as unknown as Record<string,any>;
-                    switch( tc['function'].name ) {
-                    case 'sendEmail':
-                        if( !args || !(args.to||args.destination) || !args.subject || !args.text ) {
-                            return {
-                                toolCallId  : tc.id,
-                                result      : `No args found in function name '${tc['function'].name}'`
-                            };
-                        }
-                        return server.sendEmail({
-                            to      :   (args.to||args.destination) as string,
-                            subject :   args.subject as string,
-                            text    :   args.text as string
-                        }).then(() => {
-                            server.module_log(module.filename,2,`Handled '${tc['function'].name}'`,args);
-                            return {
-                                toolCallId  : tc.id,
-                                result      : `Email is sent to ${args.to||args.destination}`
-                            }
-                        });
-                    case 'dispatchCall':
-                        if( !args ) {
-                            return {
-                                toolCallId  : tc.id,
-                                result      : `No args found in function name '${tc['function'].name}'`
-                            };
-                        }
-                        return server.getContacts().then( contacts => {
-                            const canonicalName = misc.canonicalizePersonName(args.name as string);
-                            const contact = contacts.find( c => {
-                                // Note: column names are case sensitive
-                                return c.name===canonicalName;
-                            });
-                            if( !contact )
-                                return `Cannot find name '${canonicalName}' in ${server.config.worksheetName}`;
-                            const djs    = dayjs().tz(contact.timeZone||'America/Los_Angeles');
-                            const hour   = djs.hour();
-                            const vmPrompt = contact.vmPrompt || `to describe its issue to '${canonicalName}'`;
-                            const result =  ([0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour)) ?
-                                `ask the user ${vmPrompt}, save its answer to a text and call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from ${vapi_message?.customer?.number||'n/a'}" and that text` :
-                                `ask user to confirm that the user wants to talk to '${canonicalName}'. If user confirms, then call redirectCall with +1${contact.phoneNumbers[0]}. Otherwise ask user again the user wants to speak to.`;
-                            server.module_log(module.filename,2,`Handled '${tc['function'].name}'`,args,result);
-                            return {
-                                toolCallId  : tc.id,
-                                result      : result
-                            }
-                        });
-                    case 'guessState':
-                        return {
-                            toolCallId  : tc.id,
-                            result      : guessState(vapi_message.customer?.number||'')
-                        }
-                    case 'getUserByPhone':
-                        return VapeApi.getUserByPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'').then( userInfo => {
-                            return {
-                                toolCallId  : tc.id,
-                                result      : JSON.stringify(userInfo)
-                            };
-                        });
-                    case 'dispatchUserByPhone':
-                        return VapeApi.getUserByPhone(guessSessionId(vapi_message),vapi_message.customer?.number||'')
-                            .then( userInfo => {
-                                return {
-                                    toolCallId  : tc.id,
-                                    result      : JSON.stringify({
-                                        ...userInfo,
-                                        instructions : 'Proceed to the next step'
-                                    })
-                                };
-                            })
-                            .catch( err => {
-                                return {
-                                    toolCallId  : tc.id,
-                                    result      : JSON.stringify({
-                                        instructions : `call "handoffToAssistant" with "Intempus Introduction"`
-                                    })
-                                }
-                            });
-                    case 'getFAQAnswer':
-                        // TODO:
-                        // Test if VAPI understands the JSON format of this answer
-                        // We we just need to return a simple string reply?
-                        return VapeApi.getFAQAnswer(guessSessionId(vapi_message),args.question as string).then( faqAnswer => {
-                            return {
-                                toolCallId  : tc.id,
-                                result      : JSON.stringify(faqAnswer)
-                            };
-                        });
-                    }
+            await server.sendEmail({ to, subject, text });
+            return `Email is sent to ${to}`;
+        });
+    });
+    router.post('/tool/dispatchCall',(req:expressCore.Request,res:expressCore.Response) => {
+        
+        return sendResponse(req,res,async () => {
+            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+                throw Error(`Access denied`);
+            const { name } = req.body as Record<string,any>;
+            if( !name )
+                throw Error(`Invalid arguments`);
+            const contacts = await server.getContacts();
+            const canonicalName = misc.canonicalizePersonName(name);
+            const contact = contacts.find( c => {
+                // Note: column names are case sensitive
+                return c.name===canonicalName;
+            });
+            if( !contact )
+                throw Error(`Cannot find name '${canonicalName}' in ${server.config.worksheetName}`);
+            const djs    = dayjs().tz(contact.timeZone||'America/Los_Angeles');
+            const hour   = djs.hour();
+            const vmPrompt = contact.vmPrompt || `to describe its issue to '${canonicalName}'`;
+            const result =  ([0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour)) ?
+                `ask the user ${vmPrompt}, save its answer to a text and call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from ${vapi_message?.customer?.number||'n/a'}" and that text` :
+                `ask user to confirm that the user wants to talk to '${canonicalName}'. If user confirms, then call redirectCall with +1${contact.phoneNumbers[0]}. Otherwise ask user again the user wants to speak to.`;
+            server.module_log(module.filename,2,`Handled 'dispatchCall'`,{ name },result);
+            return result;
+        });
+    });
+    router.post('/tool/guessState',(req:expressCore.Request,res:expressCore.Response) => {
+        return sendResponse(req,res,async () => {
+            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+                throw Error(`Access denied`);
+            const { phoneNumber } = req.body as Record<string,any>;
+            if( !phoneNumber )
+                throw Error(`Invalid arguments`);
+            return guessState(phoneNumber);
+        });
+    });
+    router.post('/tool/getUserByPhone',(req:expressCore.Request,res:expressCore.Response) => {
+        return sendResponse(req,res,async () => {
+            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+                throw Error(`Access denied`);
+            const { phoneNumber } = req.body as Record<string,any>;
+            if( !phoneNumber )
+                throw Error(`Invalid arguments`);
+            return VapeApi.getUserByPhone(guessSessionId(req.body as Vapi.ServerMessageToolCalls),phoneNumber);
+        });
+    });
+    router.post('/tool/dispatchUserByPhone',(req:expressCore.Request,res:expressCore.Response) => {
+        return sendResponse(req,res,async () => {
+            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+                throw Error(`Access denied`);
+            const phoneNumber = server.config.simulatedPhoneNumber || (req.body as Record<string,any>).phoneNumber;
+            if( !phoneNumber )
+                throw Error(`Invalid phone number`);
+            const sessionId = (req.body as Record<string,any>).sessionId;
+            if( !sessionId )
+                throw Error(`Invalid session ID`);
+            return VapeApi.getUserByPhone(sessionId,phoneNumber)
+                .then( userInfo => {
                     return {
-                        toolCallId  : tc.id,
-                        result      : `Unknown function ${tc['function'].name}`
+                        userInfo,
+                    };
+                })
+                .catch( err => {
+                    return {
+                        err: "No user found"
                     }
-                }))
-            }
+                });
+        });
+    });
+    router.post('/tool/getFAQAnswer',(req:expressCore.Request,res:expressCore.Response) => {
+        const sessionId = (req.body as Record<string,any>).sessionId;
+        return sendResponse(req,res,async () => {
+            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+                throw Error(`Access denied`);
+            const { question } = req.body as Record<string,any>;
+            if( !question )
+                throw Error(`Invalid arguments`);
+            return VapeApi.getFAQAnswer(sessionId ,question);
         });
     });
     router.post('/assistant/*',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
                 throw Error(`Access denied`);
             // The customer requests an email to be sent to the customer if the call is transferred to a number
             // First try the easy way
@@ -356,14 +322,14 @@ export default () => {
     });
     router.post('/cmd',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
-            if( req.get(server.config.web.header_name)!==server.config.vapiToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
                 throw Error(`Access denied`);
             return getCmdPromise(req.body as Record<string,any>)();
         });
     });
     router.options('/tool',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
-            res.setHeader('Access-Control-Allow-Origin', 'https://dashboard.vapi.ai');
+            res.setHeader('Access-Control-Allow-Origin', 'https://api.elevenlabs.io');
             res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
             res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
             return '';

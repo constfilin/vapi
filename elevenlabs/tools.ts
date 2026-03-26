@@ -18,7 +18,7 @@ const getWebhookHeaders = () : Record<string,string> => {
 
 const getToolUrl = ( toolName:string ) : string => {
     const config = Config.get();
-    return `https://demo.tectransit.com/elevenlabs`;
+    return `https://demo.tectransit.com/elevenlabs/tool/${toolName}`;
 };
 
 // ---------------------------------------------------------------------------
@@ -47,9 +47,13 @@ export const getDispatchCall = ( contacts:Contacts.Contact[] ) : ElevenLabs.Tool
                             type        : "string",
                             description : "The name of the person to dispatch the call to",
                             enum        : contacts.map(c => c.name),
+                        },
+                        phoneNumber: {
+                            type            : "string",
+                            dynamicVariable : "system__caller_id",
                         }
                     },
-                    required : ["name"]
+                    required : ["name","phoneNumber"]
                 }
             }
         }
@@ -78,6 +82,10 @@ export const getSendEmail = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolReq
                 requestBodySchema : {
                     type        : "object",
                     properties  : {
+                        type : {
+                            type        : "string",
+                            constantValue : "sendEmail",
+                        },
                         to : {
                             type        : "string",
                             description : "The email address",
@@ -92,7 +100,7 @@ export const getSendEmail = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolReq
                             description : "The subject of the email",
                         }
                     },
-                    required : ["to","text","subject"]
+                    required : ["type","to","text","subject"]
                 }
             }
         }
@@ -116,12 +124,12 @@ export const getGuessState = ( /*contacts:Contacts.Contact[]*/ ) : ElevenLabs.To
                 requestBodySchema : {
                     type        : "object",
                     properties  : {
-                        callerId: {
+                        phoneNumber: {
                             type            : "string",
                             dynamicVariable : "system__caller_id",
                         }
                     },
-                    required : ["callerId"]
+                    required : ["phoneNumber"]
                 },
             }
         }

@@ -7,10 +7,7 @@ export interface Config {
     elevenLabsToolSecret    : string;
     elevenLabsPrivateKey    : string;
     elevenLabsWorkspaceId   : string;
-    // Will be deleted soon
-    vapiOrgId               : string;
-    vapiPrivateKey          : string;
-    vapiToolSecret          : string;
+    elevenLabsSummarySecret : string;
     
     publicUrl               : string;
     replPort                : number;

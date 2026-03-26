@@ -3,4 +3,4 @@ system_prompt.txt
 updated_transfer_call_function.json
 .env
 *.txt
-
+.vscode/*

@@ -3,7 +3,7 @@ import util                 from 'node:util';
 import WebSocket            from 'ws';
 import express              from 'express';
 import * as expressCore     from 'express-serve-static-core';
-// import { Vapi }             from '@vapi-ai/server-sdk';
+import { ElevenLabsApi } from '../ElevenLabsApi';
 
 import { server }           from '../Server';
 import { getCmdPromise }    from '../getCmdPromise';
@@ -12,6 +12,10 @@ import * as misc            from '../misc';
 
 import stateByAreaCode      from './stateByAreaCode';
 import * as VapeApi         from './VapeApi';
+import crypto               from 'crypto';
+
+const elevenlabsClient = new ElevenLabsApi();
+
 
 const sendResponse = ( 
     req     : expressCore.Request, 
@@ -72,47 +76,21 @@ const sendResponse = (
     }
     return log_and_send_response(response);
 }
-const findLastToolCallTo = ( messageItems:Vapi.CallMessagesItem[], toolName:string ) : (Vapi.ToolCall|undefined) => {
-    if( !Array.isArray(messageItems) )
-        throw Error(`messages is not an array`);
-    let result = undefined as (Vapi.ToolCall|undefined);
-    const lastCallToolMessageItem = messageItems.findLast( mi => {
-        if( mi.role!=='tool_calls' )
-            return false;
-        const tcmi      = mi as Record<string,any>;
-        const toolCalls = (tcmi.tool_calls||tcmi.toolCalls||tcmi.toolCallList) as Vapi.ToolCall[];
-        if( !Array.isArray(toolCalls) )
-            return false;
-        result = toolCalls.findLast( tc => {
-            if( tc.type!=='function' )
-                return false;
-            const tcFunction = tc['function'];
-            if( typeof tcFunction!=='object' )
-                return false;
-            if( tcFunction.name!==toolName )
-                return false;
-            if( !["object","string"].includes(typeof tcFunction.arguments) )
-                return false;
-            return true;
-        });
-        return !!result;
-    });
-    return result;
-}
-const getLastToolCallToAgrs = ( 
-    messageItems: Vapi.CallMessagesItem[], 
-    toolName    : string,
-    dflt        : Record<string,any> = {}
- ) : Record<string,any> => {
-    const lastToolCall = findLastToolCallTo(messageItems,toolName);
-    if( !lastToolCall )
-        return dflt;
-    const lastToolCallFunction  = lastToolCall['function'] as Vapi.ToolCallFunction;
-    if( !lastToolCallFunction || typeof lastToolCallFunction!=='object' )
-        return dflt;
-    return (typeof lastToolCallFunction.arguments==='object') ? lastToolCallFunction.arguments : 
-        (typeof lastToolCallFunction.arguments==='string') ? misc.jsonParse(lastToolCallFunction.arguments as unknown as string,dflt) :
-        dflt;
+const getEmailToolCall = ( body: Record<string,any> ) : (Record<string,any>|null) => {
+    const transcript = body?.data?.transcript as Record<string,any>[] | undefined;
+    if( !Array.isArray(transcript) )
+        return null;
+    for( const entry of transcript ) {
+        const toolCalls = entry.tool_calls as Record<string,any>[] | undefined;
+        if( !Array.isArray(toolCalls) || toolCalls.length === 0 )
+            continue;
+        const emailToolCall = toolCalls.find( tc => tc.tool_name === 'sendEmail' );
+        if( emailToolCall ) {
+            const params = emailToolCall.params_as_json;
+            return (typeof params === 'string') ? misc.jsonParse(params, undefined) : params;
+        }
+    }
+    return null;
 }
 const guessState = ( phoneNumber:string ) : string => {
     // Guess the state from the phone number
@@ -122,21 +100,6 @@ const guessState = ( phoneNumber:string ) : string => {
         return 'unknown';
     return stateByAreaCode[match[2]] || 'unknown';
 }
-// probably not needed on elevenlabs
-// const guessSessionId = ( vapi_message:Vapi.ServerMessageToolCalls ) : string => {
-//     if( vapi_message.call?.id )
-//         return vapi_message.call.id;
-//     // By experimentation it was found that the chat ID gets changed with every new chat message
-//     // but the assistant ID remains the same throughout the session
-//     //if( vapi_message.chat?.id )
-//     //    return vapi_message.chat.id;
-//     const assistant = vapi_message.assistant as typeof vapi_message.assistant & { id?:string };
-//     if( vapi_message.chat?.createdAt )
-//         return `${assistant?.id||'unknown_assistant'}_${vapi_message.chat.createdAt}`;
-//     if( assistant?.id )
-//         return assistant.id;
-//     return 'unknown_session';
-// }
 
 export default () => {
     const router   = express.Router();
@@ -157,6 +120,7 @@ export default () => {
             if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
                 throw Error(`Access denied`);
             const { name } = req.body as Record<string,any>;
+            const phoneNumber =  server.config.simulatedPhoneNumber || req.body.phoneNumber as string;
             if( !name )
                 throw Error(`Invalid arguments`);
             const contacts = await server.getContacts();
@@ -171,7 +135,7 @@ export default () => {
             const hour   = djs.hour();
             const vmPrompt = contact.vmPrompt || `to describe its issue to '${canonicalName}'`;
             const result =  ([0,6].includes(djs.day()) || (hour<contact.businessStartHour) || (hour>=contact.businessEndHour)) ?
-                `ask the user ${vmPrompt}, save its answer to a text and call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from ${vapi_message?.customer?.number||'n/a'}" and that text` :
+                `ask the user ${vmPrompt}, save its answer to a text and call sendEmail to ${contact.emailAddresses[0]} with subject "Call to ${contact.name} from ${phoneNumber ||'n/a'}" and that text` :
                 `ask user to confirm that the user wants to talk to '${canonicalName}'. If user confirms, then call redirectCall with +1${contact.phoneNumbers[0]}. Otherwise ask user again the user wants to speak to.`;
             server.module_log(module.filename,2,`Handled 'dispatchCall'`,{ name },result);
             return result;
@@ -191,10 +155,13 @@ export default () => {
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
                 throw Error(`Access denied`);
-            const { phoneNumber } = req.body as Record<string,any>;
+            const phoneNumber = req.body.phoneNumber as string;
+            const sessionId = req.body.sessionId as string || 'unknown_session';
             if( !phoneNumber )
-                throw Error(`Invalid arguments`);
-            return VapeApi.getUserByPhone(guessSessionId(req.body as Vapi.ServerMessageToolCalls),phoneNumber);
+                throw Error(`Invalid phone number`);
+            if ( !sessionId )
+                throw Error(`Invalid session ID`);
+            return VapeApi.getUserByPhone(sessionId, phoneNumber);
         });
     });
     router.post('/tool/dispatchUserByPhone',(req:expressCore.Request,res:expressCore.Response) => {
@@ -221,103 +188,58 @@ export default () => {
         });
     });
     router.post('/tool/getFAQAnswer',(req:expressCore.Request,res:expressCore.Response) => {
-        const sessionId = (req.body as Record<string,any>).sessionId;
+        const sessionId = req.body.sessionId as string || 'unknown_session';
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
                 throw Error(`Access denied`);
-            const { question } = req.body as Record<string,any>;
+            const question = req.body.question as string;
             if( !question )
                 throw Error(`Invalid arguments`);
             return VapeApi.getFAQAnswer(sessionId ,question);
         });
     });
-    router.post('/assistant/*',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/elevenlabs/*',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
-                throw Error(`Access denied`);
-            // The customer requests an email to be sent to the customer if the call is transferred to a number
-            // First try the easy way
-            const serverMessage  = (req.body as Vapi.ServerMessage).message as Vapi.ServerMessageMessage;
-            server.module_log(module.filename,2,`Got assistant notification '${serverMessage.type||'??'}'`,{
-                status          : (serverMessage as any).status,
-                request         : (serverMessage as any).request,
-                assistantsName  : serverMessage.assistant?.name,
-            });
-            if( serverMessage.type==='end-of-call-report') {
-                const messageItems = (serverMessage as unknown as Vapi.Call).messages as Vapi.CallMessagesItem[];
-                let notificationEmailAddress = server.config.notificationEmailAddress || 'mkhesin@intempus.net'; // default
-                //try {
-                //    notificationEmailAddress = await guessSummaryEmailAddress(messageItems);
-                //}
-                //catch( err ) {
-                //    server.module_log(module.filename,1,`Cannot guess summary email address (${err.message}), defaulting to '${notificationEmailAddress}'`);
-                //}
-                if( getLastToolCallToAgrs(messageItems,'sendEmail',{}).to===notificationEmailAddress ) {
-                    server.module_log(module.filename,2,`Summary email already sent to '${notificationEmailAddress}'`);
+            if (req.body.type === 'post_call_transcription'){
+                // HMAC validation of elevenlabs secret is used instead of header secret, since elevenlabs does not allow custom headers
+                const body = JSON.stringify(req.body); // ElevenLabs requires the raw body for signature verification, so we need to stringify it again
+                const signature = req.header('ElevenLabs-Signature');
+                const secret = process.env.ELEVENLABS_WEBHOOK_SECRET;
+
+                const { event, error } = await elevenlabsClient.webhooks.constructEvent(
+                    body,
+                    signature,
+                    secret
+                );
+                if (error) {
+                    server.module_log(module.filename,1,`Invalid signature for ElevenLabs webhook`,{ error: error.message });
+                    throw Error(`Access denied`);
+                }
+                
+                // The customer requests an email to be sent to the customer if the call is transferred to a number
+                // First try the easy way
+                const serverMessage  = event.data as Record<string,any>;
+                server.module_log(module.filename,2,`Got assistant notification 'Post Call Summary'`,{
+                    status          : serverMessage.status,
+                    summary         : serverMessage.analysis.transcript_summary,
+                    agentsName      : serverMessage.agent_name,
+                });
+                if (getEmailToolCall(event)?.to === server.config.notificationEmailAddress) {
+                    server.module_log(module.filename,2,`Summary email already sent to '${server.config.notificationEmailAddress}'`);
                 }
                 else {
-                    const summaryEmailText = (serverMessage.analysis.summary||'Summary was not provided').replace(/in\s*tempest/gi,'Intempus');
+                    const emailText = `Call summary: ${serverMessage.analysis.transcript_summary}`;
                     server.sendEmail({
-                        to      :   notificationEmailAddress,
+                        to      :   server.config.notificationEmailAddress,
                         subject :   `Call to ${serverMessage.assistant?.name}`,
-                        text    :   summaryEmailText
+                        text    :   emailText
                     }).then(() => {
-                        server.module_log(module.filename,2,`Sent email with call summary '${summaryEmailText}' to '${notificationEmailAddress}'`);
+                        server.module_log(module.filename,2,`Sent email with call summary '${emailText}' to '${server.config.notificationEmailAddress}'`);
                     }).catch( err => {
-                        server.module_log(module.filename,1,`Cannot send an email with call summary '${summaryEmailText}' to '${notificationEmailAddress}' (${err.message})`);
+                        server.module_log(module.filename,1,`Cannot send an email with call summary '${emailText}' to '${server.config.notificationEmailAddress}' (${err.message})`);
                     });
                 }
             }
-            else if( serverMessage.type==='status-update' ) {
-                const su_server_message = serverMessage as Vapi.ServerMessageStatusUpdate;
-                const call              = su_server_message.call;
-                const listenUrl         = call?.monitor?.listenUrl;
-                if( !listenUrl )
-                    throw Error(`listenUrl is not provided in '${serverMessage.type}' server message`);
-                if( su_server_message.status==='in-progress' ) {
-                    if( server.config.open_ws ) {
-                        const ws = new WebSocket(listenUrl);
-                        ws.on('open',() => {
-                            server.module_log(module.filename,1,`WebSocket connection established with '${listenUrl}'`);
-                        });
-                        ws.on('message', (data, isBinary) => {
-                            if (isBinary) {
-                                server.module_log(module.filename,4,`Received binary PCM data`);
-                            } 
-                            else {
-                                server.module_log(module.filename,2,`Received message on '${listenUrl}':`,data.toString());
-                            }
-                        });
-                        ws.on('close', () => {
-                            server.module_log(module.filename,2,`WebSocket connection is closed with '${listenUrl}'`);
-                        });
-                        ws.on('error',(error) => {
-                            server.module_log(module.filename,2,`WebSocket error with '${listenUrl}':`,error);
-                        });
-                        if( server.ws_by_url[listenUrl] )
-                            server.ws_by_url[listenUrl].close();
-                        server.ws_by_url[listenUrl] = ws;
-                    }
-                }
-                else if( su_server_message.status==='ended' ) {
-                    const ws = server.ws_by_url[listenUrl];
-                    if( ws ) {
-                        try {
-                            ws.close();
-                            delete server.ws_by_url[listenUrl];
-                        }
-                        catch( err ) {
-                            server.module_log(module.filename,1,`Cannot find WS by '${listenUrl}' (${err.message})`);
-                        }
-                    }
-                }
-            }
-            else {
-                // Not handled
-            }
-            return {
-                // nothing in particular needs to be returned
-            };
         });
     });
     router.post('/cmd',(req:expressCore.Request,res:expressCore.Response) => {

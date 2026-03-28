@@ -201,7 +201,7 @@ export default () => {
                 // HMAC validation of elevenlabs secret is used instead of header secret, since elevenlabs does not allow custom headers
                 const body      = JSON.stringify(req.body); // ElevenLabs requires the raw body for signature verification, so we need to stringify it again
                 const signature = req.header('ElevenLabs-Signature');
-                const secret    = process.env.ELEVENLABS_WEBHOOK_SECRET;
+                const secret    = server.config.elevenLabs!.summarySecret;
 
                 const { event, error } = await (new ElevenLabsApi()).webhooks.constructEvent(
                     body,

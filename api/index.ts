@@ -194,7 +194,7 @@ export default () => {
             return VapeApi.getFAQAnswer(sessionId ,question);
         });
     });
-    router.post('/elevenlabs/*',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/summary',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             if( req.body.type==='post_call_transcription' ) {
 

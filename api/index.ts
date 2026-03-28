@@ -14,9 +14,6 @@ import stateByAreaCode      from './stateByAreaCode';
 import * as VapeApi         from './VapeApi';
 import crypto               from 'crypto';
 
-const elevenlabsClient = new ElevenLabsApi();
-
-
 const sendResponse = ( 
     req     : expressCore.Request, 
     res     : expressCore.Response, 
@@ -77,17 +74,17 @@ const sendResponse = (
     return log_and_send_response(response);
 }
 const getEmailToolCall = ( body: Record<string,any> ) : (Record<string,any>|null) => {
-    const transcript = body?.data?.transcript as Record<string,any>[] | undefined;
+    const transcript = body?.data?.transcript as Record<string,any>[];
     if( !Array.isArray(transcript) )
         return null;
     for( const entry of transcript ) {
-        const toolCalls = entry.tool_calls as Record<string,any>[] | undefined;
-        if( !Array.isArray(toolCalls) || toolCalls.length === 0 )
+        const toolCalls = entry.tool_calls as Record<string,any>[];
+        if( !Array.isArray(toolCalls) )
             continue;
         const emailToolCall = toolCalls.find( tc => tc.tool_name === 'sendEmail' );
         if( emailToolCall ) {
             const params = emailToolCall.params_as_json;
-            return (typeof params === 'string') ? misc.jsonParse(params, undefined) : params;
+            return (typeof params === 'string') ? misc.jsonParse(params,undefined) : params;
         }
     }
     return null;
@@ -100,12 +97,11 @@ const guessState = ( phoneNumber:string ) : string => {
         return 'unknown';
     return stateByAreaCode[match[2]] || 'unknown';
 }
-
 export default () => {
     const router   = express.Router();
     router.post('/tool/sendEmail',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
             const { to, subject, text } = req.body as Record<string,any>;
             if( !to || !subject || !text )
@@ -117,7 +113,7 @@ export default () => {
     router.post('/tool/dispatchCall',(req:expressCore.Request,res:expressCore.Response) => {
         
         return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
             const { name } = req.body as Record<string,any>;
             const phoneNumber =  server.config.simulatedPhoneNumber || req.body.phoneNumber as string;
@@ -143,7 +139,7 @@ export default () => {
     });
     router.post('/tool/guessState',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
             const { phoneNumber } = req.body as Record<string,any>;
             if( !phoneNumber )
@@ -153,12 +149,12 @@ export default () => {
     });
     router.post('/tool/getUserByPhone',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
             const phoneNumber = req.body.phoneNumber as string;
-            const sessionId = req.body.sessionId as string || 'unknown_session';
             if( !phoneNumber )
                 throw Error(`Invalid phone number`);
+            const sessionId = req.body.sessionId as string;
             if ( !sessionId )
                 throw Error(`Invalid session ID`);
             return VapeApi.getUserByPhone(sessionId, phoneNumber);
@@ -166,12 +162,12 @@ export default () => {
     });
     router.post('/tool/dispatchUserByPhone',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
-            const phoneNumber = server.config.simulatedPhoneNumber || (req.body as Record<string,any>).phoneNumber;
+            const phoneNumber = server.config.simulatedPhoneNumber || (req.body.phoneNumber as string);
             if( !phoneNumber )
                 throw Error(`Invalid phone number`);
-            const sessionId = (req.body as Record<string,any>).sessionId;
+            const sessionId = (req.body.sessionId as string);
             if( !sessionId )
                 throw Error(`Invalid session ID`);
             return VapeApi.getUserByPhone(sessionId,phoneNumber)
@@ -190,7 +186,7 @@ export default () => {
     router.post('/tool/getFAQAnswer',(req:expressCore.Request,res:expressCore.Response) => {
         const sessionId = req.body.sessionId as string || 'unknown_session';
         return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
             const question = req.body.question as string;
             if( !question )
@@ -200,13 +196,14 @@ export default () => {
     });
     router.post('/elevenlabs/*',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
-            if (req.body.type === 'post_call_transcription'){
-                // HMAC validation of elevenlabs secret is used instead of header secret, since elevenlabs does not allow custom headers
-                const body = JSON.stringify(req.body); // ElevenLabs requires the raw body for signature verification, so we need to stringify it again
-                const signature = req.header('ElevenLabs-Signature');
-                const secret = process.env.ELEVENLABS_WEBHOOK_SECRET;
+            if( req.body.type==='post_call_transcription' ) {
 
-                const { event, error } = await elevenlabsClient.webhooks.constructEvent(
+                // HMAC validation of elevenlabs secret is used instead of header secret, since elevenlabs does not allow custom headers
+                const body      = JSON.stringify(req.body); // ElevenLabs requires the raw body for signature verification, so we need to stringify it again
+                const signature = req.header('ElevenLabs-Signature');
+                const secret    = process.env.ELEVENLABS_WEBHOOK_SECRET;
+
+                const { event, error } = await (new ElevenLabsApi()).webhooks.constructEvent(
                     body,
                     signature,
                     secret
@@ -219,12 +216,12 @@ export default () => {
                 // The customer requests an email to be sent to the customer if the call is transferred to a number
                 // First try the easy way
                 const serverMessage  = event.data as Record<string,any>;
-                server.module_log(module.filename,2,`Got assistant notification 'Post Call Summary'`,{
+                server.module_log(module.filename,2,`Got assistant notification '${req.body.type}'`,{
                     status          : serverMessage.status,
                     summary         : serverMessage.analysis.transcript_summary,
                     agentsName      : serverMessage.agent_name,
                 });
-                if (getEmailToolCall(event)?.to === server.config.notificationEmailAddress) {
+                if( getEmailToolCall(event)?.to === server.config.notificationEmailAddress ) {
                     server.module_log(module.filename,2,`Summary email already sent to '${server.config.notificationEmailAddress}'`);
                 }
                 else {
@@ -244,7 +241,7 @@ export default () => {
     });
     router.post('/cmd',(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
-            if( req.get(server.config.web.header_name)!==server.config.elevenLabsToolSecret )
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
             return getCmdPromise(req.body as Record<string,any>)();
         });

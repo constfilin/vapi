@@ -29,7 +29,7 @@ export const jsonParse = ( s:string, defaultValue:Record<string,any> ) : Record<
         return JSON.parse(s);
     }
     catch( err ) {
-        return defaultValue
+        return defaultValue;
     }
 }
 

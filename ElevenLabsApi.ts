@@ -19,8 +19,10 @@ type MyAgents = (typeof dummyElevenLabsClient.conversationalAi.agents) & {
 
 export class ElevenLabsApi extends ElevenLabsClient {
     constructor() {
-        const config  = Config.get();
-        super({ apiKey: config.elevenLabsPrivateKey });
+        const config = Config.get();
+        if( !config.elevenLabs )
+            throw Error(`Invalid provider type ${config.providerType}`);
+        super({ apiKey: config.elevenLabs!.apiKey });
     }
     getTools() : MyTools {
         const tools = super.conversationalAi.tools as MyTools;

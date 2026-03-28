@@ -68,54 +68,55 @@ type CreateAgentRequest = ElevenLabs.conversationalAi.BodyCreateAgentV1ConvaiAge
 const _completeAgent = (
     partial : {
         name            : string;
-        firstMessage?   : (string);
+        firstMessage?   : string;
         language?       : string;
         secondLanguageFirstMessage? : string;
     },
-    contacts    : Contacts.Contact[],
-    toolIds     : string[],
-    content     : string,
-    agentsByName? : Record<string,any>,
-    transferNames? : string[],
+    contacts        : Contacts.Contact[],
+    toolIds         : string[],
+    content         : string,
+    agentsByName?   : Record<string,any>,
+    transferNames?  : string[],
 ) : CreateAgentRequest => {
     const config = Config.get();
     return {
-    name: partial.name,
-    conversationConfig: {
-        agent: {
-            firstMessage: partial.firstMessage,
-            language: partial.language ?? "en",
-            prompt: {
-                prompt: content,
-                llm: config.model as ElevenLabs.Llm,
-                temperature: 0.3,
-                maxTokens: 300,
-                toolIds,
-                builtInTools: {
-                    transferToNumber: getTransferToNumber(contacts),
-                    transferToAgent: (agentsByName && transferNames?.length)
-                        ? getTransferToAgent(_getAgentIds(agentsByName, transferNames))
-                        : undefined,
+        name                : partial.name,
+        conversationConfig  : {
+            agent: {
+                firstMessage: partial.firstMessage,
+                language    : partial.language ?? "en",
+                prompt: {
+                    prompt      : content,
+                    llm         : config.elevenLabs.model as ElevenLabs.Llm,
+                    temperature : 0.3,
+                    maxTokens   : 300,
+                    toolIds,
+                    builtInTools: {
+                        transferToNumber: getTransferToNumber(contacts),
+                        transferToAgent: (agentsByName && transferNames?.length)
+                            ? getTransferToAgent(_getAgentIds(agentsByName,transferNames))
+                            : undefined,
+                    },
+                    ignoreDefaultPersonality: true,
                 },
-                ignoreDefaultPersonality: true,
             },
-        },
-        tts: {
-            voiceId: "XcXEQzuLXRU9RcfWzEJt",
-        },
-        asr: {
-            keywords: _getAsrKeywords(contacts),
-        },languagePresets: {
-            es: {
-                overrides: {
-                    agent: {
-                        firstMessage: partial.secondLanguageFirstMessage,
-                        // Optional: add Spanish-specific prompt or voice
+            tts: {
+                voiceId: config.elevenLabs!.voiceId,
+            },
+            asr: {
+                keywords: _getAsrKeywords(contacts),
+            },
+            languagePresets: {
+                es: {
+                    overrides: {
+                        agent: {
+                            firstMessage: partial.secondLanguageFirstMessage,
+                            // Optional: add Spanish-specific prompt or voice
+                        }
                     }
                 }
             }
-        }
-    },
+        },
     };
 };
 

@@ -12,13 +12,13 @@ import { server }           from '../Server';
 const getWebhookHeaders = () : Record<string,string> => {
     const config = Config.get();
     return {
-        "X-Secret" : config.elevenLabsToolSecret,
+        "X-Secret" : config.provider.toolSecret,
     };
 };
 
 const getToolUrl = ( toolName:string ) : string => {
     const config = Config.get();
-    return `https://demo.tectransit.com/elevenlabs/tool/${toolName}`;
+    return `${config.publicUrl}/tool/${toolName}`;
 };
 
 // ---------------------------------------------------------------------------

@@ -33,7 +33,7 @@ export default {
     web                             : {
         path        : __dirname,
         loglevel    : process.env.LOG_LEVEL ? parseInt(process.env.LOG_LEVEL) : 2,           // defines verbosity
-        port        : 9876,        // port to listen on
+        port        : process.env.WEB_PORT ? parseInt(process.env.WEB_PORT) : 9877,          // port to listen on
         // API authentication
         header_name : "x-secret",
     },

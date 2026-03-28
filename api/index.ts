@@ -194,17 +194,18 @@ export default () => {
             return VapeApi.getFAQAnswer(sessionId ,question);
         });
     });
-    router.post('/summary',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/summary',express.text({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
+        const body_str = req.body;
         return sendResponse(req,res,async () => {
             if( req.body.type==='post_call_transcription' ) {
 
                 // HMAC validation of elevenlabs secret is used instead of header secret, since elevenlabs does not allow custom headers
-                const body      = JSON.stringify(req.body); // ElevenLabs requires the raw body for signature verification, so we need to stringify it again
+                //const body      = JSON.stringify(req.body); // ElevenLabs requires the raw body for signature verification, so we need to stringify it again
                 const signature = req.header('ElevenLabs-Signature');
                 const secret    = server.config.elevenLabs!.summarySecret;
 
                 const { event, error } = await (new ElevenLabsApi()).webhooks.constructEvent(
-                    body,
+                    body_str,
                     signature,
                     secret
                 );

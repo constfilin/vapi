@@ -10,15 +10,13 @@ import { server }           from '../Server';
 // ---------------------------------------------------------------------------
 
 const getWebhookHeaders = () : Record<string,string> => {
-    const config = Config.get();
     return {
-        "X-Secret" : config.provider.toolSecret,
+        "X-Secret" : server.config.provider.toolSecret,
     };
 };
 
 const getToolUrl = ( toolName:string ) : string => {
-    const config = Config.get();
-    return `${config.publicUrl}/tool/${toolName}`;
+    return `${server.config.publicUrl}/tool/${toolName}`;
 };
 
 // ---------------------------------------------------------------------------

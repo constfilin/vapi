@@ -195,17 +195,20 @@ export default () => {
         });
     });
     router.post('/summary',express.text({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
-        const body_str = req.body;
         return sendResponse(req,res,async () => {
             if( req.body.type==='post_call_transcription' ) {
 
+                // following the example on
+                // https://elevenlabs.io/docs/eleven-agents/workflows/post-call-webhooks
                 // HMAC validation of elevenlabs secret is used instead of header secret, since elevenlabs does not allow custom headers
-                //const body      = JSON.stringify(req.body); // ElevenLabs requires the raw body for signature verification, so we need to stringify it again
+                const body      = req.body;
                 const signature = req.header('ElevenLabs-Signature');
                 const secret    = server.config.elevenLabs!.summarySecret;
 
                 const { event, error } = await (new ElevenLabsApi()).webhooks.constructEvent(
-                    body_str,
+                    // TODO:
+                    // this converts to [Object object] but ElevenLabs needs the raw body for signature verification, so we need to stringify it again
+                    body,
                     signature,
                     secret
                 );

@@ -73,21 +73,21 @@ const sendResponse = (
     }
     return log_and_send_response(response);
 }
-const getEmailToolCall = ( body: Record<string,any> ) : (Record<string,any>|null) => {
-    const transcript = body?.data?.transcript as Record<string,any>[];
+const getEmailToolCall = ( serveMessage: Record<string,any> ) : (Record<string,any>|undefined) => {
+    const transcript = serveMessage?.transcript as Record<string,any>[];
     if( !Array.isArray(transcript) )
-        return null;
+        return undefined;
     for( const entry of transcript ) {
         const toolCalls = entry.tool_calls as Record<string,any>[];
         if( !Array.isArray(toolCalls) )
             continue;
         const emailToolCall = toolCalls.find( tc => tc.tool_name === 'sendEmail' );
-        if( emailToolCall ) {
+        if( emailToolCall && (emailToolCall.tool_has_been_called??true) ) {
             const params = emailToolCall.params_as_json;
             return (typeof params === 'string') ? misc.jsonParse(params,undefined) : params;
         }
     }
-    return null;
+    return undefined;
 }
 const guessState = ( phoneNumber:string ) : string => {
     // Guess the state from the phone number
@@ -196,43 +196,38 @@ export default () => {
     });
     router.post('/summary',express.text({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
+            const body_str = req.body;
+            if( typeof body_str !== 'string' )
+                throw Error(`Unexpected type of the body ${typeof body_str}`);
+            const body_obj = JSON.parse(body_str);
             if( req.body.type==='post_call_transcription' ) {
 
                 // following the example on
                 // https://elevenlabs.io/docs/eleven-agents/workflows/post-call-webhooks
                 // HMAC validation of elevenlabs secret is used instead of header secret, since elevenlabs does not allow custom headers
-                const body      = req.body;
                 const signature = req.header('ElevenLabs-Signature');
                 const secret    = server.config.elevenLabs!.summarySecret;
-
-                const { event, error } = await (new ElevenLabsApi()).webhooks.constructEvent(
-                    // TODO:
-                    // this converts to [Object object] but ElevenLabs needs the raw body for signature verification, so we need to stringify it again
-                    body,
+                const event = await (new ElevenLabsApi()).webhooks.constructEvent(
+                    body_str,
                     signature,
                     secret
                 );
-                if (error) {
-                    server.module_log(module.filename,1,`Invalid signature for ElevenLabs webhook`,{ error: error.message });
-                    throw Error(`Access denied`);
-                }
-                
                 // The customer requests an email to be sent to the customer if the call is transferred to a number
                 // First try the easy way
                 const serverMessage  = event.data as Record<string,any>;
-                server.module_log(module.filename,2,`Got assistant notification '${req.body.type}'`,{
+                server.module_log(module.filename,2,`Got assistant '${serverMessage.agent_name}' notification '${req.body.type}'`,{
                     status          : serverMessage.status,
                     summary         : serverMessage.analysis.transcript_summary,
                     agentsName      : serverMessage.agent_name,
                 });
-                if( getEmailToolCall(event)?.to === server.config.notificationEmailAddress ) {
+                if( getEmailToolCall(serverMessage)?.to === server.config.notificationEmailAddress ) {
                     server.module_log(module.filename,2,`Summary email already sent to '${server.config.notificationEmailAddress}'`);
                 }
                 else {
                     const emailText = `Call summary: ${serverMessage.analysis.transcript_summary}`;
                     server.sendEmail({
                         to      :   server.config.notificationEmailAddress,
-                        subject :   `Call to ${serverMessage.assistant?.name}`,
+                        subject :   `Call to ${serverMessage.agent_name} with status ${serverMessage.status}`,
                         text    :   emailText
                     }).then(() => {
                         server.module_log(module.filename,2,`Sent email with call summary '${emailText}' to '${server.config.notificationEmailAddress}'`);

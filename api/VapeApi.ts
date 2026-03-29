@@ -1,5 +1,6 @@
 import fetch                from 'node-fetch';
 import { server }           from '../Server';
+import * as misc            from '../misc';
 
 const makeApiCall = async (
     apiUrl      : string,
@@ -32,7 +33,7 @@ export const getUserByPhone = async (sessionId: string, phoneNumber: string): Pr
         apiUrl,
         {
             session_id  : sessionId,
-            phone       : server.config.simulatedPhoneNumber || phoneNumber.replace(/^\+1/, '')
+            phone       : server.config.simulatedPhoneNumber || misc.canonicalizePhone(phoneNumber)
         },
         { sessionId, phoneNumber }
     );

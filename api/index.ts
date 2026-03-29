@@ -217,14 +217,14 @@ export default () => {
                     // See https://elevenlabs.io/docs/eleven-agents/customization/personalization/twilio-personalization
                     // We need to customize the first prompt
                     return VapeApi.getUserByPhone(sessionId,phoneNumber).then( userInfo => {
-                        if( !userInfo )
+                        if( !userInfo?.user )
                             throw Error(`VapeApi.getUserByPhone did not find a user for phone number '${phoneNumber}' and sessionId '${sessionId}'`);
                         server.module_log(module.filename,1,`Found user for phone number '${phoneNumber}'`,{ userInfo });
                         return {
                             type : "conversation_initiation_client_data",
                             dynamic_variables : {
-                                user_name : userInfo.name,
-                                user_email : userInfo.email,
+                                user_first_name : userInfo.user.first_name,
+                                user_last_name  : userInfo.user.last_name,
                             },
                             conversation_config_override : {
                                 agent : {
@@ -233,7 +233,7 @@ export default () => {
                                                     - Provide the answer to the user.
                                                     - Repeat this process until user hangs up or says that it wants to end the call.`,
                                     },
-                                    first_message : `Hi ${userInfo.name}, how can I help you today?`,
+                                    first_message : `Hi ${userInfo.user.first_name}, how can I help you today?`,
                                 }
                             }
                         };

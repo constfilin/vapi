@@ -97,7 +97,7 @@ const guessState = ( phoneNumber:string ) : string => {
 }
 export default () => {
     const router   = express.Router();
-    router.post('/tool/sendEmail',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/tool/sendEmail',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
@@ -108,7 +108,7 @@ export default () => {
             return `Email is sent to ${to}`;
         });
     });
-    router.post('/tool/dispatchCall',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/tool/dispatchCall',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
@@ -135,7 +135,7 @@ export default () => {
             return result;
         });
     });
-    router.post('/tool/guessState',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/tool/guessState',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
@@ -145,7 +145,7 @@ export default () => {
             return guessState(phoneNumber);
         });
     });
-    router.post('/tool/getUserByPhone',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/tool/getUserByPhone',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
@@ -158,7 +158,7 @@ export default () => {
             return VapeApi.getUserByPhone(sessionId, phoneNumber);
         });
     });
-    router.post('/tool/dispatchUserByPhone',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/tool/dispatchUserByPhone',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
@@ -181,7 +181,7 @@ export default () => {
                 });
         });
     });
-    router.post('/tool/getFAQAnswer',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/tool/getFAQAnswer',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         const sessionId = req.body.sessionId as string || 'unknown_session';
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
@@ -236,7 +236,7 @@ export default () => {
             }
         });
     });
-    router.post('/cmd',(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/cmd',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);

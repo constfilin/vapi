@@ -256,7 +256,7 @@ export default () => {
             };
         });
     });
-    router.post(/\/(post-call|summary)$/,express.text({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/post-call',express.text({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             const body_str = req.body;
             if( typeof body_str !== 'string' )

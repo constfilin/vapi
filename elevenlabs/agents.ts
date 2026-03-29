@@ -1,15 +1,15 @@
 import { ElevenLabs } from '@elevenlabs/elevenlabs-js';
 
-import * as Config          from '../Config';
-import * as Contacts        from '../Contacts';
+import * as Config              from '../Config';
+import * as Contacts            from '../Contacts';
 
-import * as elevenLabsConsts  from './consts';
-import { getTransferToNumber, getTransferToAgent } from './tools';
+import * as elevenLabsConsts    from './consts';
+import * as tools               from './tools';
+import { TestRunMetadataTestType } from '@elevenlabs/elevenlabs-js/api';
 
-// ---------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////
 // helpers
-// ---------------------------------------------------------------------------
-
+///////////////////////////////////////////////////////////////////////////////
 const _joinSteps = ( steps:string[] ) : string => {
     if( steps.length === 0 )
         throw Error("steps is empty");
@@ -19,7 +19,6 @@ const _joinSteps = ( steps:string[] ) : string => {
         return `${ndx+1}. ${s}`;
     }).join("\n");
 };
-
 const _getToolIds = ( toolsByName: Record<string,ElevenLabs.Tool>, toolNames:string[] ) : string[] => {
     return toolNames.map(name => {
         const tool = toolsByName[name];
@@ -36,7 +35,6 @@ const _getAgentIds = ( agentsByName: Record<string,any>, agentNames:string[] ) :
         return { name, id: agent.agentId };
     });
 };
-
 const _getAsrKeywords = ( contacts:Contacts.Contact[] ) : string[] => {
     const keywords = Object.values(contacts
         .map(c => c.name.split(/\s+/))
@@ -50,72 +48,114 @@ const _getAsrKeywords = ( contacts:Contacts.Contact[] ) : string[] => {
             return acc;
         },{} as Record<string,string>));
     return [
-        ...keywords.map(n => `${n}:10`),
-        "H-O-A:10",
-        "Maintenance:10",
-        "Property:10",
-        "Realty:10",
-        "Intempus:10",
+        ...keywords,
+        "H-O-A",
+        "Maintenance",
+        "Property",
+        "Realty",
+        "Intempus",
     ];
+};
+/**
+ * redirectCall – transfer the call to a phone number (group extension or
+ * individual contact).
+ *
+ * Maps from the Vapi `transferCall` tool type to ElevenLabs `transfer_to_number`
+ * system tool.
+ */
+const _getGroupExtensionTransfers = () : ElevenLabs.PhoneNumberTransfer[] => {
+    return Object.entries(elevenLabsConsts.groupExtensions).reduce( (transfers,[name,number]) => {
+        if( !transfers.some(t => t.phoneNumber === number) ) {
+            transfers.push({
+                phoneNumber     : number,
+                condition       : `Transfer the call when the caller needs ${name}`,
+                transferType    : "blind",
+            });
+        }
+        return transfers;
+    },[] as ElevenLabs.PhoneNumberTransfer[]);
+}
+const _getContactTransfers = ( contacts:Contacts.Contact[] ) : ElevenLabs.PhoneNumberTransfer[] => {
+    return contacts.reduce( (transfers,c) => {
+        const fullPhone = `+1${c.phoneNumbers[0]}`;
+        if( !transfers.some(t => t.phoneNumber === fullPhone) ) {
+            transfers.push({
+                phoneNumber     : fullPhone,
+                condition       : c.description
+                    ? `Transfer the call to ${c.name} - ${c.description}`
+                    : `Transfer the call to ${c.name}`,
+                transferType    : "conference",
+            });
+        }
+        return transfers;
+    },[] as ElevenLabs.PhoneNumberTransfer[]);
+}
+const _getSystemToolConfigOutput = ( transfers:ElevenLabs.PhoneNumberTransfer[] ) : ElevenLabs.SystemToolConfigOutput => {
+    return {
+        type        : "system",
+        name        : "transfer_to_number",
+        description : "Use this function to transfer the call to various contacts across different departments",
+        params : {
+            systemToolType : "transfer_to_number",
+            transfers
+        }
+    };
+}
+
+/**
+ * handoffToAssistant – hand the conversation off to another ElevenLabs agent.
+ *
+ * Maps from the Vapi `handoff` tool type to ElevenLabs `transfer_to_agent`
+ * system tool.
+ *
+ * @param agents - array of {name, id} for every agent the current agent can
+ *                 hand off to.  `id` must be the ElevenLabs agent id.
+ */
+const _getTransferToAgent = ( agents:{name:string, id:string}[] ) : ElevenLabs.SystemToolConfigOutput => {
+    const transfers : ElevenLabs.AgentTransfer[] = agents.map( a => ({
+        agentId     : a.id,
+        condition   : `Transfer the call to the ${a.name} assistant`,
+    }));
+    return {
+        type        : "system",
+        name        : "transfer_to_agent",
+        description : "Hand off the conversation to another assistant",
+        params : {
+            systemToolType : "transfer_to_agent",
+            transfers,
+        }
+    };
 };
 
 type CreateAgentRequest = ElevenLabs.conversationalAi.BodyCreateAgentV1ConvaiAgentsCreatePost;
 
-/**
- * Build a complete ElevenLabs agent config from partial overrides.
- * This is the ElevenLabs counterpart of intempus/assistants.ts `_completeAssistant`.
- */
 const _completeAgent = (
-    partial : {
-        name            : string;
-        firstMessage?   : string;
-        language?       : string;
-        secondLanguageFirstMessage? : string;
-    },
-    contacts        : Contacts.Contact[],
-    toolIds         : string[],
-    content         : string,
-    agentsByName?   : Record<string,any>,
-    transferNames?  : string[],
+    agent : Partial<ElevenLabs.GetAgentResponseModel>,
 ) : CreateAgentRequest => {
+    // Build a complete ElevenLabs agent config from partial overrides.
+    // This is the ElevenLabs counterpart of intempus/assistants.ts `_completeAssistant`.
     const config = Config.get();
     return {
-        name                : partial.name,
+        name                : agent.name,
         conversationConfig  : {
             agent: {
-                firstMessage: partial.firstMessage,
-                language    : partial.language ?? "en",
+                firstMessage: agent.conversationConfig.agent.firstMessage,
+                language    : agent.conversationConfig.agent.language ?? "en",
                 prompt: {
-                    prompt      : content,
+                    prompt      : agent.conversationConfig.agent.prompt.prompt,
                     llm         : config.elevenLabs.model as ElevenLabs.Llm,
                     temperature : 0.3,
                     maxTokens   : 300,
-                    toolIds,
-                    builtInTools: {
-                        transferToNumber: getTransferToNumber(contacts),
-                        transferToAgent: (agentsByName && transferNames?.length)
-                            ? getTransferToAgent(_getAgentIds(agentsByName,transferNames))
-                            : undefined,
-                    },
+                    toolIds     : agent.conversationConfig.agent.prompt.toolIds,
+                    builtInTools: agent.conversationConfig.agent.prompt.builtInTools,
                     ignoreDefaultPersonality: true,
                 },
             },
             tts: {
                 voiceId: config.elevenLabs!.voiceId,
             },
-            asr: {
-                keywords: _getAsrKeywords(contacts),
-            },
-            languagePresets: {
-                es: {
-                    overrides: {
-                        agent: {
-                            firstMessage: partial.secondLanguageFirstMessage,
-                            // Optional: add Spanish-specific prompt or voice
-                        }
-                    }
-                }
-            }
+            asr             : agent.conversationConfig.asr,
+            languagePresets : agent.conversationConfig.languagePresets
         },
     };
 };
@@ -129,18 +169,17 @@ export const getMain = (
     toolsByName : Record<string,ElevenLabs.Tool>,
     agentsByName? : Record<string,any>,
 ) : CreateAgentRequest => {
+    // Please note that the system prompt for "Intempus Main" get dynamically overwritten in pre-call handler. See api/index.ts for details. 
+    // The dynamic part is the section that handles the case when we can identify the user by their phone number and get their first name. 
+    // In that case we want to personalize the first message with their name and provide them with a more friendly greeting.
     return _completeAgent(
         {
             name         : "Intempus Main",
-            firstMessage : "Hello, I am Emily, an AI assistant for Intempus Realty. Are you an Intempus Realty customer?",
-            secondLanguageFirstMessage : "Hola, soy Emily, una asistente de IA para Intempus Realty. ¿Eres un cliente de Intempus Realty?",
-        },
-        contacts,
-        _getToolIds(toolsByName,['dispatchCall','dispatchUserByPhone','getFAQAnswer']),
-        // Please note that the system prompt for "Intempus Main" get dynamically overwritten in pre-call handler. See api/index.ts for details. 
-        // The dynamic part is the section that handles the case when we can identify the user by their phone number and get their first name. 
-        // In that case we want to personalize the first message with their name and provide them with a more friendly greeting.
-`<TASKS>
+            conversationConfig : {
+                agent : {
+                    firstMessage : "Hello, I am Emily, an AI assistant for Intempus Realty. Are you an Intempus Realty customer?",
+                    prompt : {
+                        prompt : `<TASKS>
 ${_joinSteps([
     `Pretend that the user said "Hello" and call the "dispatchUserByPhone" tool, wait for result`,
     `If "dispatchUserByPhone" tool returns a user proceed with next instruction, otherwise redirect the caller to the "Intempus Introduction" agent`,
@@ -150,11 +189,49 @@ ${_joinSteps([
             - Repeat this process until user hangs up or says that it wants to end the call.`
 ])}
 </TASKS>
-
 ${elevenLabsConsts.systemPromptHeader}
 ${elevenLabsConsts.systemPromptFooter}`,
-        agentsByName,
-        ['Intempus Introduction'],
+                        toolIds     : _getToolIds(toolsByName,['dispatchCall','dispatchUserByPhone','getFAQAnswer']),
+                        builtInTools: {
+                            // "Intempus Main" transfers only to "Intempus Introduction"
+                            transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName,['Intempus Introduction'])),
+                            transferToNumber: undefined
+                        },
+                    }
+                },
+                languagePresets : {
+                    es: {
+                        overrides: {
+                            agent: {
+                                firstMessage: "Hola, soy Emily, una asistente de IA para Intempus Realty. ¿Eres un cliente de Intempus Realty?",
+                            }
+                        }
+                    }
+                },
+                asr: {
+                    keywords: _getAsrKeywords(contacts),
+                },
+            },
+            platformSettings : {
+                overrides : {
+                    conversationConfigOverride : {
+                        turn : {
+                            softTimeoutConfig : {
+                                message : true
+                            }
+                        },
+                        agent : {
+                            firstMessage : true,
+                            prompt : {
+                                prompt : true,
+                                llm : false,
+                            }
+                        }
+                    },
+                    enableConversationInitiationClientDataFromWebhook : true,
+                },
+            }
+        }
     );
 };
 
@@ -166,12 +243,11 @@ export const getUnkIntroduction = (
     return _completeAgent(
         {
             name         : "Intempus Introduction",
-            firstMessage : "You've reached the Intempus Realty Main Menu. Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
-            secondLanguageFirstMessage : "Has llegado al menú principal de Intempus Realty. ¿Eres un miembro de la junta de propietarios o un residente que llama sobre los servicios de H-O-A y administración comunitaria?",
-        },
-        contacts,
-        _getToolIds(toolsByName,['sendEmail']),
-        `<TASKS>
+            conversationConfig : {
+                agent : {
+                    firstMessage : "You've reached the Intempus Realty Main Menu. Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?",
+                    prompt : {
+                        prompt : `<TASKS>
 ${_joinSteps([
     `Briefly introduce yourself using the information in the IDENTITY section.`,
     `Follow the instruction in the MENU_SEQUENCE section but if at any point during the call (even if you are in the middle 
@@ -208,8 +284,27 @@ ${_joinSteps([
 
 ${elevenLabsConsts.systemPromptHeader}
 ${elevenLabsConsts.systemPromptFooter}`,
-        agentsByName,
-        ['Intempus HOA', 'Intempus PropertyOwner', 'Intempus DialByName', 'Intempus CallbackForm'],
+                        toolIds     : _getToolIds(toolsByName,['sendEmail']),
+                        builtInTools: {
+                            // "Intempus Introduction" transfers to special group extensions (leasing, emergency, etc)
+                            transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers())
+                        },
+                    }
+                },
+                languagePresets : {
+                    es: {
+                        overrides: {
+                            agent: {
+                                firstMessage: "Has llegado al menú principal de Intempus Realty. ¿Eres un miembro de la junta de propietarios o un residente que llama sobre los servicios de H-O-A y administración comunitaria?",
+                            }
+                        }
+                    }
+                },
+                asr: {
+                    keywords: _getAsrKeywords(contacts),
+                }
+            }
+        }
     );
 };
 
@@ -222,12 +317,11 @@ export const getUnkHOA = (
     return _completeAgent(
         {
             name         : "Intempus HOA",
-            firstMessage : "You have reached Intempus H-O-A department. Would you like to request H-O-A maintenance, H-O-A payments, parking calls, or something else?",
-            secondLanguageFirstMessage : "Has llegado al departamento de H-O-A de Intempus. ¿Desea solicitar mantenimiento de H-O-A, pagos de H-O-A, llamadas de estacionamiento o algo más?",
-        },
-        contacts,
-        _getToolIds(toolsByName,['sendEmail']),
-        `<TASKS>
+            conversationConfig  : {
+                agent: {
+                    firstMessage : "You have reached Intempus H-O-A department. Would you like to request H-O-A maintenance, H-O-A payments, parking calls, or something else?",
+                    prompt : {
+                        prompt : `<TASKS>
 ${_joinSteps([
     `Identify the category of the call by asking the next series of yes/no questions one-by-one. 
     Pause after each question to give the user a chance to answer. 
@@ -263,7 +357,28 @@ ${_joinSteps([
 </EMAILING_STEPS>
 
 ${elevenLabsConsts.systemPromptFooter}`,
-        agentsByName,
+                        toolIds : _getToolIds(toolsByName,['sendEmail']),
+                        builtInTools: {
+                            // "Intempus HOA" transfers to both "Intempus Introduction" and special group extensions (maintenance, emergency, etc)
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"])),
+                            transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers())
+                        },
+                    },
+                },
+                languagePresets: {
+                    es: {
+                        overrides: {
+                            agent: {
+                                firstMessage: "Has llegado al departamento de H-O-A de Intempus. ¿Desea solicitar mantenimiento de H-O-A, pagos de H-O-A, llamadas de estacionamiento o algo más?",
+                            }
+                        }
+                    }
+                },
+                asr: {
+                    keywords: _getAsrKeywords(contacts),
+                }
+            }
+        }
     );
 };
 
@@ -276,12 +391,11 @@ export const getUnkPropertyOwner = (
     return _completeAgent(
         {
             name         : "Intempus PropertyOwner",
-            firstMessage : "This is Intempus Realty Property Owner menu.",
-            secondLanguageFirstMessage : "Has llegado al departamento de H-O-A de Intempus. ¿Desea solicitar mantenimiento de H-O-A, pagos de H-O-A, llamadas de estacionamiento o algo más?",
-        },
-        contacts,
-        _getToolIds(toolsByName,['sendEmail']),
-        `<TASKS>
+            conversationConfig  : {
+                agent: {
+                    firstMessage : "This is Intempus Realty Property Owner menu.",
+                    prompt : {
+                        prompt: `<TASKS>
 ${_joinSteps([
     `Identify the category of the call by asking the next series of yes/no questions one-by-one.
     Pause after each question to give the user a chance to answer.
@@ -319,7 +433,28 @@ ${_joinSteps([
 </EMAILING_STEPS>
 
 ${elevenLabsConsts.systemPromptFooter}`,
-        agentsByName,
+                        toolIds : _getToolIds(toolsByName,['sendEmail']),
+                        builtInTools: {
+                            // "Intempus PropertyOwner" transfers to both "Intempus Introduction" and special group extensions (maintenance, emergency, etc)
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"])),
+                            transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers())
+                        },
+                    }
+                },
+                languagePresets: {
+                    es: {
+                        overrides: {
+                            agent: {
+                                firstMessage: "Has llegado al departamento de H-O-A de Intempus. ¿Desea solicitar mantenimiento de H-O-A, pagos de H-O-A, llamadas de estacionamiento o algo más?",
+                            }
+                        }
+                    }
+                },
+                asr: {
+                    keywords: _getAsrKeywords(contacts),
+                }
+            }
+        }
     );
 };
 
@@ -331,21 +466,40 @@ export const getFAQ = (
     return _completeAgent(
         {
             name         : "Intempus FAQ",
-            firstMessage : "Hello, this is Intempus Realty FAQ menu",
-            secondLanguageFirstMessage : "Hola, este es el menú de preguntas frecuentes de Intempus Realty",
-        },
-        contacts,
-        [],
-        `<TASKS>
+            conversationConfig : {
+                agent : {
+                    firstMessage : "This is Intempus Realty FAQ menu. What question can I help you with today?",
+                    prompt : {
+                        prompt : `<TASKS>
 ${_joinSteps([
     `Ask caller: "Do you want to return to previous menu?"`,
     `If the caller responds affirmatively, end the call.`
 ])}
 </TASKS>
-
 ${elevenLabsConsts.systemPromptHeader}
 ${elevenLabsConsts.systemPromptFooter}`,
-        agentsByName,
+                        toolIds : [],
+                        builtInTools: {
+                            // "Intempus FAQ" transfers to both "Intempus Introduction" and special group extensions (maintenance, emergency, etc)
+                            transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers()),
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"]))
+                        },
+                    }
+                },
+                languagePresets : {
+                    es: {
+                        overrides: {
+                            agent: {
+                                firstMessage: "Hola, este es el menú de preguntas frecuentes de Intempus Realty",
+                            }
+                        }
+                    }
+                },
+                asr: {
+                    keywords: _getAsrKeywords(contacts),
+                }
+            },
+        }
     );
 };
 
@@ -358,12 +512,11 @@ export const getUnkCallbackForm = (
     return _completeAgent(
         {
             name         : "Intempus CallbackForm",
-            firstMessage : "",
-            secondLanguageFirstMessage : "",
-        },
-        contacts,
-        _getToolIds(toolsByName,['sendEmail']),
-        `
+            conversationConfig : {
+                agent : {
+                    firstMessage : "",
+                    prompt : {
+                        prompt : `
 <TASKS>
 ${_joinSteps([
     `Ask caller: "Please let us know if you are an existing or prospective client" and save the answer as 'clientType'`,
@@ -380,7 +533,28 @@ ${_joinSteps([
 
 ${elevenLabsConsts.systemPromptHeader}
 ${elevenLabsConsts.systemPromptFooter}`,
-        agentsByName,
+                        toolIds : _getToolIds(toolsByName,['sendEmail']),
+                        builtInTools: {
+                            // "Intempus CallbackForm" transfers to both "Intempus Introduction" and special group extensions (maintenance, emergency, etc)
+                            transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers()),
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"]))
+                        },
+                    }
+                },
+                languagePresets : {
+                    es: {
+                        overrides: {
+                            agent: {
+                                firstMessage: "",
+                            }
+                        }
+                    }
+                },
+                asr: {
+                    keywords: _getAsrKeywords(contacts),
+                }
+            }
+        }
     );
 };
 
@@ -398,12 +572,11 @@ export const getUnkDialByName = (
     return _completeAgent(
         {
             name         : "Intempus DialByName",
-            firstMessage : "Hello, this is Intempus Realty dial by name directory. Who would you like to reach?.",
-            secondLanguageFirstMessage : "Hola, este es el directorio de marcación por nombre de Intempus Realty. ¿A quién le gustaría comunicarse?",
-        },
-        contacts,
-        _getToolIds(toolsByName,['sendEmail','dispatchCall']),
-        `<TASKS>
+            conversationConfig : {
+                agent : {
+                    firstMessage : "This is Intempus Realty Dial By Name directory. Who would you like to reach?.",
+                    prompt : {
+                        prompt : `<TASKS>
 ${_joinSteps([
     `Your main task is to assist callers in reaching the appropriate contact within Intempus Realty by name.`,
     `Greet the caller by saying "You reach the Intempus Realty Dial By Name directory".`,
@@ -422,6 +595,27 @@ ${elevenLabsConsts.systemPromptHeader}
 ${_joinSteps(callRoutingInstructions)}
 </CALLROUTING>
 ${elevenLabsConsts.systemPromptFooter}`,
-        agentsByName,
+                        toolIds : _getToolIds(toolsByName,['sendEmail','dispatchCall']),          
+                        builtInTools: {
+                            // "Intempus DialByName" transfers to both "Intempus Introduction" and all kinds of contacts.
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"])),
+                            transferToNumber: _getSystemToolConfigOutput(_getContactTransfers(contacts))
+                        },                    
+                    }
+                },
+                languagePresets : {
+                    es: {
+                        overrides: {
+                            agent: {
+                                firstMessage: "Hola, este es el directorio de marcación por nombre de Intempus Realty. ¿A quién le gustaría comunicarse?",
+                            }
+                        }
+                    }
+                },
+                asr: {
+                    keywords: _getAsrKeywords(contacts),
+                }
+            },
+        }
     );
 };

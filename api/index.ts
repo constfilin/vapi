@@ -245,7 +245,7 @@ export default () => {
                                     prompt : {
                                         prompt : `*Immediately* redirect the caller to the "Intempus Introduction" agent`
                                     },
-                                    first_message : `Redirecting you to our introduction...`,
+                                    first_message : `It will be just a sec...`,
                                 }
                             }
                         }

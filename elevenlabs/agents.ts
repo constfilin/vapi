@@ -341,7 +341,9 @@ ${_joinSteps([
     c. "Do you need an emergency maintenance assistance?"
         - Tell "I am forwarding your call to emergency maintenance."
     d. "Would you like to hear these options again?"
-        - Go to the first task again`,
+        - Go to the first task again
+    e. "Would you like to return to the main menu?"
+        - Redirect the caller to the "Intempus Introduction" agent`,
     `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
 ])}
 </TASKS>
@@ -417,7 +419,9 @@ ${_joinSteps([
     d. "Are you calling about rental property emergency maintenance?"
         - Tell "I am forwarding your call to emergency maintenance."
     e. "Would you like to hear these options again?"
-        - Go to the first task again`,
+        - Go to the first task again
+    g. "Would you like to return to the main menu?"
+        - Redirect the caller to the "Intempus Introduction" agent`,
     `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`,
 ])}
 </TASKS>
@@ -476,8 +480,8 @@ export const getFAQ = (
                     prompt : {
                         prompt : `<TASKS>
 ${_joinSteps([
-    `Ask caller: "Do you want to return to previous menu?"`,
-    `If the caller responds affirmatively, end the call.`
+    `Ask caller: "Would you like to return to the main menu?"
+        - Redirect the caller to the "Intempus Introduction" agent`
 ])}
 </TASKS>
 ${elevenLabsConsts.systemPromptHeader}
@@ -590,6 +594,7 @@ ${_joinSteps([
     `Then ask for the caller's name.`,
     `After collecting all three pieces of information (contact name, property name, and caller name), confirm the details back to the caller.`,
     `After the confirmation, follow the instructions for the contact name in the CALLROUTING section.`,
+    `If the caller wants to return to the main menu, redirect them to the "Intempus Introduction" agent.`,
     `Keep the caller informed about actions being taken and ensure they feel assisted throughout the process.`
 ])}
 </TASKS>

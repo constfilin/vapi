@@ -218,6 +218,7 @@ export default () => {
                     // We need to customize the first prompt
                     return VapeApi.getUserByPhone(sessionId,phoneNumber).then( userInfo => {
                         if( userInfo ) {
+                            server.module_log(module.filename,1,`Found user for phone number '${phoneNumber}'`,{ userInfo });
                             return {
                                 type : "conversation_initiation_client_data",
                                 dynamic_variables : {

@@ -200,7 +200,7 @@ export default () => {
             if( typeof body_str !== 'string' )
                 throw Error(`Unexpected type of the body ${typeof body_str}`);
             const body_obj = JSON.parse(body_str);
-            if( req.body.type==='post_call_transcription' ) {
+            if( body_obj.type==='post_call_transcription' ) {
 
                 // following the example on
                 // https://elevenlabs.io/docs/eleven-agents/workflows/post-call-webhooks
@@ -215,7 +215,7 @@ export default () => {
                 // The customer requests an email to be sent to the customer if the call is transferred to a number
                 // First try the easy way
                 const serverMessage  = event.data as Record<string,any>;
-                server.module_log(module.filename,2,`Got assistant '${serverMessage.agent_name}' notification '${req.body.type}'`,{
+                server.module_log(module.filename,2,`Got assistant '${serverMessage.agent_name}' notification '${body_obj.type}'`,{
                     status          : serverMessage.status,
                     summary         : serverMessage.analysis.transcript_summary,
                     agentsName      : serverMessage.agent_name,

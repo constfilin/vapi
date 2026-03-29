@@ -217,36 +217,35 @@ export default () => {
                     // See https://elevenlabs.io/docs/eleven-agents/customization/personalization/twilio-personalization
                     // We need to customize the first prompt
                     return VapeApi.getUserByPhone(sessionId,phoneNumber).then( userInfo => {
-                        if( userInfo ) {
-                            server.module_log(module.filename,1,`Found user for phone number '${phoneNumber}'`,{ userInfo });
-                            return {
-                                type : "conversation_initiation_client_data",
-                                dynamic_variables : {
-                                    user_name : userInfo.name,
-                                    user_email : userInfo.email,
-                                },
-                                conversation_config_override : {
-                                    agent : {
-                                        prompt : {
-                                            prompt : `When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
-                                                        - Provide the answer to the user.
-                                                        - Repeat this process until user hangs up or says that it wants to end the call.`,
-                                        },
-                                        first_message : `Hi ${userInfo.name}, how can I help you today?`,
-                                    }
+                        if( !userInfo )
+                            throw Error(`VapeApi.getUserByPhone did not find a user for phone number '${phoneNumber}' and sessionId '${sessionId}'`);
+                        server.module_log(module.filename,1,`Found user for phone number '${phoneNumber}'`,{ userInfo });
+                        return {
+                            type : "conversation_initiation_client_data",
+                            dynamic_variables : {
+                                user_name : userInfo.name,
+                                user_email : userInfo.email,
+                            },
+                            conversation_config_override : {
+                                agent : {
+                                    prompt : {
+                                        prompt : `When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
+                                                    - Provide the answer to the user.
+                                                    - Repeat this process until user hangs up or says that it wants to end the call.`,
+                                    },
+                                    first_message : `Hi ${userInfo.name}, how can I help you today?`,
                                 }
                             }
-                        }
-                        else {
-                            return {
-                                type : "conversation_initiation_client_data",
-                                conversation_config_override : {
-                                    agent : {
-                                        prompt : {
-                                            prompt : `redirect the caller to the "Intempus Introduction" agent`
-                                        },
-                                        first_message : `Redirecting you to the introduction agent...`,
-                                    }
+                        };
+                    }).catch( err => {
+                        return {
+                            type : "conversation_initiation_client_data",
+                            conversation_config_override : {
+                                agent : {
+                                    prompt : {
+                                        prompt : `redirect the caller to the "Intempus Introduction" agent`
+                                    },
+                                    first_message : `Redirecting you to the introduction agent...`,
                                 }
                             }
                         }

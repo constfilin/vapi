@@ -224,15 +224,15 @@ export default () => {
                     server.module_log(module.filename,2,`Summary email already sent to '${server.config.notificationEmailAddress}'`);
                 }
                 else {
-                    const emailText = `Call summary: ${serverMessage.analysis.transcript_summary}`;
+                    const summaryEmailText = `Call summary: ${serverMessage.analysis.transcript_summary.replace(/in\s*tempest/gi,'Intempus')}`;
                     server.sendEmail({
                         to      :   server.config.notificationEmailAddress,
                         subject :   `Call to ${serverMessage.agent_name} with status ${serverMessage.status}`,
-                        text    :   emailText
+                        text    :   summaryEmailText
                     }).then(() => {
-                        server.module_log(module.filename,2,`Sent email with call summary '${emailText}' to '${server.config.notificationEmailAddress}'`);
+                        server.module_log(module.filename,2,`Sent email with call summary '${summaryEmailText}' to '${server.config.notificationEmailAddress}'`);
                     }).catch( err => {
-                        server.module_log(module.filename,1,`Cannot send an email with call summary '${emailText}' to '${server.config.notificationEmailAddress}' (${err.message})`);
+                        server.module_log(module.filename,1,`Cannot send an email with call summary '${summaryEmailText}' to '${server.config.notificationEmailAddress}' (${err.message})`);
                     });
                 }
             }

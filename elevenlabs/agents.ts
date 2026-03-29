@@ -137,6 +137,9 @@ export const getMain = (
         },
         contacts,
         _getToolIds(toolsByName,['dispatchCall','dispatchUserByPhone','getFAQAnswer']),
+        // Please note that the system prompt for "Intempus Main" get dynamically overwritten in pre-call handler. See api/index.ts for details. 
+        // The dynamic part is the section that handles the case when we can identify the user by their phone number and get their first name. 
+        // In that case we want to personalize the first message with their name and provide them with a more friendly greeting.
 `<TASKS>
 ${_joinSteps([
     `Pretend that the user said "Hello" and call the "dispatchUserByPhone" tool, wait for result`,

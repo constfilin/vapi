@@ -9,6 +9,7 @@ import * as ws                  from 'ws';
 import dayjs                    from './day-timezone';
 import * as Config              from './Config';
 import * as Contacts            from './Contacts';
+import { ElevenLabsApi }        from './ElevenLabsApi';
 
 export let server = {} as Server;
 
@@ -19,12 +20,14 @@ export default class Server {
     contacts_sheet          : (GoogleSpreadsheet.GoogleSpreadsheetWorksheet|undefined);
     nm_transport            : (nodemailer.Transporter|undefined);
     ws_by_url               : Record<string,ws.WebSocket>; 
+    elevenLabsApi           : ElevenLabsApi;
 
     constructor() {
         this.config         = Config.get();
         this.contacts_sheet = undefined; // Let's do it at the very first request
         this.nm_transport   = nodemailer.createTransport(this.config.nm);
         this.ws_by_url      = {};
+        this.elevenLabsApi  = new ElevenLabsApi();
         this.init_repl();
         server = this;
         return this;

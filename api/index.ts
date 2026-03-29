@@ -2,7 +2,7 @@ import util                 from 'node:util';
 
 import express              from 'express';
 import * as expressCore     from 'express-serve-static-core';
-import { ElevenLabsApi } from '../ElevenLabsApi';
+import { ElevenLabs }       from '@elevenlabs/elevenlabs-js';
 
 import { server }           from '../Server';
 import { getCmdPromise }    from '../getCmdPromise';
@@ -109,7 +109,6 @@ export default () => {
         });
     });
     router.post('/tool/dispatchCall',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
-        
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
@@ -192,7 +191,72 @@ export default () => {
             return VapeApi.getFAQAnswer(sessionId ,question);
         });
     });
-    router.post('/summary',express.text({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/pre-call',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
+        return sendResponse(req,res,async () => {
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
+                throw Error(`Access denied`);
+            if( typeof req.body !== 'object' || req.body===null )
+                throw Error(`Invalid request body`);
+            const phoneNumber = server.config.simulatedPhoneNumber || (req.body.caller_id as string);
+            if( !phoneNumber )
+                throw Error(`Invalid caller_id`);
+            const sessionId = req.body.conversation_id as string;
+            if( !sessionId )
+                throw Error(`Invalid conversation_id`);
+            const agentsById = await server.elevenLabsApi.getAgents().list().then( res => {
+                return res.agents.reduce( (acc,a) => {
+                    acc[a.agentId] = a;
+                    return acc;
+                },{} as Record<string,ElevenLabs.AgentSummaryResponseModel>);
+            });
+            const agent = agentsById[req.body.agent_id as string];
+            if( !agent )
+                throw Error(`Agent with id '${req.body.agent_id}' not found`);
+            switch( agent.name ) {
+                case "Intempus Main":
+                    // See https://elevenlabs.io/docs/eleven-agents/customization/personalization/twilio-personalization
+                    // We need to customize the first prompt
+                    return VapeApi.getUserByPhone(sessionId,phoneNumber).then( userInfo => {
+                        if( userInfo ) {
+                            return {
+                                type : "conversation_initiation_client_data",
+                                dynamic_variables : {
+                                    user_name : userInfo.name,
+                                    user_email : userInfo.email,
+                                },
+                                conversation_config_override : {
+                                    agent : {
+                                        prompt : {
+                                            prompt : `When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
+                                                        - Provide the answer to the user.
+                                                        - Repeat this process until user hangs up or says that it wants to end the call.`,
+                                        },
+                                        first_message : `Hi ${userInfo.name}, how can I help you today?`,
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            return {
+                                type : "conversation_initiation_client_data",
+                                conversation_config_override : {
+                                    agent : {
+                                        prompt : {
+                                            prompt : `redirect the caller to the "Intempus Introduction" agent`
+                                        },
+                                        first_message : `Redirecting you to the introduction agent...`,
+                                    }
+                                }
+                            }
+                        }
+                    });
+            }
+            server.module_log(module.filename,1,`No specific pre-call handling for agent '${agent.name}'`);
+            return {
+            };
+        });
+    });
+    router.post(/\/(post-call|summary)$/,express.text({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             const body_str = req.body;
             if( typeof body_str !== 'string' )
@@ -205,7 +269,7 @@ export default () => {
                 // HMAC validation of elevenlabs secret is used instead of header secret, since elevenlabs does not allow custom headers
                 const signature = req.header('ElevenLabs-Signature');
                 const secret    = server.config.elevenLabs!.summarySecret;
-                const event = await (new ElevenLabsApi()).webhooks.constructEvent(
+                const event = await server.elevenLabsApi.webhooks.constructEvent(
                     body_str,
                     signature,
                     secret

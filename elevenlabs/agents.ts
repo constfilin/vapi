@@ -302,6 +302,10 @@ ${elevenLabsConsts.systemPromptFooter}`,
                 },
                 asr: {
                     keywords: _getAsrKeywords(contacts),
+                },
+                turn : {
+                    turnTimeout : 2,
+                    initialWaitTime : 2
                 }
             }
         }

@@ -155,7 +155,8 @@ const _completeAgent = (
                 voiceId: config.elevenLabs!.voiceId,
             },
             asr             : agent.conversationConfig.asr,
-            languagePresets : agent.conversationConfig.languagePresets
+            languagePresets : agent.conversationConfig.languagePresets,
+            turn            : agent.conversationConfig.turn
         },
     };
 };
@@ -177,7 +178,7 @@ export const getMain = (
             name         : "Intempus Main",
             conversationConfig : {
                 agent : {
-                    firstMessage : "Hello, I am Emily, an AI assistant for Intempus Realty. Are you an Intempus Realty customer?",
+                    firstMessage : "",
                     prompt : {
                         prompt : `<TASKS>
 ${_joinSteps([
@@ -306,10 +307,10 @@ ${elevenLabsConsts.systemPromptFooter}`,
                 asr: {
                     keywords: _getAsrKeywords(contacts),
                 },
-                turn : {
-                    turnTimeout : 4,
-                    initialWaitTime : 2
-                }
+                //turn : {
+                //    turnTimeout : 4,
+                //    initialWaitTime : 2
+                //}
             }
         }
     );

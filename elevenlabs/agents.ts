@@ -154,9 +154,9 @@ const _completeAgent = (
             tts: {
                 voiceId: config.elevenLabs!.voiceId,
             },
-            asr             : agent.conversationConfig.asr,
-            languagePresets : agent.conversationConfig.languagePresets,
-            turn            : agent.conversationConfig.turn
+            ...(agent.conversationConfig.asr ? { asr: agent.conversationConfig.asr } : {}),
+            ...(agent.conversationConfig.languagePresets ? { languagePresets: agent.conversationConfig.languagePresets } : {}),
+            ...(agent.conversationConfig.turn ? { turn: agent.conversationConfig.turn } : {})
         },
     };
 };

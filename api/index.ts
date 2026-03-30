@@ -245,7 +245,7 @@ export default () => {
                                     prompt : {
                                         prompt : `*Immediately* redirect the caller to the "Intempus Introduction" agent`
                                     },
-                                    first_message : `It will be just a sec...`,
+                                    first_message : `Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?`,
                                 }
                             }
                         }

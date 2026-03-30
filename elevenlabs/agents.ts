@@ -212,8 +212,8 @@ ${elevenLabsConsts.systemPromptFooter}`,
                     keywords: _getAsrKeywords(contacts),
                 },
                 turn : {
-                    turnTimeout : 2,
-                    initialWaitTime : 2
+                    turnTimeout : 4,
+                    initialWaitTime : 1
                 }
             },
             platformSettings : {
@@ -307,7 +307,7 @@ ${elevenLabsConsts.systemPromptFooter}`,
                     keywords: _getAsrKeywords(contacts),
                 },
                 turn : {
-                    turnTimeout : 2,
+                    turnTimeout : 4,
                     initialWaitTime : 2
                 }
             }

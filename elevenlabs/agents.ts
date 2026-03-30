@@ -251,8 +251,7 @@ export const getUnkIntroduction = (
 ${_joinSteps([
     `Briefly introduce yourself using the information in the IDENTITY section.`,
     `Follow the instruction in the MENU_SEQUENCE section but if at any point during the call (even if you are in the middle 
-    of asking a question) the caller mentions a keyword defined in the KEYWORDS_AND_ACTIONS section then stop the script 
-    immediately and execute the action of the keyword. 
+    of asking a question) the caller mentions a keyword defined in the KEYWORDS_AND_ACTIONS section then stop the script immediately and execute the action of the keyword. 
 
     <MENU_SEQUENCE>
     If the caller has not expressed a specific intent, guide them by asking the following questions one-by-one. After each question, pause and listen.

@@ -61,9 +61,11 @@ ${errorHandlingAndFallback}
 </ERROR_HANDLING_AND_FALLBACK>`;
 
 export const groupExtensions = {
-    "Maintenance H-O-A" : "+15103404275",
-    "Emergency Group"   : "+19162358444",
-    "Leasing Group"     : "+14083593034"
+    "Maintenance"       : "+15103404275",
+    "Emergency"         : "+19162358444",
+    "Leasing Group"     : "+14083593034",
+    "Sales"             : "+14089635182",
+    "Finance"           : "+14089131082",
 }
 
 export const callerIntentMenuInstructions = `Identify the category of the call by asking the next series of yes/no questions one-by-one. 

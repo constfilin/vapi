@@ -93,7 +93,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
                 agents.listByName(),
             ]);
             return agents.credate(
-                elevenLabs.agentsByName[args.name](contacts,toolsByName, agentsByName),
+                elevenLabs.agentsByName[args.name](contacts,toolsByName,agentsByName),
                 existingAgent
             );
         });
@@ -145,7 +145,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             return Promise.all(
                 Object.entries(elevenLabs.agentsByName).map( ([agentName,getAgentDto]) => {
                     return agents.credate(
-                        getAgentDto(contacts,toolsByName, agentsByName),
+                        getAgentDto(contacts,toolsByName,agentsByName),
                         agentsByName[agentName]
                     );
                 })
@@ -187,7 +187,7 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             return Promise.all([
                 ...Object.entries(elevenLabs.agentsByName).map( ([agentName,getAgentDto]) => {
                     return agents.credate(
-                        getAgentDto(contacts,toolsByName),
+                        getAgentDto(contacts,toolsByName,agentsByName),
                         agentsByName[agentName]
                     );
                 }),

@@ -139,24 +139,24 @@ const _completeAgent = (
         name                : agent.name,
         conversationConfig  : {
             agent: {
-                firstMessage: agent.conversationConfig.agent.firstMessage,
-                language    : agent.conversationConfig.agent.language ?? "en",
+                firstMessage: agent.conversationConfig?.agent?.firstMessage,
+                language    : agent.conversationConfig?.agent?.language ?? "en",
                 prompt: {
-                    prompt      : agent.conversationConfig.agent.prompt.prompt,
-                    llm         : config.elevenLabs.model as ElevenLabs.Llm,
+                    prompt      : agent.conversationConfig?.agent?.prompt?.prompt,
+                    llm         : config.elevenLabs!.model as ElevenLabs.Llm,
                     temperature : 0.3,
                     maxTokens   : 300,
-                    toolIds     : agent.conversationConfig.agent.prompt.toolIds,
-                    builtInTools: agent.conversationConfig.agent.prompt.builtInTools,
+                    toolIds     : agent.conversationConfig?.agent?.prompt?.toolIds,
+                    builtInTools: agent.conversationConfig?.agent?.prompt?.builtInTools,
                     ignoreDefaultPersonality: true,
                 },
             },
             tts: {
                 voiceId: config.elevenLabs!.voiceId,
             },
-            ...(agent.conversationConfig.asr ? { asr: agent.conversationConfig.asr } : {}),
-            ...(agent.conversationConfig.languagePresets ? { languagePresets: agent.conversationConfig.languagePresets } : {}),
-            ...(agent.conversationConfig.turn ? { turn: agent.conversationConfig.turn } : {})
+            ...(agent.conversationConfig?.asr ? { asr: agent.conversationConfig.asr } : {}),
+            ...(agent.conversationConfig?.languagePresets ? { languagePresets: agent.conversationConfig.languagePresets } : {}),
+            ...(agent.conversationConfig?.turn ? { turn: agent.conversationConfig.turn } : {})
         },
     };
 };
@@ -195,7 +195,7 @@ ${elevenLabsConsts.systemPromptFooter}`,
                         toolIds     : _getToolIds(toolsByName,['dispatchCall','dispatchUserByPhone','getFAQAnswer']),
                         builtInTools: {
                             // "Intempus Main" transfers only to "Intempus Introduction"
-                            transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName,['Intempus Introduction'])),
+                            transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName||{},['Intempus Introduction'])),
                             transferToNumber: undefined
                         },
                     }
@@ -370,7 +370,7 @@ ${elevenLabsConsts.systemPromptFooter}`,
                         toolIds : _getToolIds(toolsByName,['sendEmail']),
                         builtInTools: {
                             // "Intempus HOA" transfers to both "Intempus Introduction" and special group extensions (maintenance, emergency, etc)
-                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"])),
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName||{},["Intempus Introduction"])),
                             transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers())
                         },
                     },
@@ -448,7 +448,7 @@ ${elevenLabsConsts.systemPromptFooter}`,
                         toolIds : _getToolIds(toolsByName,['sendEmail']),
                         builtInTools: {
                             // "Intempus PropertyOwner" transfers to both "Intempus Introduction" and special group extensions (maintenance, emergency, etc)
-                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"])),
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName||{},["Intempus Introduction"])),
                             transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers())
                         },
                     }
@@ -494,7 +494,7 @@ ${elevenLabsConsts.systemPromptFooter}`,
                         builtInTools: {
                             // "Intempus FAQ" transfers to both "Intempus Introduction" and special group extensions (maintenance, emergency, etc)
                             transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers()),
-                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"]))
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName||{},["Intempus Introduction"]))
                         },
                     }
                 },
@@ -549,7 +549,7 @@ ${elevenLabsConsts.systemPromptFooter}`,
                         builtInTools: {
                             // "Intempus CallbackForm" transfers to both "Intempus Introduction" and special group extensions (maintenance, emergency, etc)
                             transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers()),
-                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"]))
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName||{},["Intempus Introduction"]))
                         },
                     }
                 },
@@ -611,7 +611,7 @@ ${elevenLabsConsts.systemPromptFooter}`,
                         toolIds : _getToolIds(toolsByName,['sendEmail','dispatchCall']),          
                         builtInTools: {
                             // "Intempus DialByName" transfers to both "Intempus Introduction" and all kinds of contacts.
-                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName,["Intempus Introduction"])),
+                            transferToAgent:  _getTransferToAgent(_getAgentIds(agentsByName||{},["Intempus Introduction"])),
                             transferToNumber: _getSystemToolConfigOutput(_getContactTransfers(contacts))
                         },                    
                     }

@@ -9,7 +9,7 @@ const dummyElevenLabsClient = {} as ElevenLabsClient;
 type MyTools = (typeof dummyElevenLabsClient.conversationalAi.tools) & {
     getByName( name?:string ) : Promise<ElevenLabs.ToolResponseModel|undefined> ;
     listByName() : any;
-    credate( payload: ElevenLabs.ToolRequestModel, tool:(ElevenLabs.ToolRequestModel) ) : any;
+    credate( payload: ElevenLabs.ToolRequestModel, tool:(ElevenLabs.ToolRequestModel|undefined) ) : any;
 }
 type MyAgents = (typeof dummyElevenLabsClient.conversationalAi.agents) & {
     getByName( name?:string ) : any;

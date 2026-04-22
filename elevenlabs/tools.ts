@@ -190,7 +190,9 @@ export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolReq
             type        : "webhook",
             name        : "getFAQAnswer",
             description : "Get FAQ answer for the question",
-            responseTimeoutSecs : 30,
+            // 4/21/2026 Michael requested not to wait for the API longer than 3 seconds but 5 is the
+            // minimum we can set in ElevenLabs right now.
+            responseTimeoutSecs : 5,
             apiSchema : {
                 url     : getToolUrl("getFAQAnswer"),
                 method  : "POST",

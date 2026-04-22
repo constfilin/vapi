@@ -163,16 +163,15 @@ const _completeAgent = (
 };
 
 const getKeywordActionTable = () : string => {
-    return `Monitor the caller's speech for the following intents:
-    | Indent Keywords to Listen For | Action to Take |
-    | :--- | :--- |
-    | Leasing, Rentals | Tell "Forwarding to leasing" and forward the call to ${elevenLabsConsts.groupExtensions['Leasing Group']} |
-    | Maintenance, Repair | Tell "Forwarding to maintenance" and forward the call to ${elevenLabsConsts.groupExtensions['Maintenance']} |
-    | Emergency | Tell "Forwarding to emergency line" and forward the call to ${elevenLabsConsts.groupExtensions['Emergency']} |
-    | Finance, Accounting, Payments, Accounts Payable, Account Receivable | Tell "Forwarding to finance" and forward the call to ${elevenLabsConsts.groupExtensions['Finance']} |
-    | Operator, Representative, Customer Service | Clarify which department the caller wants to speak to (leasing/maintenance/finance/etc) and route the call to that department |
-    | Property Manager | Tell "Forwarding to property management" and forward the call to "Intempus PropertyOwner" agent |
-    | Sales | Tell "Forwarding to sales" and forward the call to ${elevenLabsConsts.groupExtensions['Sales']} |`;
+    return `| Indent Keywords to Listen For | Action to Take |
+        | :--- | :--- |
+        | Leasing, Rentals | Tell "Forwarding to leasing" and forward the call to ${elevenLabsConsts.groupExtensions['Leasing Group']} |
+        | Maintenance, Repair | Tell "Forwarding to maintenance" and forward the call to ${elevenLabsConsts.groupExtensions['Maintenance']} |
+        | Emergency | Tell "Forwarding to emergency line" and forward the call to ${elevenLabsConsts.groupExtensions['Emergency']} |
+        | Finance, Accounting, Payments, Accounts Payable, Account Receivable | Tell "Forwarding to finance" and forward the call to ${elevenLabsConsts.groupExtensions['Finance']} |
+        | Operator, Representative, Customer Service | Clarify which department the caller wants to speak to (leasing/maintenance/finance/etc) and route the call to that department |
+        | Property Manager | Tell "Forwarding to property management" and forward the call to "Intempus PropertyOwner" agent |
+        | Sales | Tell "Forwarding to sales" and forward the call to ${elevenLabsConsts.groupExtensions['Sales']} |`;
 }
 // ---------------------------------------------------------------------------
 // Assistants (agents)
@@ -198,13 +197,29 @@ ${_joinSteps([
     `Pretend that the user said "Hello" and call the "dispatchUserByPhone" tool, wait for result`,
     `If "dispatchUserByPhone" tool returns a user proceed with next instruction, otherwise redirect the caller to the "Intempus Introduction" agent`,
     `If tool returned a user, then:
-        * ${getKeywordActionTable()}
-        * When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
-            - Provide the answer to the user.
+        * Monitor the caller's speech for the keywords mentioned in KEYWORDS_AND_ACTIONS section. If at any point during the call (even if you are in the middle of a speech) the caller mentions a keyword defined in the KEYWORDS_AND_ACTIONS section then stop the script immediately and execute the action of the keyword. 
+        * When user asks a question call "getFAQAnswer" tool with the question asked by the user to get the answer from the FAQ database.
+            - If the tool errors out or returns an unhelpful answer or suggests the user to contact Intempus support, then follow the steps in CONNECTING_WITH_INTEMPUS section.
+            - If the tool returns a helpful answer, then provide the answer to the user and ask if they have any other questions.
             - Repeat this process until user hangs up or says that it wants to end the call.`
 ])}
 </TASKS>
 ${elevenLabsConsts.systemPromptHeader}
+
+<KEYWORDS_AND_ACTIONS>
+${getKeywordActionTable()}
+</KEYWORDS_AND_ACTIONS>
+
+<CONNECTING_WITH_INTEMPUS>
+Say I will need to connect you with a representative for that. Which department would you like to speak with?"
+${[
+    ...Object.entries(elevenLabsConsts.groupExtensions).map(([key, value]) => {
+        return `* If the user wants to speak with ${key} then transfer the call to ${value}`;
+    }),
+    "* Otherwise say 'Transferring you to our dial-by-name directory' and transfer the call to the 'Intempus DialByName' agent",
+].join("\n")}
+</CONNECTING_WITH_INTEMPUS>
+
 ${elevenLabsConsts.systemPromptFooter}`,
                         toolIds     : _getToolIds(toolsByName,['dispatchCall','dispatchUserByPhone','getFAQAnswer']),
                         builtInTools: {
@@ -286,7 +301,8 @@ ${_joinSteps([
         - Go to the first task again
     </MENU_SEQUENCE>
 
-    <KEYWORDS_AND_ACTIONS>:
+    <KEYWORDS_AND_ACTIONS>
+    Monitor the caller's speech for the following intents:
     ${getKeywordActionTable()}
     | Menu | Follow the instructions in MENU_SEQUENCE section |
     </KEYWORDS_AND_ACTIONS>`,

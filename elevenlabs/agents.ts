@@ -288,7 +288,7 @@ ${_joinSteps([
     of asking a question) the caller mentions a keyword defined in the KEYWORDS_AND_ACTIONS section then stop the script immediately and execute the action of the keyword. 
 
     <MENU_SEQUENCE>
-    If the caller has not expressed a specific intent, guide them by asking the following questions one-by-one. After each question, pause and listen.
+    Guide the caller by asking the following questions one-by-one. After each question, pause and listen.
     1. "Are you a homeowner board member or a resident calling about H-O-A and Community Management Services?"
         - Tell "I am forwarding your call to our H-O-A and Community Management Services."
     2. "Are you a property owner or tenant calling about our rental management services, scheduling a showing, or selling your home?"
@@ -354,11 +354,13 @@ export const getUnkHOA = (
                     prompt : {
                         prompt : `<TASKS>
 ${_joinSteps([
-    `Identify the category of the call by asking the next series of yes/no questions one-by-one. 
-    Pause after each question to give the user a chance to answer. 
+    `Follow the instruction in the MENU_SEQUENCE section but if at any point during the call (even if you are in the middle 
+    of asking a question) the caller mentions a keyword defined in the KEYWORDS_AND_ACTIONS section then stop the script immediately 
+    and execute the action of the keyword. 
+
+    <MENU_SEQUENCE>
+    Guide the caller by asking the following questions one-by-one. After each question, pause and listen.
     Execute the instructions after each question as soon as you get an affirmative answer.
-    If the user proactively identifies one of the categories below, then execute the corresponding instructions immediately.
-    The questions and instructions are as follows:
     a. "Are you calling about regular maintenance, parking calls or application status?"
         - Follow the instructions in the EMAILING_STEPS section.
         - Tell "I am forwarding your call to our regular maintenance services."
@@ -370,8 +372,15 @@ ${_joinSteps([
     d. "Would you like to hear these options again?"
         - Go to the first task again
     e. "Would you like to return to the main menu?"
-        - Redirect the caller to the "Intempus Introduction" agent`,
-    `Ensure the caller is kept informed about the next steps or actions being taken on their behalf.`
+        - Forget the previous context and redirect the caller to the "Intempus Introduction" agent
+    </MENU_SEQUENCE>
+
+    <KEYWORDS_AND_ACTIONS>
+    Monitor the caller's speech for the following intents:
+    ${getKeywordActionTable()}
+    | Menu | Follow the instructions in MENU_SEQUENCE section |
+    | Main Menu, Top Menu | Forget *ALL* user answers and redirect the caller to the "Intempus Introduction" agent |
+    </KEYWORDS_AND_ACTIONS>`,
 ])}
 </TASKS>
 

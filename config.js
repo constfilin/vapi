@@ -28,6 +28,8 @@ export default {
     publicUrl                       : (process.env.PUBLIC_URL||'http://127.0.0.1:9876/api'),                          // https://demo.tectransit.com/api/vapi
     replPort                        : (process.env.REPL_PORT ? parseInt(process.env.REPL_PORT) : 1338),
     notificationEmailAddress        : (process.env.NOTIFICATION_EMAIL_ADDRESS || 'mkhesin@intempus.net'),
+    vapeApiTimeoutSec               : (process.env.VAPE_API_TIMEOUT_SEC ? parseInt(process.env.VAPE_API_TIMEOUT_SEC) : 60),   // timeout for vapeApi calls in seconds
+    vapeApiBanPeriodSec             : (process.env.VAPE_API_BAN_PERIOD_SEC ? parseInt(process.env.VAPE_API_BAN_PERIOD_SEC) : 60 * 30),   // ban period for vapeApi calls after timeout in seconds
     // global model defaults for assistants
     // web server
     web                             : {

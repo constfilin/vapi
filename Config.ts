@@ -27,6 +27,8 @@ export class Config {
     open_ws                 : boolean;
     simulatedPhoneNumber    : string;
     notificationEmailAddress     : string;
+    vapeApiTimeoutSec       : number;
+    vapeApiBanPeriodSec     : number;
     web                     :   {
         path                :   string;
         loglevel            :   number;
@@ -69,6 +71,10 @@ export class Config {
             if( typeof params.web.loglevel !== 'number' )
                 params.web.loglevel = 1;
         }
+        if( typeof params.vapeApiTimeoutSec !== 'number' )
+            params.vapeApiTimeoutSec = 10;
+        if( typeof params.vapeApiBanPeriodSec !== 'number' )
+            params.vapeApiBanPeriodSec = 60;
         if( !params.nm )
             throw Error(`No nodemailer configuration`);
         Object.assign(this,params);

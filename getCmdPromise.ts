@@ -31,6 +31,10 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             args.sessionId   as string,
             args.question as string
         ));
+    case 'listPhoneNumbers':
+        return (() => vapiApi.phoneNumbers.list());
+    case 'deletePhoneNumber':
+        return (() => vapiApi.phoneNumbers.delete({id:args.id}));
     case 'getToolById':
         return (() => tools.get(args.id as string));
     case 'getTool':

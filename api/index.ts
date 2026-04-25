@@ -12,12 +12,10 @@ import * as misc            from '../misc';
 import stateByAreaCode      from './stateByAreaCode';
 import * as VapeApi         from './VapeApi';
 
-let dispatchUserByPhoneCallBan : Date | null = null;
-
 const getUserByPhoneWithBan = ( sessionId: string, phoneNumber: string ) : Promise<any> => {
     const now = new Date();
-    if( dispatchUserByPhoneCallBan && now < dispatchUserByPhoneCallBan ) {
-        const remainingSec = Math.ceil((dispatchUserByPhoneCallBan.getTime() - now.getTime()) / 1000);
+    if( server.ban_vape_api_until_date  && (now<(server.ban_vape_api_until_date ||now)) ) {
+        const remainingSec = Math.ceil((server.ban_vape_api_until_date .getTime() - now.getTime()) / 1000);
         server.module_log(module.filename,1,`VapeApi banned: ${remainingSec}s remaining`);
         return Promise.reject(new Error(`VapeApi is temporarily unavailable (ban expires in ${remainingSec}s)`));
     }
@@ -25,7 +23,7 @@ const getUserByPhoneWithBan = ( sessionId: string, phoneNumber: string ) : Promi
     const banPeriodMs = server.config.vapeApiBanPeriodSec * 1000;
     const timeoutPromise = new Promise<never>((_,reject) => {
         setTimeout(() => {
-            dispatchUserByPhoneCallBan = new Date(Date.now() + banPeriodMs);
+            server.ban_vape_api_until_date  = new Date(Date.now() + banPeriodMs);
             server.module_log(module.filename,0,`VapeApi.getUserByPhone timed out after ${server.config.vapeApiTimeoutSec}s, banning for ${server.config.vapeApiBanPeriodSec}s`);
             reject(new Error(`VapeApi timed out after ${server.config.vapeApiTimeoutSec}s`));
         }, timeoutMs);
@@ -288,7 +286,7 @@ export default () => {
                 // following the example on
                 // https://elevenlabs.io/docs/eleven-agents/workflows/post-call-webhooks
                 // HMAC validation of elevenlabs secret is used instead of header secret, since elevenlabs does not allow custom headers
-                const signature = req.header('ElevenLabs-Signature');
+                const signature = (req.header('ElevenLabs-Signature')||'');
                 const secret    = server.config.elevenLabs!.summarySecret;
                 const event = await server.elevenLabsApi.webhooks.constructEvent(
                     body_str,

@@ -24,7 +24,7 @@ export const toNumber = ( s:any, dflt:number ) : number => {
     return ((s=='') || isNaN(s)) ? dflt : Number(s);
 }
 
-export const jsonParse = ( s:string, defaultValue:Record<string,any> ) : Record<string,any> => {
+export const jsonParse = ( s:string, defaultValue:(Record<string,any>|undefined) ) : (Record<string,any>|undefined) => {
     try {
         return JSON.parse(s);
     }

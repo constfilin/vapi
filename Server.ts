@@ -21,6 +21,7 @@ export default class Server {
     nm_transport            : (nodemailer.Transporter|undefined);
     ws_by_url               : Record<string,ws.WebSocket>; 
     elevenLabsApi           : ElevenLabsApi;
+    ban_vape_api_until_date?: Date;
 
     constructor() {
         this.config         = Config.get();

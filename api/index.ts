@@ -28,10 +28,16 @@ const callVapeApiWithBan = <T>( callName: string, call: () => Promise<T> ) : Pro
             reject(new Error(`VapeApi timed out after ${server.config.vapeApiTimeoutSec}s`));
         }, timeoutMs);
     });
-    return Promise.race([ timeoutPromise, call().then( t => {
-        server.module_log(module.filename,2,`VapeApi.${callName} took ${Date.now()-now.getTime()}ms`);
-        return t;
-    }) ]);
+    return Promise.race([ 
+        timeoutPromise, 
+        call().then( t => {
+            server.module_log(module.filename,2,`VapeApi.${callName} took ${Date.now()-now.getTime()}ms`,t);
+            return t;
+        }).catch( err => {
+            server.module_log(module.filename,1,`VapeApi.${callName} threw error after ${Date.now()-now.getTime()}ms:`,err);
+            throw err;
+        })
+    ]);
 };
 
 const sendResponse = ( 

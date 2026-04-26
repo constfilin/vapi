@@ -1,19 +1,34 @@
-export interface Config {
+export interface Vapi {
+    apiKey             : string;
+    toolSecret         : string;
+    model              : string;
+    modelProvider      : string;
+    orgId              : string;
+};
+export interface ElevenLabs {
+    apiKey             : string;
+    toolSecret         : string;
+    model              : string;
+    workspaceId        : string;
+    summarySecret      : string;
+    voiceId            : string;
+};
+export class Config {
     // common params
     spreadsheetId           : string;
     vapeApiToken            : string;
     googleApiKey            : string;
     worksheetName           : string;
-    vapiOrgId               : string;
-    vapiPrivateKey          : string;
-    vapiToolSecret          : string;
+    providerType            : 'vapi'|'elevenLabs';
+    vapi?                   : Vapi;
+    elevenLabs?             : ElevenLabs;
     publicUrl               : string;
     replPort                : number;
-    model                   : string;
-    provider                : string;
     open_ws                 : boolean;
     simulatedPhoneNumber    : string;
     notificationEmailAddress     : string;
+    vapeApiTimeoutSec       : number;
+    vapeApiBanPeriodSec     : number;
     web                     :   {
         path                :   string;
         loglevel            :   number;
@@ -21,7 +36,7 @@ export interface Config {
         header_name         :   string;
         business_start_hour?:   number;
         business_end_hour?  :   number;
-    },
+    };
     nm                      :   {
         from                : string;
         host                : string;
@@ -36,27 +51,49 @@ export interface Config {
             pass            : string;
         }
     };
+    constructor( params:Partial<Config> ) {
+        if( !params )
+            throw Error(`Config is not provided`);
+        if( params.providerType === 'vapi' && params.vapi ) {
+            // valid
+        }
+        else if( params.providerType === 'elevenLabs' && params.elevenLabs ) {
+            // valid
+        }
+        else {
+            throw Error(`Provider type is set to ${params.providerType} but configuration is not provided`);
+        }
+        if( params.web ) {
+            if( !params.web.header_name || !(params.vapi?.toolSecret||params.elevenLabs?.toolSecret) )
+                throw Error(`Authentication is not provided`);
+            if( typeof params.web.port !== 'number' )
+                throw Error('Port is not provided'); 
+            if( typeof params.web.loglevel !== 'number' )
+                params.web.loglevel = 1;
+        }
+        if( typeof params.vapeApiTimeoutSec !== 'number' )
+            params.vapeApiTimeoutSec = 10;
+        if( typeof params.vapeApiBanPeriodSec !== 'number' )
+            params.vapeApiBanPeriodSec = 60;
+        if( !params.nm )
+            throw Error(`No nodemailer configuration`);
+        Object.assign(this,params);
+    }
+    get provider() : (Vapi|ElevenLabs) {
+        if( this.providerType === 'vapi' )
+            return this.vapi!;
+        else if( this.providerType === 'elevenLabs' )
+            return this.elevenLabs!;
+        else
+            throw Error(`Invalid provider type ${this.providerType}`);
+    }
 }
 
 let _config = undefined as (Config|undefined);
 
 export const get = () : Config => {
-    if( !_config ) {
-        const config = require('./config.js').default;
-        if( !config )
-            throw Error(`Config is not provided`);
-        if( config.web ) {
-            if( !config.web.header_name || !config.vapiToolSecret )
-                throw Error(`Authentication is not provided`);
-            if( typeof config.web.port !== 'number' )
-                throw Error('Port is not provided'); 
-            if( typeof config.web.loglevel !== 'number' )
-                config.web.loglevel = 1;
-        }
-        if( !config.nm )
-            throw Error(`No nodemailer configuration`);
-        _config = config;
-    }
+    if( !_config ) 
+        _config = new Config(require('./config.js').default);
     return _config!;
 }
 

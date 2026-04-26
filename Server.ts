@@ -9,6 +9,7 @@ import * as ws                  from 'ws';
 import dayjs                    from './day-timezone';
 import * as Config              from './Config';
 import * as Contacts            from './Contacts';
+import { ElevenLabsApi }        from './ElevenLabsApi';
 
 export let server = {} as Server;
 
@@ -19,12 +20,15 @@ export default class Server {
     contacts_sheet          : (GoogleSpreadsheet.GoogleSpreadsheetWorksheet|undefined);
     nm_transport            : (nodemailer.Transporter|undefined);
     ws_by_url               : Record<string,ws.WebSocket>; 
+    elevenLabsApi           : ElevenLabsApi;
+    ban_vape_api_until_date?: Date;
 
     constructor() {
         this.config         = Config.get();
         this.contacts_sheet = undefined; // Let's do it at the very first request
         this.nm_transport   = nodemailer.createTransport(this.config.nm);
         this.ws_by_url      = {};
+        this.elevenLabsApi  = new ElevenLabsApi();
         this.init_repl();
         server = this;
         return this;
@@ -89,6 +93,15 @@ export default class Server {
             subject : args.subject,
             text    : args.text
         });
+    }
+    banVapeApi( seconds?: number ) {
+        const sec = seconds ?? this.config.vapeApiBanPeriodSec;
+        this.ban_vape_api_until_date = new Date(Date.now() + sec * 1000);
+        this.log(1,`VapeApi manually banned for ${sec}s (until ${this.ban_vape_api_until_date.toISOString()})`);
+    }
+    unbanVapeApi() {
+        this.ban_vape_api_until_date = undefined;
+        this.log(1,`VapeApi ban cleared`);
     }
     async getContacts() : Promise<Contacts.Contact[]> {
         if( !this.contacts_sheet ) {

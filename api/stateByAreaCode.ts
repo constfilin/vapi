@@ -104,6 +104,6 @@ export const stateByAreaCode = {
     865 : "Tennessee",
     901 : "Tennessee",
     931 : "Tennessee",
-};
+} as Record<string,string>;
 
 export default stateByAreaCode;

@@ -94,6 +94,15 @@ export default class Server {
             text    : args.text
         });
     }
+    banVapeApi( seconds?: number ) {
+        const sec = seconds ?? this.config.vapeApiBanPeriodSec;
+        this.ban_vape_api_until_date = new Date(Date.now() + sec * 1000);
+        this.log(1,`VapeApi manually banned for ${sec}s (until ${this.ban_vape_api_until_date.toISOString()})`);
+    }
+    unbanVapeApi() {
+        this.ban_vape_api_until_date = undefined;
+        this.log(1,`VapeApi ban cleared`);
+    }
     async getContacts() : Promise<Contacts.Contact[]> {
         if( !this.contacts_sheet ) {
             this.contacts_sheet = await Contacts.getSheet(this.config.googleApiKey,this.config.spreadsheetId,this.config.worksheetName);

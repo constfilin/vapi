@@ -12,10 +12,10 @@ import * as misc            from '../misc';
 import stateByAreaCode      from './stateByAreaCode';
 import * as VapeApi         from './VapeApi';
 
-const getUserByPhoneWithBan = ( sessionId: string, phoneNumber: string ) : Promise<any> => {
+const callVapeApiWithBan = <T>( callName: string, call: () => Promise<T> ) : Promise<T> => {
     const now = new Date();
-    if( server.ban_vape_api_until_date  && (now<(server.ban_vape_api_until_date ||now)) ) {
-        const remainingSec = Math.ceil((server.ban_vape_api_until_date .getTime() - now.getTime()) / 1000);
+    if( server.ban_vape_api_until_date && (now<(server.ban_vape_api_until_date||now)) ) {
+        const remainingSec = Math.ceil((server.ban_vape_api_until_date.getTime() - now.getTime()) / 1000);
         server.module_log(module.filename,1,`VapeApi banned: ${remainingSec}s remaining`);
         return Promise.reject(new Error(`VapeApi is temporarily unavailable (ban expires in ${remainingSec}s)`));
     }
@@ -23,12 +23,12 @@ const getUserByPhoneWithBan = ( sessionId: string, phoneNumber: string ) : Promi
     const banPeriodMs = server.config.vapeApiBanPeriodSec * 1000;
     const timeoutPromise = new Promise<never>((_,reject) => {
         setTimeout(() => {
-            server.ban_vape_api_until_date  = new Date(Date.now() + banPeriodMs);
-            server.module_log(module.filename,0,`VapeApi.getUserByPhone timed out after ${server.config.vapeApiTimeoutSec}s, banning for ${server.config.vapeApiBanPeriodSec}s`);
+            server.ban_vape_api_until_date = new Date(Date.now() + banPeriodMs);
+            server.module_log(module.filename,0,`VapeApi.${callName} timed out after ${server.config.vapeApiTimeoutSec}s, banning for ${server.config.vapeApiBanPeriodSec}s`);
             reject(new Error(`VapeApi timed out after ${server.config.vapeApiTimeoutSec}s`));
         }, timeoutMs);
     });
-    return Promise.race([ VapeApi.getUserByPhone(sessionId, phoneNumber), timeoutPromise ]);
+    return Promise.race([ call(), timeoutPromise ]);
 };
 
 const sendResponse = ( 
@@ -173,7 +173,7 @@ export default () => {
             const sessionId = req.body.sessionId as string;
             if ( !sessionId )
                 throw Error(`Invalid session ID`);
-            return VapeApi.getUserByPhone(sessionId, phoneNumber);
+            return callVapeApiWithBan('getUserByPhone', () => VapeApi.getUserByPhone(sessionId, phoneNumber))
         });
     });
     router.post('/tool/dispatchUserByPhone',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
@@ -186,7 +186,7 @@ export default () => {
             const sessionId = (req.body.sessionId as string);
             if( !sessionId )
                 throw Error(`Invalid session ID`);
-            return getUserByPhoneWithBan(sessionId,phoneNumber)
+            return callVapeApiWithBan('getUserByPhone', () => VapeApi.getUserByPhone(sessionId, phoneNumber))
                 .then( userInfo => {
                     return {
                         userInfo,
@@ -207,7 +207,7 @@ export default () => {
             const question = req.body.question as string;
             if( !question )
                 throw Error(`Invalid arguments`);
-            return VapeApi.getFAQAnswer(sessionId ,question);
+            return callVapeApiWithBan('getFAQAnswer', () => VapeApi.getFAQAnswer(sessionId, question));
         });
     });
     router.post('/pre-call',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
@@ -235,7 +235,7 @@ export default () => {
                 case "Intempus Main":
                     // See https://elevenlabs.io/docs/eleven-agents/customization/personalization/twilio-personalization
                     // We need to customize the first prompt
-                    return VapeApi.getUserByPhone(sessionId,phoneNumber).then( userInfo => {
+                    return callVapeApiWithBan('getUserByPhone', () => VapeApi.getUserByPhone(sessionId,phoneNumber)).then( userInfo => {
                         if( !userInfo?.user )
                             throw Error(`VapeApi.getUserByPhone did not find a user for phone number '${phoneNumber}' and sessionId '${sessionId}'`);
                         server.module_log(module.filename,1,`Found user for phone number '${phoneNumber}'`,{ userInfo });

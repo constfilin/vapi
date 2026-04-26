@@ -1,36 +1,93 @@
 ## INSTALLATION
-1. Install Node
-1. `git clone [this repo]`
-1. `cd [this repo]`
-1. `npm i`
+1. Install Node.js
+2. Clone the repository
+3. `cd [this repo]`
+4. `npm install`
 
 ## RUNNING
-`npx tsx cmd.ts --cmd=... [--(id|name)=...] [--stringify]`
-1. `--cmd`:
-    1. `listContacts` - list contacts from [Contacts Spreadsheet](https://docs.google.com/spreadsheets/d/1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI/edit?gid=907085893#gid=907085893)
-    1. `listTools` - lists tools in VAPI org defined by `VAPI_ORG_ID` environment variable
-    1. `getToolById` - dumps information about VAPI tool identified by `--id` cmd param
-    1. `getToolByName` - dumps information about VAPI tool identified by `--name` cmd param
-    1. `createToolByName` - registers a new tool identified by `--name` cmd param. The known tools are:
-        * `redirectCall` - used to redirect call to various departments and persons depending on [Contacts](https://docs.google.com/spreadsheets/d/1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI/edit?gid=907085893#gid=907085893) 
-        * `dispatchCall`- decided what to do with a call (redirect or send an email) depending on business hours of a person per [Contacts](https://docs.google.com/spreadsheets/d/1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI/edit?gid=907085893#gid=907085893)
-        * `sendEmail` - sends email
-    1. `updateToolByName - updates registration of a tool identified by `--name` cmd param
-    1. `listAssistants` - lists assistants in VAPI org defined by `VAPI_ORG_ID` environment variable
-    1. `getAssistantById` - dumps information about VAPI assistant identified by `--id` cmd param
-    1. `getAssistantByName` - dumps information about VAPI assistant identified by `--name` cmd param
-    1. `createTooByName` - registers a new assistant identified by `--name` cmd param. The known assistants are:
-        * `IntempusBot` - reads [Contacts](https://docs.google.com/spreadsheets/d/1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI/edit?gid=907085893#gid=907085893) and registers customized VAPI assistant with Intempus functionality. Fails if necessary tools are not yet registered.
-    1. `updateAssitantByName` - updates registration of an assistant identified by `-name` cmd param. Fails if necessary tools are not yet registered.
-    1. `udpateAll` - updates registrations all the known tools and assitants.
-1. `--id` - gives an id of tool or an assistant for commands `getToolById` or `getAssistantById`
-1. `--name` - gives a name of tool or an assistant for commands `getToolByName` or `getAssistantByName`
-1. `--stringify` - if provided then the outout of the program is sent through `JSON.stringify` before being dumped on stdout
+- Start the web server: `npm start`
+- This runs `npx tsx web.ts` and exposes the Express API under `/api`
 
-## ENVIRONMENT
-Several environament variables affect the work of the program
-1. `SPREADSHEETID` - id of [Contacts Spreadsheet](https://docs.google.com/spreadsheets/d/1SI3C0QGShrE1kTbxgPwldIi12MnKXM1wq42SiOmibyI/edit?gid=907085893#gid=907085893)
-1. `GOOGLE_API_KEY` - Google API key to access the spreadsheet with
-1. `VAPI_ORG_ID`- VAPI org Id accessed by the program
-1. `VAPI_PRIVATE_KEY` - VAPI secret key to access VAPI org defined by `VAPI_ORG_ID`
-1. `ASSISTANT_NAME` - Name of Intempus assistant. Default is `Vasa`
+### CLI usage
+- Run commands directly: `npx tsx cmd.ts --cmd=<command> [--id=<id>] [--name=<name>] [--sessionId=<sessionId>] [--phoneNumber=<phoneNumber>] [--question=<question>] [--limit=<n>] [--stringify]`
+- If `--stringify` is provided, output is JSON-stringified.
+
+### Supported CLI commands
+- `listContacts` — list contacts from the configured Google spreadsheet
+- `getUserByPhone` — call Vape API for a user by phone using `--sessionId` and `--phoneNumber`
+- `getFAQAnswer` — call Vape API FAQ answer using `--sessionId` and `--question`
+- `listPhoneNumbers` — list phone numbers via the configured VAPI API
+- `deletePhoneNumber` — delete a phone number via VAPI with `--id`
+- `getToolById` — retrieve a tool by `--id`
+- `getTool` / `getToolByName` — retrieve a tool by `--name`
+- `listTools` — list tools in the configured provider org
+- `getAgentById` — retrieve an agent by `--id`
+- `getAgent` / `getAgentByName` — retrieve an agent by `--name`
+- `listAgents` — list agents in the configured provider org
+- `credateTool` — create or update a tool by `--name`
+- `credateAgent` — create or update an agent by `--name`
+- `credateTools` — create or update all configured tools
+- `credateAgents` — create or update all configured agents
+- `credateAll` — create or update all configured agents and tools
+
+## API ENDPOINTS
+The web server exposes the following endpoints under `/api`.
+
+### Tool endpoints
+- `POST /api/tool/sendEmail`
+- `POST /api/tool/dispatchCall`
+- `POST /api/tool/guessState`
+- `POST /api/tool/getUserByPhone`
+- `POST /api/tool/dispatchUserByPhone`
+- `POST /api/tool/getFAQAnswer`
+
+### Call lifecycle endpoints
+- `POST /api/pre-call`
+- `POST /api/post-call`
+
+### Generic command endpoint
+- `POST /api/cmd`
+  - Request body should include `{ cmd: ..., ... }`
+
+> All secured endpoints require the request header `x-secret` to match the configured provider tool secret.
+
+## CONFIGURATION
+The project uses `config.js` and environment variables for configuration.
+
+### Required variables
+- `SPREADSHEETID` — Google spreadsheet ID for contacts
+- `GOOGLE_API_KEY` — API key to read the Google spreadsheet
+- `PROVIDER_TYPE` — `vapi` or `elevenLabs`
+
+### VAPI provider variables
+- `VAPI_API_KEY`
+- `VAPI_TOOL_SECRET` or `TOOL_SECRET`
+- `VAPI_ORG_ID`
+- `MODEL` (defaults to `gemini-2.5-flash`)
+- `MODEL_PROVIDER` (defaults to `google`)
+
+### ElevenLabs provider variables
+- `ELEVENLABS_API_KEY`
+- `ELEVENLABS_TOOL_SECRET` or `TOOL_SECRET`
+- `ELEVENLABS_WORKSPACE_ID`
+- `ELEVENLABS_SUMMARY_SECRET`
+- `ELEVENLABS_VOICE_ID`
+
+### Other environment variables
+- `SIMULATED_PHONE_NUMBER`
+- `WORKSHEET_NAME` (default `Contacts`)
+- `VAPE_API_TOKEN`
+- `PUBLIC_URL` (default `http://127.0.0.1:9876/api`)
+- `REPL_PORT` (default `1338`)
+- `WEB_PORT` (default `9877`)
+- `LOG_LEVEL` (default `2`)
+- `VAPE_API_TIMEOUT_SEC` (default `60`)
+- `VAPE_API_BAN_PERIOD_SEC` (default `1800`)
+- `NOTIFICATION_EMAIL_ADDRESS`
+- `NM_AUTH_USER`
+- `NM_AUTH_PASS`
+
+## NOTES
+- The web server uses `express.urlencoded()` and custom JSON parsing in some API handlers.
+- The `Server` class also starts a local REPL on `localhost:<REPL_PORT>`.
+- Tool and agent registration commands are implemented as `credate*` commands.

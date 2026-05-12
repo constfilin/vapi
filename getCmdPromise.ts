@@ -1,6 +1,6 @@
 import * as elevenLabs      from './elevenlabs';
 import * as Contacts        from './Contacts';
-import { ElevenLabsApi } from './ElevenLabsApi';
+import { ElevenLabsApi }    from './ElevenLabsApi';
 
 import * as VapeApi         from './api/VapeApi';
 
@@ -32,9 +32,24 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             args.question as string
         ));
     case 'listPhoneNumbers':
-        return (() => vapiApi.phoneNumbers.list());
+        return (() => elevenLabsApi.conversationalAi.phoneNumbers.list());
     case 'deletePhoneNumber':
-        return (() => vapiApi.phoneNumbers.delete({id:args.id}));
+        return (() => elevenLabsApi.conversationalAi.phoneNumbers.delete(args.id));
+    case 'listConversations':
+        const { callSuccessful, callStartBeforeUnix, callStartAfterUnix, callDurationMinSecs } = args;
+        const agentId = args.id as string | undefined;
+        return (() => elevenLabsApi.conversationalAi.conversations.list({
+            agentId,
+            callSuccessful,
+            callStartBeforeUnix,
+            callStartAfterUnix,
+            callDurationMinSecs,
+        }).then( res => {
+            return {
+                ...res,
+                exitCode : res.conversations.length
+            };
+        }));
     case 'getToolById':
         return (() => tools.get(args.id as string));
     case 'getTool':

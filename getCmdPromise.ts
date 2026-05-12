@@ -3,6 +3,7 @@ import * as Contacts        from './Contacts';
 import { ElevenLabsApi }    from './ElevenLabsApi';
 
 import * as VapeApi         from './api/VapeApi';
+import { list } from '@elevenlabs/elevenlabs-js/core/schemas';
 
 export const getCmdPromise = ( args:Record<string,any> ) => {
 
@@ -36,15 +37,22 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
     case 'deletePhoneNumber':
         return (() => elevenLabsApi.conversationalAi.phoneNumbers.delete(args.id));
     case 'listConversations':
-        const { callSuccessful, callStartBeforeUnix, callStartAfterUnix, callDurationMinSecs } = args;
-        const agentId = args.id as string | undefined;
-        return (() => elevenLabsApi.conversationalAi.conversations.list({
-            agentId,
-            callSuccessful,
-            callStartBeforeUnix,
-            callStartAfterUnix,
-            callDurationMinSecs,
-        }).then( res => {
+        const listArgs = {} as Record<string,any>;
+        // Sanitize the arguments for listConversations request
+        if( args.id )
+            listArgs.agentId = args.id;
+        if( typeof args.callSuccessful === 'string' )
+            listArgs.callSuccessful = args.callSuccessful.toLowerCase();
+        if( typeof args.callStartBeforeUnix === 'number' && (args.callStartBeforeUnix>0) )
+            listArgs.callStartBeforeUnix = args.callStartBeforeUnix;
+        if( typeof args.callStartAfterUnix === 'number' && (args.callStartAfterUnix>0) && (args.callStartAfterUnix<(listArgs.callStartBeforeUnix||Infinity)) )
+            listArgs.callStartAfterUnix = args.callStartAfterUnix;
+        if( typeof args.callDurationMinSecs === 'number' && args.callDurationMinSecs >= 0 )
+            listArgs.callDurationMinSecs = args.callDurationMinSecs;
+        if( typeof args.limit === 'number' && args.limit > 0 )
+            listArgs.pageSize = args.limit;
+        // Read to call
+        return (() => elevenLabsApi.conversationalAi.conversations.list(listArgs).then( res => {
             return {
                 ...res,
                 exitCode : res.conversations.length

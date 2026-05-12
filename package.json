@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "exec": "npx tsx web.ts",
-    "start": "npm run exec"
+    "start": "npm run exec",
+    "monitor": "npx tsx cmd.ts --cmd=listConversations --callSuccessful=${CALL_SUCCESSFUL:-failure} --callStartBeforeUnix=${CALL_START_BEFORE_UNIX} --callStartAfterUnix=${CALL_START_AFTER_UNIX} --callDurationMinSecs=${CALL_DURATION_MIN_SECS:-0} --limit=${LIMIT:-5} --exitCodeCount"
   },
   "author": "Constantine Filin",
   "license": "ISC",

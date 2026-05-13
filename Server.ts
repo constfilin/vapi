@@ -34,6 +34,8 @@ export default class Server {
         return this;
     }
     init_repl() {
+        if( this.config.replPort<=0 )
+          return;
         // Follows https://gist.github.com/TooTallNate/2209310
         // To use this run `rlwrap telnet localhost 1338`
         net.createServer( (socket:net.Socket) => {

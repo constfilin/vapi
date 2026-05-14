@@ -179,6 +179,12 @@ export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolReq
             // 4/21/2026 Michael requested not to wait for the API longer than 3 seconds but 5 is the
             // minimum we can set in ElevenLabs right now.
             responseTimeoutSecs : 5,
+            disableInterruptions : false,
+            forcePreToolSpeech : false,
+            //pre_tool_speech : "auto",
+            toolCallSound         : "typing",
+            toolCallSoundBehavior : "always",
+            toolErrorHandlingMode : "auto",
             apiSchema : {
                 url     : getToolUrl("getFAQAnswer"),
                 method  : "POST",

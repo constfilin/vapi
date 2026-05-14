@@ -195,8 +195,8 @@ export const getMain = (
                     prompt : {
                         prompt : `<TASKS>
 ${_joinSteps([
-    `Pretend that the user said "Hello" and call the "dispatchUserByPhone" tool, wait for result`,
-    `If "dispatchUserByPhone" tool returns a user proceed with next instruction, otherwise redirect the caller to the "Intempus Introduction" agent`,
+    `Pretend that the user said "Hello" and call the "getUserByPhone" tool, wait for result`,
+    `If "getUserByPhone" tool returns a user proceed with next instruction, otherwise redirect the caller to the "Intempus Introduction" agent`,
     `If tool returned a user, then:
         * Monitor the caller's speech for the keywords mentioned in KEYWORDS_AND_ACTIONS section. If at any point during the call (even if you are in the middle of a speech) the caller mentions a keyword defined in the KEYWORDS_AND_ACTIONS section then stop the script immediately and execute the action of the keyword. 
         * When user asks a question call "getFAQAnswer" tool with the question asked by the user to get the answer from the FAQ database.
@@ -224,7 +224,7 @@ ${[
 </CONNECTING_WITH_INTEMPUS>
 
 ${elevenLabsConsts.systemPromptFooter}`,
-                        toolIds     : _getToolIds(toolsByName,['dispatchCall','dispatchUserByPhone','getFAQAnswer']),
+                        toolIds     : _getToolIds(toolsByName,['dispatchCall','getUserByPhone','getFAQAnswer']),
                         builtInTools: {
                             // "Intempus Main" transfers only to "Intempus Introduction"
                             transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName||{},['Intempus Introduction'])),

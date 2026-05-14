@@ -38,7 +38,6 @@ The web server exposes the following endpoints under `/api`.
 - `POST /api/tool/dispatchCall`
 - `POST /api/tool/guessState`
 - `POST /api/tool/getUserByPhone`
-- `POST /api/tool/dispatchUserByPhone`
 - `POST /api/tool/getFAQAnswer`
 
 ### Call lifecycle endpoints

@@ -192,29 +192,6 @@ export default () => {
             return callVapeApiWithBan('getUserByPhone', () => VapeApi.getUserByPhone(sessionId, phoneNumber))
         });
     });
-    router.post('/tool/dispatchUserByPhone',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
-        return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
-                throw Error(`Access denied`);
-            const phoneNumber = server.config.simulatedPhoneNumber || (req.body.phoneNumber as string);
-            if( !phoneNumber )
-                throw Error(`Invalid phone number`);
-            const sessionId = (req.body.sessionId as string);
-            if( !sessionId )
-                throw Error(`Invalid session ID`);
-            return callVapeApiWithBan('getUserByPhone', () => VapeApi.getUserByPhone(sessionId, phoneNumber))
-                .then( userInfo => {
-                    return {
-                        userInfo,
-                    };
-                })
-                .catch( err => {
-                    return {
-                        err: "No user found"
-                    }
-                });
-        });
-    });
     router.post('/tool/getFAQAnswer',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         const sessionId = req.body.sessionId as string || 'unknown_session';
         return sendResponse(req,res,() => {
@@ -275,7 +252,7 @@ export default () => {
                                                     - Provide the answer to the user.
                                                     - Repeat this process until user hangs up or says that it wants to end the call.`,
                                     },
-                                    first_message : `Hi ${userInfo.user.first_name}, how can I help you today?`,
+                                    first_message : `Hi ${userInfo.user.first_name||'there'}, how can I help you today?`,
                                 }
                             }
                         };

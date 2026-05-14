@@ -23,7 +23,6 @@ export const toolsByName = {
     'sendEmail'             : tools.getSendEmail,
     'guessState'            : tools.getGuessState,
     'getUserByPhone'        : tools.getUserByPhone,
-    'dispatchUserByPhone'   : tools.dispatchUserByPhone,
     'getFAQAnswer'          : tools.getFAQAnswer,
 } as unknown as Record<string,(
     contacts    : Contacts.Contact[]

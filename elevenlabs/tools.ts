@@ -168,20 +168,6 @@ export const getUserByPhone = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolR
 };
 
 /**
- * dispatchUserByPhone – same as getUserByPhone but the server also returns
- * the next "instructions" so the assistant can proceed without waiting for
- * user input.
- */
-export const dispatchUserByPhone = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolRequestModel => {
-    const tmp = getUserByPhone(contacts);
-    const cfg = tmp.toolConfig as ElevenLabs.WebhookToolConfigInput & { type:"webhook" };
-    cfg.name        = "dispatchUserByPhone";
-    cfg.description = "Dispatch user call by user phone number";
-    cfg.apiSchema.url = getToolUrl("dispatchUserByPhone");
-    return tmp;
-};
-
-/**
  * getFAQAnswer – retrieve an FAQ answer for a question.
  */
 export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolRequestModel => {

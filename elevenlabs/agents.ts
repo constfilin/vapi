@@ -224,7 +224,7 @@ ${[
 </CONNECTING_WITH_INTEMPUS>
 
 ${elevenLabsConsts.systemPromptFooter}`,
-                        toolIds     : _getToolIds(toolsByName,['dispatchCall','getUserByPhone','getFAQAnswer']),
+                        toolIds     : _getToolIds(toolsByName,['getUserByPhone','getFAQAnswer']),
                         builtInTools: {
                             // "Intempus Main" transfers only to "Intempus Introduction"
                             transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName||{},['Intempus Introduction'])),

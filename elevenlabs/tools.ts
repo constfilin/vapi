@@ -9,16 +9,25 @@ import { server }           from '../Server';
 // helpers
 // ---------------------------------------------------------------------------
 
-const getWebhookHeaders = () : Record<string,string> => {
+const _getWebhookHeaders = () : Record<string,string> => {
     return {
         "X-Secret" : server.config.provider.toolSecret,
     };
 };
 
-const getToolUrl = ( toolName:string ) : string => {
+const _getToolUrl = ( toolName:string ) : string => {
     return `${server.config.publicUrl}/tool/${toolName}`;
 };
 
+const _getToolCallSound = () : Partial<ElevenLabs.WebhookToolConfigInput> => {
+    return {
+        forcePreToolSpeech    : false,
+        //pre_tool_speech       : "auto",
+        toolCallSound         : "typing",
+        toolCallSoundBehavior : "always",
+        toolErrorHandlingMode : "auto",
+    };
+}
 // ---------------------------------------------------------------------------
 // Webhook tools  (server-side function calls)
 // ---------------------------------------------------------------------------
@@ -34,10 +43,11 @@ export const getDispatchCall = ( contacts:Contacts.Contact[] ) : ElevenLabs.Tool
             name        : "dispatchCall",
             description : "API gets a person name, looks up spreadsheet contacts, checks current time and return instructions how to dispatch the call",
             responseTimeoutSecs : 30,
+            ..._getToolCallSound(),
             apiSchema : {
-                url     : getToolUrl("dispatchCall"),
+                url     : _getToolUrl("dispatchCall"),
                 method  : "POST",
-                requestHeaders  : getWebhookHeaders(),
+                requestHeaders  : _getWebhookHeaders(),
                 requestBodySchema : {
                     type        : "object",
                     properties  : {
@@ -73,10 +83,11 @@ export const getSendEmail = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolReq
             name        : "sendEmail",
             description : "Sending Email",
             responseTimeoutSecs : 30,
+            ..._getToolCallSound(),
             apiSchema : {
-                url     : getToolUrl("sendEmail"),
+                url     : _getToolUrl("sendEmail"),
                 method  : "POST",
-                requestHeaders  : getWebhookHeaders(),
+                requestHeaders  : _getWebhookHeaders(),
                 requestBodySchema : {
                     type        : "object",
                     properties  : {
@@ -115,10 +126,11 @@ export const getGuessState = ( /*contacts:Contacts.Contact[]*/ ) : ElevenLabs.To
             name        : "guessState",
             description : "Guess State of the Caller",
             responseTimeoutSecs : 30,
+            ..._getToolCallSound(),
             apiSchema : {
-                url     : getToolUrl("guessState"),
+                url     : _getToolUrl("guessState"),
                 method  : "POST",
-                requestHeaders  : getWebhookHeaders(),
+                requestHeaders  : _getWebhookHeaders(),
                 requestBodySchema : {
                     type        : "object",
                     properties  : {
@@ -144,10 +156,11 @@ export const getUserByPhone = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolR
             name        : "getUserByPhone",
             description : "Get user information from phone number",
             responseTimeoutSecs : 30,
+            ..._getToolCallSound(),
             apiSchema : {
-                url     : getToolUrl("getUserByPhone"),
+                url     : _getToolUrl("getUserByPhone"),
                 method  : "POST",
-                requestHeaders  : getWebhookHeaders(),
+                requestHeaders  : _getWebhookHeaders(),
                 requestBodySchema : {
                     type        : "object",
                     properties  : {
@@ -179,16 +192,12 @@ export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolReq
             // 4/21/2026 Michael requested not to wait for the API longer than 3 seconds but 5 is the
             // minimum we can set in ElevenLabs right now.
             responseTimeoutSecs : 5,
-            disableInterruptions : false,
-            forcePreToolSpeech : false,
-            //pre_tool_speech : "auto",
-            toolCallSound         : "typing",
-            toolCallSoundBehavior : "always",
-            toolErrorHandlingMode : "auto",
+            disableInterruptions  : false,
+            ..._getToolCallSound(),
             apiSchema : {
-                url     : getToolUrl("getFAQAnswer"),
+                url     : _getToolUrl("getFAQAnswer"),
                 method  : "POST",
-                requestHeaders  : getWebhookHeaders(),
+                requestHeaders  : _getWebhookHeaders(),
                 requestBodySchema : {
                     type        : "object",
                     properties  : {

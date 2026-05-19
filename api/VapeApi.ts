@@ -53,6 +53,26 @@ export const getFAQAnswer = async (sessionId: string, question: string): Promise
         { sessionId, question }
     );
     if (resp.error || !resp.data || !resp.data.user || (!resp.data.verified && server.config.vapeApi.requireVerified) || !resp.data.reply)
-        throw Error(`Cannot get reply for session '${sessionId}' on question '${question}': ${JSON.stringify(resp)}`);
+        throw Error(`Cannot get FAQ answer for session '${sessionId}' on question '${question}': ${JSON.stringify(resp)}`);
     return resp.data;
 };
+
+export const getInstructionsByPropertyId = async (sessionId:string, propertyId:string ) : Promise<{
+    session_id    : string;
+    verified      : boolean;
+    contact_name  : (string|undefined);
+    contact_phone : (string|undefined);
+}> => {
+    const apiUrl = `https://api.insynergyapp.com/ai-voice-chat-transfer-target`;
+    const resp = await makeApiCall(
+        apiUrl,
+        {
+            session_id      : sessionId,
+            property_or_hoa : propertyId
+        },
+        { sessionId, propertyId }
+    );
+    if( resp.error || !resp.data || ((resp.data.contact_phone||'')=='') || (resp.data.session_id!==sessionId) )
+        throw Error(`Cannot get transfer target for session '${sessionId}' with property '${propertyId}': ${JSON.stringify(resp)}`);
+    return resp.data;
+}

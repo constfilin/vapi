@@ -16,7 +16,7 @@ export let server = {} as Server;
 export default class Server {
 
     module_log_level        : Record<string,number> = {};
-    config                  : Config.Config;
+    config                  : Readonly<Config.Config>;
     contacts_sheet          : (GoogleSpreadsheet.GoogleSpreadsheetWorksheet|undefined);
     nm_transport            : (nodemailer.Transporter|undefined);
     ws_by_url               : Record<string,ws.WebSocket>; 

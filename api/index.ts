@@ -193,10 +193,10 @@ export default () => {
         });
     });
     router.post('/tool/getFAQAnswer',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
-        const sessionId = req.body.sessionId as string || 'unknown_session';
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
+            const sessionId = req.body.sessionId as string || 'unknown_session';
             const question = req.body.question as string;
             if( !question )
                 throw Error(`Invalid arguments`);
@@ -206,6 +206,41 @@ export default () => {
                 return {
                     session_id  : sessionId,
                     reply       : `Follow the instructions in CONNECTING_WITH_INTEMPUS section.`
+                };  
+            });
+        });
+    });
+    router.post('/tool/getInstructionsByPropertyId',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
+        return sendResponse(req,res,() => {
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
+                throw Error(`Access denied`);
+            const sessionId  = req.body.sessionId as string || 'unknown_session';
+            const propertyId = req.body.propertyId as string;
+            if( !propertyId )
+                throw Error(`Invalid arguments`);
+            return callVapeApiWithBan('getInstructionsByPropertyId',() => {
+                return VapeApi.getInstructionsByPropertyId(sessionId,propertyId);
+            }).then( data => {
+                if( data.contact_name && data.contact_phone )
+                    return {
+                        session_id    : sessionId,
+                        instructions  : `Say 'Transferring the call to ${data.contact_name}.' and transfer the call to "${data.contact_phone}"'.`
+                    };
+                if( data.contact_phone )
+                    return {
+                        session_id    : sessionId,
+                        instructions  : `Transfer the call to "${data.contact_phone}".`
+                    };
+                return {
+                    session_id    : sessionId,
+                    // Adding special word "Immediately" here to be able to tell this case from
+                    // the exception handler case below.
+                    instructions  : `Immediately follow the instructions in CONNECTING_WITH_INTEMPUS section.`
+                };
+            }).catch( err => {
+                return {
+                    session_id    : sessionId,
+                    instructions  : `Follow the instructions in CONNECTING_WITH_INTEMPUS section.`
                 };  
             });
         });

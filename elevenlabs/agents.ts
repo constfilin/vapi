@@ -163,7 +163,7 @@ const _completeAgent = (
     };
 };
 
-const getKeywordActionTable = () : string => {
+const getKeywordActionTable = ( propertyManagerAction:string ) : string => {
     return `| Indent Keywords to Listen For | Action to Take |
         | :--- | :--- |
         | Leasing, Rentals | Tell "Forwarding to leasing" and forward the call to ${elevenLabsConsts.groupExtensions['Leasing Group']} |
@@ -171,7 +171,7 @@ const getKeywordActionTable = () : string => {
         | Emergency | Tell "Forwarding to emergency line" and forward the call to ${elevenLabsConsts.groupExtensions['Emergency']} |
         | Finance, Accounting, Payments, Accounts Payable, Account Receivable | Tell "Forwarding to finance" and forward the call to ${elevenLabsConsts.groupExtensions['Finance']} |
         | Operator, Representative, Customer Service | Clarify which department the caller wants to speak to (leasing/maintenance/finance/etc) and route the call to that department |
-        | Property Manager | Tell "Forwarding to property management" and forward the call to "Intempus PropertyOwner" agent |
+        | Property Manager | ${propertyManagerAction} |
         | Sales | Tell "Forwarding to sales" and forward the call to ${elevenLabsConsts.groupExtensions['Sales']} |`;
 }
 // ---------------------------------------------------------------------------
@@ -196,35 +196,40 @@ export const getMain = (
                         prompt : `<TASKS>
 ${_joinSteps([
     `Pretend that the user said "Hello" and call the "getUserByPhone" tool, wait for result`,
-    `If "getUserByPhone" tool returns a user proceed with next instruction, otherwise redirect the caller to the "Intempus Introduction" agent`,
-    `If tool returned a user, then:
-        * Monitor the caller's speech for the keywords mentioned in KEYWORDS_AND_ACTIONS section. If at any point during the call (even if you are in the middle of a speech) the caller mentions a keyword defined in the KEYWORDS_AND_ACTIONS section then stop the script immediately and execute the action of the keyword. 
-        * When user asks a question call "getFAQAnswer" tool with the question asked by the user to get the answer from the FAQ database.
-            - If "getFAQAnswer" tool fails, doesn't return a reply, returns an unhelpful reply, says that is doesn't have the information or suggests the user to contact Intempus support, then DO NOT attempt to provide your own answer, DO NOT mention the error. Instead immediately follow the steps in CONNECTING_WITH_INTEMPUS section.
-            - If "getFAQAnswer" tool returns a helpful reply, then provide the reply to the user and ask if they have any other questions.
-            - Ask the user if it has another question and repeat this process until user hangs up or says that it wants to end the call.`
+    `If "getUserByPhone" tool returns a user, then follow the instructions in QUESTIONS_AND_ANSWERS section. Otherwise follow the instructions in UNKNOWN_CALLER section.`
 ])}
 </TASKS>
 ${elevenLabsConsts.systemPromptHeader}
 
+<QUESTIONS_AND_ANSWERS>
+* Monitor the caller's speech for the keywords mentioned in KEYWORDS_AND_ACTIONS section. If at any point during the call (even if you are in the middle of a speech) the caller mentions a keyword defined in the KEYWORDS_AND_ACTIONS section then stop the script immediately and execute the action of the keyword.
+* When user asks a question, then check if the user is asking to be connected with the property manager or with Intempus customer service. If so then follow the instructions in CONNECTING_WITH_INTEMPUS section.
+* For all other questions:
+    - call "getFAQAnswer" tool with the question asked by the user to get the answer from the FAQ database.
+    - If "getFAQAnswer" tool fails, doesn't return a reply, returns an unhelpful reply, says that is doesn't have the information or suggests the user to contact Intempus support, then DO NOT attempt to provide your own answer, DO NOT mention the error. Instead immediately follow the steps in CONNECTING_WITH_INTEMPUS section.
+    - If "getFAQAnswer" tool returns a helpful reply, then say the reply to the user.
+    - Ask the user if it has another question and repeat this process until user hangs up or says that it wants to end the call.
+</QUESTIONS_AND_ANSWERS>
+
+<UNKNOWN_CALLER>
+* Ask the caller something like "Are you an existing customer of Intempus or calling us for the first time?"
+* If the caller does not confirm that it is an existing customer of Intempus, then redirect the call to "Intempus Introduction" agent.
+* Otherwise ask the caller to identify the property it is calling about by its street address.
+* Call "getInstructionsByPropertyId" tool passing the property street address in "propertyId" value, wait for the result and follow the instructions returned by the tool.
+* If "getInstructionsByPropertyId" fails then redirect the call to "Intempus Introduction" agent.
+</UNKNOWN_CALLER>
+
 <KEYWORDS_AND_ACTIONS>
-${getKeywordActionTable()}
+${getKeywordActionTable('Follow the instructions in CONNECTING_WITH_INTEMPUS section')}
 </KEYWORDS_AND_ACTIONS>
 
 <CONNECTING_WITH_INTEMPUS>
-- DO NOT invent or provide your own answer on the user's question.
-- DO NOT ask follow-up questions.
-- Say "I will need to connect you with a representative for that. Which department would you like to speak with?"
-${[
-    ...Object.entries(elevenLabsConsts.groupExtensions).map(([key, value]) => {
-        return `- If the user wants to speak with ${key} then transfer the call to ${value}`;
-    }),
-    "- Otherwise say 'Transferring you to our dial-by-name directory' and transfer the call to the 'Intempus DialByName' agent",
-].join("\n")}
+- Call "getInstructionsByPropertyId" tool and wait for the result.
+- If "getInstructionsByPropertyId" returns a phone number then redirect the call to that phone number. Otherwise redirect the call to "Intempus Introduction" agent.
 </CONNECTING_WITH_INTEMPUS>
 
 ${elevenLabsConsts.systemPromptFooter}`,
-                        toolIds     : _getToolIds(toolsByName,['getUserByPhone','getFAQAnswer']),
+                        toolIds     : _getToolIds(toolsByName,['getUserByPhone','getFAQAnswer','getInstructionsByPropertyId']),
                         builtInTools: {
                             // "Intempus Main" transfers only to "Intempus Introduction"
                             transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName||{},['Intempus Introduction'])),
@@ -306,7 +311,7 @@ ${_joinSteps([
 
     <KEYWORDS_AND_ACTIONS>
     Monitor the caller's speech for the following intents:
-    ${getKeywordActionTable()}
+    ${getKeywordActionTable('Tell "Forwarding to property management" and forward the call to "Intempus PropertyOwner" agent')}
     | Menu | Follow the instructions in MENU_SEQUENCE section |
     </KEYWORDS_AND_ACTIONS>`,
 ])}
@@ -380,7 +385,7 @@ ${_joinSteps([
 
     <KEYWORDS_AND_ACTIONS>
     Monitor the caller's speech for the following intents:
-    ${getKeywordActionTable()}
+    ${getKeywordActionTable('Tell "Forwarding to property management" and forward the call to "Intempus PropertyOwner" agent')}
     | Menu | Follow the instructions in MENU_SEQUENCE section |
     | Main Menu, Top Menu | Forget *ALL* user answers and redirect the caller to the "Intempus Introduction" agent |
     </KEYWORDS_AND_ACTIONS>`,

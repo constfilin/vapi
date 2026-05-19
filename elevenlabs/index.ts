@@ -19,11 +19,12 @@ export const agentsByName = {
 
 //only accepts webhook tools, system tools need to be directly embedded into the agent definition
 export const toolsByName = {
-    'dispatchCall'          : tools.getDispatchCall,
-    'sendEmail'             : tools.getSendEmail,
-    'guessState'            : tools.getGuessState,
-    'getUserByPhone'        : tools.getUserByPhone,
-    'getFAQAnswer'          : tools.getFAQAnswer,
+    'dispatchCall'                : tools.getDispatchCall,
+    'sendEmail'                   : tools.getSendEmail,
+    'guessState'                  : tools.getGuessState,
+    'getUserByPhone'              : tools.getUserByPhone,
+    'getFAQAnswer'                : tools.getFAQAnswer,
+    'getInstructionsByPropertyId' : tools.getInstructionsByPropertyId
 } as unknown as Record<string,(
     contacts    : Contacts.Contact[]
 ) => ElevenLabs.ToolRequestModel>;

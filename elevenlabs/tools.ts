@@ -218,3 +218,35 @@ export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolReq
     };
 };
 
+export const getInstructionsByPropertyId = () : ElevenLabs.ToolRequestModel => {
+    return {
+        toolConfig : {
+            type        : "webhook",
+            name        : "getInstructionsByPropertyId",
+            description : "Get instructions about what to do depending on the property identifier",
+            responseTimeoutSecs : 5,
+            disableInterruptions  : false, // Potentially we have to make it inunrerruptable
+            ..._getToolCallSound(),
+            apiSchema : {
+                url     : _getToolUrl("getInstructionsByPropertyId"),
+                method  : "POST",
+                requestHeaders  : _getWebhookHeaders(),
+                requestBodySchema : {
+                    type        : "object",
+                    properties  : {
+                        propertyId : {
+                            type        : "string",
+                            description : "Any identifier of the property. Could be a street address, a name of the apartment complex, etc",
+                        },
+                        sessionId: {
+                            type            : "string",
+                            dynamicVariable : "system__conversation_id",
+                        }
+
+                    },
+                    required : ["propertyId", "sessionId"]
+                }
+            }
+        }
+    };  
+}

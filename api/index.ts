@@ -8,7 +8,7 @@ import { server }           from '../Server';
 import { getCmdPromise }    from '../getCmdPromise';
 import dayjs                from '../day-timezone';
 import * as misc            from '../misc';
-
+import * as ELabConsts      from '../elevenlabs/consts';
 import stateByAreaCode      from './stateByAreaCode';
 import * as VapeApi         from './VapeApi';
 
@@ -249,12 +249,12 @@ export default () => {
                     if( data.contact_name && data.contact_phone )
                         return {
                             session_id    : sessionId,
-                            instructions  : `Say 'Transferring the call to ${data.contact_name}.' and call tool "transfer_to_number" passing "${data.contact_phone}" in "phone_number_variable"'.`
+                            instructions  : `Say 'Transferring the call to ${data.contact_name}.' and call tool "transfer_to_number" passing "${data.contact_phone}" in "${ELabConsts.phoneTransferDetinationVarName}" dynamic variable'.`
                         };
                     if( data.contact_phone )
                         return {
                             session_id    : sessionId,
-                            instructions  : `Call tool "transfer_to_number" passing "${data.contact_phone}" in "phone_number_variable".`
+                            instructions  : `Call tool "transfer_to_number" passing "${data.contact_phone}" in "${ELabConsts.phoneTransferDetinationVarName}" dynamic variable.`
                         };
                 }
                 // Adding special word "Immediately" here to be able to tell this case from

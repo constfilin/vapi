@@ -217,6 +217,21 @@ export default () => {
             const sessionId  = req.body.sessionId as string || 'unknown_session';
             const propertyId = req.body.propertyId as string;
             const sectionName = req.body.sectionName as string;
+            const getRedirectToIntempusIntroductionResult = ( instructions:string ) => {
+                return {
+                    session_id  : sessionId,
+                    instructions: instructions,
+                    // Testing has discovered that if a name of an agent is returned in the instructions then 
+                    // ElevenLabs fails to redirect the to that agent. It says that hte agent is "unknown", 
+                    // see https://github.com/constfilin/intempus/issues/15#issuecomment-4492663954
+                    // 
+                    // So instead of simply returning the instructions to redirect to "Intempus Introduction",
+                    // we are going to error out of the tool and the system prompt of the agent needs to be
+                    // written so that the tool error is properly handled and the agent take the desired action
+                    // in this case. 
+                    err         : instructions  
+                };
+            };
             if( !propertyId )
                 throw Error(`Invalid arguments`);
             return callVapeApiWithBan('getInstructionsByPropertyId',() => {
@@ -244,19 +259,11 @@ export default () => {
                             instructions  : `Transfer the call to "${data.contact_phone}".`
                         };
                 }
-                // We cannot identify the caller by propertyId. The thing we can do is to 
-                // transfer to "Intempus Introduction" agent.
-                return {
-                    session_id    : sessionId,
-                    // Adding special word "Immediately" here to be able to tell this case from
-                    // the exception handler case below.
-                    instructions  : `Immediately transfer the call to "Intempus Introduction" agent.`
-                };
+                // Adding special word "Immediately" here to be able to tell this case from
+                // the exception handler case below.
+                return getRedirectToIntempusIntroductionResult(`Immediately transfer the call to "Intempus Introduction" agent.`);
             }).catch( err => {
-                return {
-                    session_id    : sessionId,
-                    instructions  : `Transfer the call to "Intempus Introduction" agent.`
-                };  
+                return getRedirectToIntempusIntroductionResult(`Transfer the call to "Intempus Introduction" agent.`);
             });
         });
     });

@@ -221,8 +221,8 @@ ${getKeywordActionTable('Follow the instructions in CONNECTING_WITH_INTEMPUS sec
 </KEYWORDS_AND_ACTIONS>
 
 <CONNECTING_WITH_INTEMPUS>
-- Call "getInstructionsByPropertyId" tool and wait for the result.
-- If "getInstructionsByPropertyId" returns a phone number then redirect the call to that phone number. Otherwise redirect the call to "Intempus Introduction" agent.
+* Call "getInstructionsByPropertyId" tool, wait for the result and follow the instructions returned by the tool.
+* If "getInstructionsByPropertyId" fails then redirect the call to "Intempus Introduction" agent.
 </CONNECTING_WITH_INTEMPUS>
 
 ${elevenLabsConsts.systemPromptFooter}`,

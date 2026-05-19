@@ -221,7 +221,7 @@ ${getKeywordActionTable('Follow the instructions in CONNECTING_WITH_INTEMPUS sec
 </KEYWORDS_AND_ACTIONS>
 
 <CONNECTING_WITH_INTEMPUS>
-* Call "getInstructionsByPropertyId" tool, wait for the result and follow the instructions returned by the tool.
+* Call "getInstructionsByPropertyId" tool passing an empty string in "sectionName", wait for the result and follow the instructions returned by the tool.
 * If "getInstructionsByPropertyId" fails then redirect the call to "Intempus Introduction" agent.
 </CONNECTING_WITH_INTEMPUS>
 

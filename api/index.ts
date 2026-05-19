@@ -232,8 +232,6 @@ export default () => {
                     err         : instructions  
                 };
             };
-            if( !propertyId )
-                throw Error(`Invalid arguments`);
             return callVapeApiWithBan('getInstructionsByPropertyId',() => {
                 return VapeApi.getInstructionsByPropertyId(sessionId,propertyId);
             }).then( data => {

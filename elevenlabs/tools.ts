@@ -234,20 +234,22 @@ export const getInstructionsByPropertyId = () : ElevenLabs.ToolRequestModel => {
                 requestBodySchema : {
                     type        : "object",
                     properties  : {
-                        propertyId : {
-                            type        : "string",
-                            description : "Any identifier of the property. Could be a street address, a name of the apartment complex, etc",
-                        },
                         sessionId: {
                             type            : "string",
                             dynamicVariable : "system__conversation_id",
                         },
+                        propertyId : {
+                            type        : "string",
+                            description : "Optional identifier of the property. Could be a street address, a name of the apartment complex, etc",
+                        },
                         sectionName : {
                             type            : "string",
                             description     : "Optional value indicating that the caller wants to transfer to a specific section"
-                        }
+                        }   
                     },
-                    required : ["propertyId", "sessionId"]
+                    // If `propertyId` is not passed then the backend API uses
+                    // information that was stored in the session earlier.
+                    required : ["sessionId"]
                 }
             }
         }

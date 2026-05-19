@@ -45,11 +45,19 @@ const makeApiCall = async (
         module.filename,
         3,
         `Calling ${apiUrl} with`,
-        logContext
+        payload
     );
     const response = await fetch(apiUrl, init);
+    const carefullyGetResponseJson = async () : Promise<Record<string,any>> => {
+        try {
+            return (await response.json()) as Record<string,any>;
+        }
+        catch( err ) {
+            return err as Record<string,any>;
+        }
+    }
     if (!response.ok)
-        throw Error(`API Error (${response.status} ${response.statusText}): ${apiUrl}`);
+        throw Error(`API Error (${response.status} ${response.statusText}): ${apiUrl}: ${JSON.stringify(await carefullyGetResponseJson())}`);
     return (await response.json()) as Record<string, any>;
 };
 

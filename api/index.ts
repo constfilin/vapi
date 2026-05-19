@@ -245,6 +245,39 @@ export default () => {
             });
         });
     });
+    router.post('/tool/getInstructionsByPhone',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
+        return sendResponse(req,res,async () => {
+            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
+                throw Error(`Access denied`);
+            try {
+                const phoneNumber = req.body.phoneNumber as string;
+                if( !phoneNumber )
+                    throw Error(`Invalid phone number`);
+                const sessionId = req.body.sessionId as string;
+                if ( !sessionId )
+                    throw Error(`Invalid session ID`);
+                return callVapeApiWithBan('getUserByPhone', () => {
+                    return VapeApi.getUserByPhone(sessionId,phoneNumber);
+                }).then( user => {
+                      return {
+                          session_id    : sessionId,
+                          instructions  : `Immediately follow the instructions in ${user.user?"QUESTIONS_AND_ANSWERS":"UNKNONW_CALLER"} section`
+                      };
+                }).catch( err => {
+                      return {
+                          session_id    : sessionId,
+                          instructions  : "Follow the instructions in UNKNOWN_CALLER section"
+                      };
+                });
+            }
+            catch( err ) {
+                return {
+                    session_id   : req.body.sessionId,
+                    instructions : "Follow the instructions in UNKNOWN_CALLER section."
+                }  
+            }
+        });
+    });
     router.post('/pre-call',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,async () => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )

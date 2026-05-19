@@ -250,3 +250,34 @@ export const getInstructionsByPropertyId = () : ElevenLabs.ToolRequestModel => {
         }
     };  
 }
+
+export const getInstructionsByPhone = () : ElevenLabs.ToolRequestModel => {
+    return {
+        toolConfig : {
+            type        : "webhook",
+            name        : "getInstructionsByPhone",
+            description : "Get next instructions based on user phone number",
+            responseTimeoutSecs : 30,
+            ..._getToolCallSound(),
+            apiSchema : {
+                url     : _getToolUrl("getInstructionsByPhone"),
+                method  : "POST",
+                requestHeaders  : _getWebhookHeaders(),
+                requestBodySchema : {
+                    type        : "object",
+                    properties  : {
+                        sessionId : {
+                            type            : "string",
+                            dynamicVariable : "system__conversation_id",
+                        },
+                        phoneNumber : {
+                            type        : "string",
+                            dynamicVariable : "system__caller_id",
+                        }
+                    },
+                    required : ["sessionId", "phoneNumber"]
+                }
+            }
+        }
+    };
+}

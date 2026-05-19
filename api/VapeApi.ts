@@ -2,6 +2,32 @@ import fetch                from 'node-fetch';
 import { server }           from '../Server';
 import * as misc            from '../misc';
 
+export interface User {
+    session_id      : string;
+    flow?           : string;
+    role?           : string;
+    user?: {
+        phone       : string;
+        first_name  : string;
+        last_name   : string;
+    };
+    verified        : boolean;
+    match_status    : string;
+    match_count     : number;
+    candidates      : Array<Record<string,any>>;
+    property_identified: boolean;
+    property_scope_type: string;
+    contact_name?   : string;
+    contact_phone?  : string;
+}
+
+export interface CallTransferTarget {
+    session_id      : string;
+    verified        : boolean;
+    contact_name    : (string|undefined);
+    contact_phone   : (string|undefined);
+}
+
 const makeApiCall = async (
     apiUrl      : string,
     payload     : Record<string, any>,
@@ -27,7 +53,7 @@ const makeApiCall = async (
     return (await response.json()) as Record<string, any>;
 };
 
-export const getUserByPhone = async (sessionId: string, phoneNumber: string): Promise<Record<string, any>> => {
+export const getUserByPhone = async (sessionId: string, phoneNumber: string): Promise<User> => {
     const apiUrl= `https://api.insynergyapp.com/ai-voice-chat-user`;
     const resp  = await makeApiCall(
         apiUrl,
@@ -57,12 +83,7 @@ export const getFAQAnswer = async (sessionId: string, question: string): Promise
     return resp.data;
 };
 
-export const getInstructionsByPropertyId = async (sessionId:string, propertyId:string ) : Promise<{
-    session_id    : string;
-    verified      : boolean;
-    contact_name  : (string|undefined);
-    contact_phone : (string|undefined);
-}> => {
+export const getInstructionsByPropertyId = async (sessionId:string, propertyId:string ) : Promise<CallTransferTarget> => {
     const apiUrl = `https://api.insynergyapp.com/ai-voice-chat-transfer-target`;
     const resp = await makeApiCall(
         apiUrl,

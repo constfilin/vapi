@@ -194,10 +194,7 @@ export const getMain = (
                     firstMessage : "",
                     prompt : {
                         prompt : `<TASKS>
-${_joinSteps([
-    `Pretend that the user said "Hello" and call the "getUserByPhone" tool, wait for result`,
-    `If "getUserByPhone" tool returns a user, then follow the instructions in QUESTIONS_AND_ANSWERS section. Otherwise follow the instructions in UNKNOWN_CALLER section.`
-])}
+    Pretend that the user said "Hello", call "getInstructionsByPhone" tool, wait for result and follow the returned instructions.
 </TASKS>
 ${elevenLabsConsts.systemPromptHeader}
 
@@ -229,7 +226,7 @@ ${getKeywordActionTable('Follow the instructions in CONNECTING_WITH_INTEMPUS sec
 </CONNECTING_WITH_INTEMPUS>
 
 ${elevenLabsConsts.systemPromptFooter}`,
-                        toolIds     : _getToolIds(toolsByName,['getUserByPhone','getFAQAnswer','getInstructionsByPropertyId']),
+                      toolIds     : _getToolIds(toolsByName,['getUserByPhone','getFAQAnswer','getInstructionsByPhone','getInstructionsByPropertyId']),
                         builtInTools: {
                             // "Intempus Main" transfers only to "Intempus Introduction"
                             transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName||{},['Intempus Introduction'])),

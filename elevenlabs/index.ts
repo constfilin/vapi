@@ -24,7 +24,8 @@ export const toolsByName = {
     'guessState'                  : tools.getGuessState,
     'getUserByPhone'              : tools.getUserByPhone,
     'getFAQAnswer'                : tools.getFAQAnswer,
-    'getInstructionsByPropertyId' : tools.getInstructionsByPropertyId
+    'getInstructionsByPropertyId' : tools.getInstructionsByPropertyId,
+    'getInstructionsByPhone'      : tools.getInstructionsByPhone
 } as unknown as Record<string,(
     contacts    : Contacts.Contact[]
 ) => ElevenLabs.ToolRequestModel>;

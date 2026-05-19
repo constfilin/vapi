@@ -76,4 +76,4 @@ export const callerIntentMenuInstructions = `Identify the category of the call b
     If the user proactively identifies one of the categories below, then execute the corresponding instructions immediately.
     The questions and instructions are as follows`;
 
-export const phoneTransferDetinationVarName = "phone_transfer_desitnation";
+export const phoneTransferDetinationVarName = "phone_transfer_destination";

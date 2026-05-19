@@ -216,31 +216,46 @@ export default () => {
                 throw Error(`Access denied`);
             const sessionId  = req.body.sessionId as string || 'unknown_session';
             const propertyId = req.body.propertyId as string;
+            const sectionName = req.body.sectionName as string;
             if( !propertyId )
                 throw Error(`Invalid arguments`);
             return callVapeApiWithBan('getInstructionsByPropertyId',() => {
                 return VapeApi.getInstructionsByPropertyId(sessionId,propertyId);
             }).then( data => {
-                if( data.contact_name && data.contact_phone )
-                    return {
-                        session_id    : sessionId,
-                        instructions  : `Say 'Transferring the call to ${data.contact_name}.' and transfer the call to "${data.contact_phone}"'.`
-                    };
-                if( data.contact_phone )
-                    return {
-                        session_id    : sessionId,
-                        instructions  : `Transfer the call to "${data.contact_phone}".`
-                    };
+                if( sectionName ) {
+                    // Here this means that the caller just wants to know if the caller is identified
+                    // but the caller is not yet ready to transfer the call to a phone number.
+                    if( data.contact_phone )
+                        return {
+                            session_id   : sessionId,
+                            instructions : `Follow the instructions in ${sectionName} section.`
+                        };
+                } 
+                else {
+                    // The caller wants to transfer the call to a specific phone number
+                    if( data.contact_name && data.contact_phone )
+                        return {
+                            session_id    : sessionId,
+                            instructions  : `Say 'Transferring the call to ${data.contact_name}.' and transfer the call to "${data.contact_phone}"'.`
+                        };
+                    if( data.contact_phone )
+                        return {
+                            session_id    : sessionId,
+                            instructions  : `Transfer the call to "${data.contact_phone}".`
+                        };
+                }
+                // We cannot identify the caller by propertyId. The thing we can do is to 
+                // transfer to "Intempus Introduction" agent.
                 return {
                     session_id    : sessionId,
                     // Adding special word "Immediately" here to be able to tell this case from
                     // the exception handler case below.
-                    instructions  : `Immediately follow the instructions in CONNECTING_WITH_INTEMPUS section.`
+                    instructions  : `Immediately transfer the call to "Intempus Introduction" agent.`
                 };
             }).catch( err => {
                 return {
                     session_id    : sessionId,
-                    instructions  : `Follow the instructions in CONNECTING_WITH_INTEMPUS section.`
+                    instructions  : `Transfer the call to "Intempus Introduction" agent.`
                 };  
             });
         });

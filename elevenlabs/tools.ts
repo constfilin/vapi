@@ -241,8 +241,11 @@ export const getInstructionsByPropertyId = () : ElevenLabs.ToolRequestModel => {
                         sessionId: {
                             type            : "string",
                             dynamicVariable : "system__conversation_id",
+                        },
+                        sectionName : {
+                            type            : "string",
+                            description     : "Optional value indicating that the caller wants to transfer to a specific section"
                         }
-
                     },
                     required : ["propertyId", "sessionId"]
                 }

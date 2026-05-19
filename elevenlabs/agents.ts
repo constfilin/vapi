@@ -212,7 +212,7 @@ ${elevenLabsConsts.systemPromptHeader}
 * Ask the caller something like "Are you an existing customer of Intempus or calling us for the first time?"
 * If the caller does not confirm that it is an existing customer of Intempus, then redirect the call to "Intempus Introduction" agent.
 * Otherwise ask the caller to identify the property it is calling about by its street address.
-* Call "getInstructionsByPropertyId" tool passing the property street address in "propertyId" value, wait for the result and follow the instructions returned by the tool.
+* Call "getInstructionsByPropertyId" tool passing the property street address in "propertyId" and "QUESTIONS_AND_ANSWERS" in "sectionName", wait for the result and follow the instructions returned by the tool.
 * If "getInstructionsByPropertyId" fails then redirect the call to "Intempus Introduction" agent.
 </UNKNOWN_CALLER>
 

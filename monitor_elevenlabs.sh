@@ -29,7 +29,7 @@ if [ "${FAILED_COUNT}" -eq 0 ]; then
 else
         export MONITORING_EMAIL=constantine@tectransit.com
 	echo -e "To: ${MONITORING_EMAIL}\nSubject:There are ${FAILED_COUNT} failed calls within the last ${SECONDS_BACK} seconds from ${HOSTNAME}\n${FAILED_CALLS}\nPlease Check ${HOSTNAME}" | /usr/sbin/sendmail ${MONITORING_EMAIL}
-        export MONITORING_EMAIL=mkhesin@intempus.com
+        export MONITORING_EMAIL=mkhesin@intempus.net
 	echo -e "To: ${MONITORING_EMAIL}\nSubject:There are ${FAILED_COUNT} failed calls within the last ${SECONDS_BACK} seconds from ${HOSTNAME}\nPlease Check ${HOSTNAME}" | /usr/sbin/sendmail ${MONITORING_EMAIL}
 fi
 

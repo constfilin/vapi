@@ -4,6 +4,8 @@ dotenv.config();
 
 export default {
     // common params
+    path                   : __dirname,
+    loglevel               : process.env.LOG_LEVEL ? parseInt(process.env.LOG_LEVEL) : 2,           // defines verbosity
     spreadsheetId                   : (process.env.SPREADSHEETID||'[hidden]'),
     simulatedPhoneNumber            : (process.env.SIMULATED_PHONE_NUMBER || ''),
     googleApiKey                    : (process.env.GOOGLE_API_KEY||'[hidden]'),
@@ -36,8 +38,6 @@ export default {
     // global model defaults for assistants
     // web server
     web                             : {
-        path        : __dirname,
-        loglevel    : process.env.LOG_LEVEL ? parseInt(process.env.LOG_LEVEL) : 2,           // defines verbosity
         port        : process.env.WEB_PORT ? parseInt(process.env.WEB_PORT) : 9877,          // port to listen on
         // API authentication
         header_name : "x-secret",

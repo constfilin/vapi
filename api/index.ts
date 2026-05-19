@@ -251,12 +251,12 @@ export default () => {
                     if( data.contact_name && data.contact_phone )
                         return {
                             session_id    : sessionId,
-                            instructions  : `Say 'Transferring the call to ${data.contact_name}.' and transfer the call to "${data.contact_phone}"'.`
+                            instructions  : `Say 'Transferring the call to ${data.contact_name}.' and call tool "transfer_to_number" passing "${data.contact_phone}" in "phone_number_variable"'.`
                         };
                     if( data.contact_phone )
                         return {
                             session_id    : sessionId,
-                            instructions  : `Transfer the call to "${data.contact_phone}".`
+                            instructions  : `Call tool "transfer_to_number" passing "${data.contact_phone}" in "phone_number_variable".`
                         };
                 }
                 // Adding special word "Immediately" here to be able to tell this case from

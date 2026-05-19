@@ -64,7 +64,7 @@ const _getAsrKeywords = ( contacts:Contacts.Contact[] ) : string[] => {
  * Maps from the Vapi `transferCall` tool type to ElevenLabs `transfer_to_number`
  * system tool.
  */
-const _getGroupExtensionTransfers = () : ElevenLabs.PhoneNumberTransfer[] => {
+const _getGroupExtensionTransfers = ( dflt:ElevenLabs.PhoneNumberTransfer[]=[] ) : ElevenLabs.PhoneNumberTransfer[] => {
     return Object.entries(elevenLabsConsts.groupExtensions).reduce( (transfers,[name,number]) => {
         if( !transfers.some(t => t.phoneNumber === number) ) {
             transfers.push({
@@ -74,7 +74,7 @@ const _getGroupExtensionTransfers = () : ElevenLabs.PhoneNumberTransfer[] => {
             });
         }
         return transfers;
-    },[] as ElevenLabs.PhoneNumberTransfer[]);
+    },dflt);
 }
 const _getContactTransfers = ( contacts:Contacts.Contact[] ) : ElevenLabs.PhoneNumberTransfer[] => {
     return contacts.reduce( (transfers,c) => {
@@ -226,11 +226,18 @@ ${getKeywordActionTable('Follow the instructions in CONNECTING_WITH_INTEMPUS sec
 </CONNECTING_WITH_INTEMPUS>
 
 ${elevenLabsConsts.systemPromptFooter}`,
-                      toolIds     : _getToolIds(toolsByName,['getUserByPhone','getFAQAnswer','getInstructionsByPhone','getInstructionsByPropertyId']),
+                        toolIds     : _getToolIds(toolsByName,['getFAQAnswer','getInstructionsByPhone','getInstructionsByPropertyId']),
                         builtInTools: {
                             // "Intempus Main" transfers only to "Intempus Introduction"
                             transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName||{},['Intempus Introduction'])),
-                            transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers())
+                            transferToNumber: _getSystemToolConfigOutput(_getGroupExtensionTransfers([{
+                                transferType : "blind",
+                                transferDestination : {
+                                    type        : "phone_dynamic_variable",
+                                    phoneNumber : "phone_number_variable"
+                                },
+                                condition    : ''
+                            }]))
                         },
                     }
                 },

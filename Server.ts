@@ -71,7 +71,7 @@ export default class Server {
         return `${dayjs().format("YYYY-MM-DD HH:mm:ss")}:${level}`;
     }
     log( level:number, ...args:any[] ) {
-        if( this.config.web.loglevel >= level ) {
+        if( this.config.loglevel >= level ) {
             // tslint:disable:no-console
             console.log(`${this.log_prefix(level)}: ` + util.format(...args));
         }
@@ -79,7 +79,7 @@ export default class Server {
     }
     module_log( filename:string, level:number, ...args:any[] ) {
         const modname  = (filename.startsWith(this.config.web.path) ? filename.substring(this.config.web.path.length) : filename).replace(/^.*\/([^/\.]+)\.[^\.]+$/,"$1");
-        const loglevel = (modname in this.module_log_level) ? this.module_log_level[modname] : this.config.web.loglevel;
+        const loglevel = (modname in this.module_log_level) ? this.module_log_level[modname] : this.config.loglevel;
         if( loglevel>=level ) {
             // tslint:disable:no-console
             console.log(`${this.log_prefix(level)}: ` + util.format(modname,...args));

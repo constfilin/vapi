@@ -15,6 +15,7 @@ export interface ElevenLabs {
 };
 export class Config {
     // common params
+    loglevel                : number;
     spreadsheetId           : string;
     googleApiKey            : string;
     worksheetName           : string;
@@ -34,7 +35,6 @@ export class Config {
     };
     web                     :   {
         path                :   string;
-        loglevel            :   number;
         port                :   number;
         header_name         :   string;
         business_start_hour?:   number;
@@ -74,21 +74,22 @@ export class Config {
             throw Error(`Authentication is not provided`);
         if( typeof params.web.port !== 'number' )
             throw Error('Port is not provided'); 
-        if( typeof params.web.loglevel !== 'number' )
-            params.web.loglevel = 1;
 
         if( !params.vapeApi )
             throw Error(`No vapeApi configuration provided`);
         if( !params.vapeApi.token )
             throw Error(`No vapeApi token provided`);
-        if( typeof params.vapeApi.timeoutSec !== 'number' )
-            params.vapeApi.timeoutSec = 10;
-        if( typeof params.vapeApi.banPeriodSec !== 'number' )
-            params.vapeApi.banPeriodSec = 60;
 
         if( !params.nm )
             throw Error(`No nodemailer configuration`);
 
+        // Default values
+        this.loglevel = 1;
+        this.vapeApi  = {
+            token         : '',
+            timeoutSec    : 10,
+            banPeriodSec  : 60
+        };
         Object.assign(this,params);
     }
     get provider() : (Vapi|ElevenLabs) {

@@ -20,7 +20,7 @@ const web = () => {
     app.set('trust proxy','loopback');
     app.use("/api",api());
     app.listen(server.config.web.port,'localhost',() => {
-        server.module_log(module.filename,0,`Started at port ${server.config.web.port} at log level ${server.config.web.loglevel}`);
+        server.module_log(module.filename,0,`Started at port ${server.config.web.port} at log level ${server.config.loglevel}`);
     });
 };
 

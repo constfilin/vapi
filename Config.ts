@@ -16,6 +16,7 @@ export interface ElevenLabs {
 export class Config {
     // common params
     loglevel                : number;
+    path                    : string;
     spreadsheetId           : string;
     googleApiKey            : string;
     worksheetName           : string;
@@ -34,7 +35,6 @@ export class Config {
         requireVerified?    : boolean;
     };
     web                     :   {
-        path                :   string;
         port                :   number;
         header_name         :   string;
         business_start_hour?:   number;
@@ -85,6 +85,7 @@ export class Config {
 
         // Default values
         this.loglevel = 1;
+        this.path     = __dirname;
         this.vapeApi  = {
             token         : '',
             timeoutSec    : 10,

@@ -179,19 +179,6 @@ export default () => {
             return guessState(phoneNumber);
         });
     });
-    router.post('/tool/getUserByPhone',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
-        return sendResponse(req,res,async () => {
-            if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
-                throw Error(`Access denied`);
-            const phoneNumber = req.body.phoneNumber as string;
-            if( !phoneNumber )
-                throw Error(`Invalid phone number`);
-            const sessionId = req.body.sessionId as string;
-            if ( !sessionId )
-                throw Error(`Invalid session ID`);
-            return callVapeApiWithBan('getUserByPhone',()=>VapeApi.getUserByPhone(sessionId, phoneNumber))
-        });
-    });
     router.post('/tool/getFAQAnswer',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )

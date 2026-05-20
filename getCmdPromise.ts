@@ -32,6 +32,11 @@ export const getCmdPromise = ( args:Record<string,any> ) => {
             args.sessionId   as string,
             args.question as string
         ));
+    case 'getTransferTarget':
+        return (() => VapeApi.getTransferTarget(
+            args.sessionId as string,
+            args.name as string
+        ));
     case 'listPhoneNumbers':
         return (() => elevenLabsApi.conversationalAi.phoneNumbers.list());
     case 'deletePhoneNumber':

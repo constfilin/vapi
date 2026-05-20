@@ -22,7 +22,6 @@ export const toolsByName = {
     'dispatchCall'              : tools.getDispatchCall,
     'sendEmail'                 : tools.getSendEmail,
     'guessState'                : tools.getGuessState,
-    'getUserByPhone'            : tools.getUserByPhone,
     'getFAQAnswer'              : tools.getFAQAnswer,
     'getInstructionsByPhone'    : tools.getInstructionsByPhone,
     'getTransferInstructions'   : tools.getTransferInstructions,

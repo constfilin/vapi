@@ -147,40 +147,6 @@ export const getGuessState = ( /*contacts:Contacts.Contact[]*/ ) : ElevenLabs.To
 };
 
 /**
- * getUserByPhone – retrieve user information based on caller phone number.
- */
-export const getUserByPhone = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolRequestModel => {
-    return {
-        toolConfig : {
-            type        : "webhook",
-            name        : "getUserByPhone",
-            description : "Get user information from phone number",
-            responseTimeoutSecs : 30,
-            ..._getToolCallSound(),
-            apiSchema : {
-                url             : _getToolUrl("getUserByPhone"),
-                method          : "POST",
-                requestHeaders  : _getWebhookHeaders(),
-                requestBodySchema : {
-                    type        : "object",
-                    properties  : {
-                        sessionId : {
-                            type            : "string",
-                            dynamicVariable : "system__conversation_id",
-                        },
-                        phoneNumber : {
-                            type        : "string",
-                            dynamicVariable : "system__caller_id",
-                        }
-                    },
-                    required : ["sessionId", "phoneNumber"]
-                }
-            }
-        }
-    };
-};
-
-/**
  * getFAQAnswer – retrieve an FAQ answer for a question.
  */
 export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolRequestModel => {

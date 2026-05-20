@@ -239,7 +239,7 @@ export default () => {
                         return {
                             session_id          : sessionId,
                             contact_phone_number: data.contact_phone,
-                            instructions        : `Say 'Transferring the call to ${data.contact_name}.' and call tool "transfer_to_number" passing "${data.contact_phone}" in "${ELabConsts.phoneTransferDestinationVarName}" dynamic variable'.`
+                            instructions        : `Say 'Transferring the call to ${data.contact_name}.' and call tool "transfer_to_number" passing "${data.contact_phone}" in "${ELabConsts.phoneTransferDestinationVarName}" dynamic variable.`
                         };
                     if( data.contact_phone )
                         return {

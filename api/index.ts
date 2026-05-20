@@ -189,7 +189,7 @@ export default () => {
             const sessionId = req.body.sessionId as string;
             if ( !sessionId )
                 throw Error(`Invalid session ID`);
-            return callVapeApiWithBan('getUserByPhone', () => VapeApi.getUserByPhone(sessionId, phoneNumber))
+            return callVapeApiWithBan('getUserByPhone',()=>VapeApi.getUserByPhone(sessionId, phoneNumber))
         });
     });
     router.post('/tool/getFAQAnswer',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
@@ -210,7 +210,7 @@ export default () => {
             });
         });
     });
-    router.post('/tool/getInstructionsByPropertyId',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
+    router.post('/tool/getTransferInstructions',express.json({type:'application/json'}),(req:expressCore.Request,res:expressCore.Response) => {
         return sendResponse(req,res,() => {
             if( req.get(server.config.web.header_name)!==server.config.provider.toolSecret )
                 throw Error(`Access denied`);
@@ -233,17 +233,17 @@ export default () => {
                     err         : instructions  
                 };
             };
-            return callVapeApiWithBan('getInstructionsByPropertyId',() => {
-                return VapeApi.getInstructionsByPropertyId(sessionId,propertyId);
+            return callVapeApiWithBan('getTransferTarget',() => {
+                return VapeApi.getTransferTarget(sessionId,propertyId);
             }).then( data => {
                 if( sectionName ) {
                     // Here this means that the caller just wants to know if the caller is identified
                     // but the caller is not yet ready to transfer the call to a phone number.
                     if( data.contact_phone )
                         return {
-                            session_id   : sessionId,
-                            phone_number : data.contact_phone,
-                            instructions : `Follow the instructions in ${sectionName} section.`
+                            session_id    : sessionId,
+                            phone_number  : data.contact_phone,
+                            instructions  : `Follow the instructions in ${sectionName} section.`
                         };
                 } 
                 else {
@@ -327,7 +327,7 @@ export default () => {
                 case "Intempus Main":
                     // See https://elevenlabs.io/docs/eleven-agents/customization/personalization/twilio-personalization
                     // We need to customize the first prompt
-                    return callVapeApiWithBan('getUserByPhone', () => VapeApi.getUserByPhone(sessionId,phoneNumber)).then( userInfo => {
+                    return callVapeApiWithBan('getUserByPhone',()=>VapeApi.getUserByPhone(sessionId,phoneNumber)).then( userInfo => {
                         if( !userInfo?.user )
                             throw Error(`VapeApi.getUserByPhone did not find a user for phone number '${phoneNumber}' and sessionId '${sessionId}'`);
                         server.module_log(module.filename,1,`Found user for phone number '${phoneNumber}'`,{ userInfo });

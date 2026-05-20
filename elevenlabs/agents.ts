@@ -165,7 +165,7 @@ const _completeAgent = (
     };
 };
 
-const getKeywordActionTable = ( propertyManagerAction:string ) : string => {
+const _getKeywordActionTable = ( propertyManagerAction:string ) : string => {
     return `| Indent Keywords to Listen For | Action to Take |
         | :--- | :--- |
         | Leasing, Rentals | Tell "Forwarding to leasing" and forward the call to ${elevenLabsConsts.groupExtensions['Leasing Group']} |
@@ -214,21 +214,21 @@ ${elevenLabsConsts.systemPromptHeader}
 * Ask the caller something like "Are you an existing customer of Intempus or calling us for the first time?"
 * If the caller does not confirm that it is an existing customer of Intempus, then redirect the call to "Intempus Introduction" agent.
 * Otherwise ask the caller to identify the property it is calling about by its street address.
-* Call "getInstructionsByPropertyId" tool passing the property street address in "propertyId" and "QUESTIONS_AND_ANSWERS" in "sectionName", wait for the result and follow the instructions returned by the tool.
-* If "getInstructionsByPropertyId" fails then redirect the call to "Intempus Introduction" agent.
+* Call "getTransferInstructions" tool passing the property street address in "propertyId" and "QUESTIONS_AND_ANSWERS" in "sectionName", wait for the result and follow the instructions returned by the tool.
+* If "getTransferInstructions" fails then redirect the call to "Intempus Introduction" agent.
 </UNKNOWN_CALLER>
 
 <KEYWORDS_AND_ACTIONS>
-${getKeywordActionTable('Follow the instructions in CONNECTING_WITH_INTEMPUS section')}
+${_getKeywordActionTable('Follow the instructions in CONNECTING_WITH_INTEMPUS section')}
 </KEYWORDS_AND_ACTIONS>
 
 <CONNECTING_WITH_INTEMPUS>
-* Call "getInstructionsByPropertyId" tool passing an empty string in "sectionName", wait for the result and follow the instructions returned by the tool.
-* If "getInstructionsByPropertyId" fails then redirect the call to "Intempus Introduction" agent.
+* Call "getTransferInstructions" tool passing an empty string in "sectionName", wait for the result and follow the instructions returned by the tool.
+* If "getTransferInstructions" fails then redirect the call to "Intempus Introduction" agent.
 </CONNECTING_WITH_INTEMPUS>
 
 ${elevenLabsConsts.systemPromptFooter}`,
-                        toolIds     : _getToolIds(toolsByName,['getFAQAnswer','getInstructionsByPhone','getInstructionsByPropertyId']),
+                        toolIds     : _getToolIds(toolsByName,['getFAQAnswer','getInstructionsByPhone','getTransferInstructions']),
                         builtInTools: {
                             // "Intempus Main" transfers only to "Intempus Introduction"
                             transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName||{},['Intempus Introduction'])),
@@ -317,7 +317,7 @@ ${_joinSteps([
 
     <KEYWORDS_AND_ACTIONS>
     Monitor the caller's speech for the following intents:
-    ${getKeywordActionTable('Tell "Forwarding to property management" and forward the call to "Intempus PropertyOwner" agent')}
+    ${_getKeywordActionTable('Tell "Forwarding to property management" and forward the call to "Intempus PropertyOwner" agent')}
     | Menu | Follow the instructions in MENU_SEQUENCE section |
     </KEYWORDS_AND_ACTIONS>`,
 ])}
@@ -391,7 +391,7 @@ ${_joinSteps([
 
     <KEYWORDS_AND_ACTIONS>
     Monitor the caller's speech for the following intents:
-    ${getKeywordActionTable('Tell "Forwarding to property management" and forward the call to "Intempus PropertyOwner" agent')}
+    ${_getKeywordActionTable('Tell "Forwarding to property management" and forward the call to "Intempus PropertyOwner" agent')}
     | Menu | Follow the instructions in MENU_SEQUENCE section |
     | Main Menu, Top Menu | Forget *ALL* user answers and redirect the caller to the "Intempus Introduction" agent |
     </KEYWORDS_AND_ACTIONS>`,

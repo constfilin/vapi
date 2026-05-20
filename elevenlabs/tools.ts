@@ -158,8 +158,8 @@ export const getUserByPhone = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolR
             responseTimeoutSecs : 30,
             ..._getToolCallSound(),
             apiSchema : {
-                url     : _getToolUrl("getUserByPhone"),
-                method  : "POST",
+                url             : _getToolUrl("getUserByPhone"),
+                method          : "POST",
                 requestHeaders  : _getWebhookHeaders(),
                 requestBodySchema : {
                     type        : "object",
@@ -192,18 +192,18 @@ export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolReq
             // 4/21/2026 Michael requested not to wait for the API longer than 3 seconds but 5 is the
             // minimum we can set in ElevenLabs right now.
             responseTimeoutSecs : 5,
-            disableInterruptions  : false,
+            disableInterruptions: false,
             ..._getToolCallSound(),
             apiSchema : {
-                url     : _getToolUrl("getFAQAnswer"),
-                method  : "POST",
+                url             : _getToolUrl("getFAQAnswer"),
+                method          : "POST",
                 requestHeaders  : _getWebhookHeaders(),
                 requestBodySchema : {
                     type        : "object",
                     properties  : {
                         question : {
-                            type        : "string",
-                            description : "The question asked by the caller",
+                            type            : "string",
+                            description     : "The question asked by the caller",
                         },
                         sessionId: {
                             type            : "string",
@@ -218,18 +218,49 @@ export const getFAQAnswer = ( contacts:Contacts.Contact[] ) : ElevenLabs.ToolReq
     };
 };
 
-export const getInstructionsByPropertyId = () : ElevenLabs.ToolRequestModel => {
+export const getInstructionsByPhone = () : ElevenLabs.ToolRequestModel => {
     return {
         toolConfig : {
             type        : "webhook",
-            name        : "getInstructionsByPropertyId",
-            description : "Get instructions about what to do depending on the property identifier",
+            name        : "getInstructionsByPhone",
+            description : "Get next instructions based on user phone number",
+            responseTimeoutSecs : 30,
+            ..._getToolCallSound(),
+            apiSchema : {
+                url             : _getToolUrl("getInstructionsByPhone"),
+                method          : "POST",
+                requestHeaders  : _getWebhookHeaders(),
+                requestBodySchema : {
+                    type        : "object",
+                    properties  : {
+                        sessionId : {
+                            type            : "string",
+                            dynamicVariable : "system__conversation_id",
+                        },
+                        phoneNumber : {
+                            type            : "string",
+                            dynamicVariable : "system__caller_id",
+                        }
+                    },
+                    required : ["sessionId","phoneNumber"]
+                }
+            }
+        }
+    };
+}
+
+export const getTransferInstructions = () : ElevenLabs.ToolRequestModel => {
+    return {
+        toolConfig : {
+            type                : "webhook",
+            name                : "getTransferInstructions",
+            description         : "Get instructions about what to do depending on the property identifier",
             responseTimeoutSecs : 5,
             disableInterruptions  : false, // Potentially we have to make it inunrerruptable
             ..._getToolCallSound(),
             apiSchema : {
-                url     : _getToolUrl("getInstructionsByPropertyId"),
-                method  : "POST",
+                url             : _getToolUrl("getTransferInstructions"),
+                method          : "POST",
                 requestHeaders  : _getWebhookHeaders(),
                 requestBodySchema : {
                     type        : "object",
@@ -240,8 +271,8 @@ export const getInstructionsByPropertyId = () : ElevenLabs.ToolRequestModel => {
                             //description     : "user session identifier"
                         },
                         propertyId : {
-                            type        : "string",
-                            description : "Optional identifier of the property. Could be a street address, a name of the apartment complex, etc",
+                            type            : "string",
+                            description     : "Optional identifier of the property. Could be a street address, a name of the apartment complex, etc",
                         },
                         sectionName : {
                             type            : "string",
@@ -254,42 +285,11 @@ export const getInstructionsByPropertyId = () : ElevenLabs.ToolRequestModel => {
                 },
             },
             assignments : [{
-                source      : "response",
+                source          : "response",
                 dynamicVariable : elevenLabsConsts.phoneTransferDestinationVarName,
-                valuePath   : "phone_number",
-                sanitize    : false
+                valuePath       : "phone_number",
+                sanitize        : false
             }]
         }
     };  
-}
-
-export const getInstructionsByPhone = () : ElevenLabs.ToolRequestModel => {
-    return {
-        toolConfig : {
-            type        : "webhook",
-            name        : "getInstructionsByPhone",
-            description : "Get next instructions based on user phone number",
-            responseTimeoutSecs : 30,
-            ..._getToolCallSound(),
-            apiSchema : {
-                url     : _getToolUrl("getInstructionsByPhone"),
-                method  : "POST",
-                requestHeaders  : _getWebhookHeaders(),
-                requestBodySchema : {
-                    type        : "object",
-                    properties  : {
-                        sessionId : {
-                            type            : "string",
-                            dynamicVariable : "system__conversation_id",
-                        },
-                        phoneNumber : {
-                            type        : "string",
-                            dynamicVariable : "system__caller_id",
-                        }
-                    },
-                    required : ["sessionId", "phoneNumber"]
-                }
-            }
-        }
-    };
 }

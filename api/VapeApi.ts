@@ -21,18 +21,14 @@ export interface User {
     contact_phone?  : string;
 }
 
-export interface CallTransferTarget {
+export interface TransferTarget {
     session_id      : string;
     verified        : boolean;
     contact_name    : (string|undefined);
     contact_phone   : (string|undefined);
 }
 
-const makeApiCall = async (
-    apiUrl      : string,
-    payload     : Record<string, any>,
-    logContext  : Record<string, any>
-): Promise<Record<string, any>> => {
+const _callApi = async ( apiUrl:string, payload:Record<string,any> ): Promise<Record<string,any>> => {
     const init = {
         method: 'POST',
         headers: {
@@ -63,43 +59,40 @@ const makeApiCall = async (
 
 export const getUserByPhone = async (sessionId: string, phoneNumber: string): Promise<User> => {
     const apiUrl= `https://api.insynergyapp.com/ai-voice-chat-user`;
-    const resp  = await makeApiCall(
+    const resp  = await _callApi(
         apiUrl,
         {
             session_id  : sessionId,
             phone       : server.config.simulatedPhoneNumber || misc.canonicalizePhone(phoneNumber)
-        },
-        { sessionId, phoneNumber }
+        }
     );
     if (resp.error || !resp.data || !resp.data.user || (!resp.data.verified && server.config.vapeApi.requireVerified) )
         throw Error(`User not found or not verified for phone number '${phoneNumber}': ${JSON.stringify(resp)}`);
     return resp.data;
 };
 
-export const getFAQAnswer = async (sessionId: string, question: string): Promise<Record<string, any>> => {
+export const getFAQAnswer = async ( sessionId:string, question:string ): Promise<Record<string,any>> => {
     const apiUrl = `https://api.insynergyapp.com/ai-voice-chat-message`;
-    const resp = await makeApiCall(
+    const resp = await _callApi(
         apiUrl,
         {
             session_id  : sessionId,
             text        : question
-        },
-        { sessionId, question }
+        }
     );
     if (resp.error || !resp.data || !resp.data.user || (!resp.data.verified && server.config.vapeApi.requireVerified) || !resp.data.reply)
         throw Error(`Cannot get FAQ answer for session '${sessionId}' on question '${question}': ${JSON.stringify(resp)}`);
     return resp.data;
 };
 
-export const getInstructionsByPropertyId = async (sessionId:string, propertyId:string ) : Promise<CallTransferTarget> => {
+export const getTransferTarget = async ( sessionId:string, propertyId:string ) : Promise<TransferTarget> => {
     const apiUrl = `https://api.insynergyapp.com/ai-voice-chat-transfer-target`;
-    const resp = await makeApiCall(
+    const resp = await _callApi(
         apiUrl,
         {
             session_id      : sessionId,
             property_or_hoa : propertyId
-        },
-        { sessionId, propertyId }
+        }
     );
     if( resp.error || !resp.data || ((resp.data.contact_phone||'')=='') || (resp.data.session_id!==sessionId) )
         throw Error(`Cannot get transfer target for session '${sessionId}' with property '${propertyId}': ${JSON.stringify(resp)}`);

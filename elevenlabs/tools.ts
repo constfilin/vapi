@@ -210,7 +210,23 @@ export const getInstructionsByPhone = () : ElevenLabs.ToolRequestModel => {
                     },
                     required : ["sessionId","phoneNumber"]
                 }
-            }
+            },
+            assignments : [{
+                source          : "response",
+                dynamicVariable : 'user_first_name',
+                valuePath       : 'user_first_name',
+                sanitize        : false
+            },{
+                source          : "response",
+                dynamicVariable : 'user_last_name',
+                valuePath       : 'user_last_name',
+                sanitize        : false
+            },{
+                source          : "response",
+                dynamicVariable : elevenLabsConsts.phoneTransferDestinationVarName,
+                valuePath       : "contact_phone_number",
+                sanitize        : false
+            }]
         }
     };
 }
@@ -253,7 +269,7 @@ export const getTransferInstructions = () : ElevenLabs.ToolRequestModel => {
             assignments : [{
                 source          : "response",
                 dynamicVariable : elevenLabsConsts.phoneTransferDestinationVarName,
-                valuePath       : "phone_number",
+                valuePath       : "contact_phone_number",
                 sanitize        : false
             }]
         }

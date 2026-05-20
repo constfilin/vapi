@@ -206,9 +206,11 @@ export default () => {
             const sectionName = req.body.sectionName as string;
             const getRedirectToIntempusIntroductionResult = ( instructions:string ) => {
                 return {
-                    session_id      : sessionId,
-                    phone_number    : '',
-                    instructions    : instructions,
+                    session_id              : sessionId,
+                    contact_phone_number    : '',
+                    user_first_name         : '',
+                    user_last_name          : '',
+                    instructions            : instructions,
                     // Testing has discovered that if a name of an agent is returned in the instructions then 
                     // ElevenLabs fails to redirect the to that agent. It says that hte agent is "unknown", 
                     // see https://github.com/constfilin/intempus/issues/15#issuecomment-4492663954
@@ -217,7 +219,7 @@ export default () => {
                     // we are going to error out of the tool and the system prompt of the agent needs to be
                     // written so that the tool error is properly handled and the agent take the desired action
                     // in this case. 
-                    err         : instructions  
+                    err                     : instructions  
                 };
             };
             return _callVapeApiWithBan('getTransferTarget',() => {
@@ -228,24 +230,24 @@ export default () => {
                     // but the caller is not yet ready to transfer the call to a phone number.
                     if( data.contact_phone )
                         return {
-                            session_id    : sessionId,
-                            phone_number  : data.contact_phone,
-                            instructions  : `Follow the instructions in ${sectionName} section.`
+                            session_id          : sessionId,
+                            contact_phone_number: data.contact_phone,
+                            instructions        : `Follow the instructions in ${sectionName} section.`
                         };
                 } 
                 else {
                     // The caller wants to transfer the call to a specific phone number
                     if( data.contact_name && data.contact_phone )
                         return {
-                            session_id    : sessionId,
-                            phone_number  : data.contact_phone,
-                            instructions  : `Say 'Transferring the call to ${data.contact_name}.' and call tool "transfer_to_number" passing "${data.contact_phone}" in "${ELabConsts.phoneTransferDestinationVarName}" dynamic variable'.`
+                            session_id          : sessionId,
+                            contact_phone_number: data.contact_phone,
+                            instructions        : `Say 'Transferring the call to ${data.contact_name}.' and call tool "transfer_to_number" passing "${data.contact_phone}" in "${ELabConsts.phoneTransferDestinationVarName}" dynamic variable'.`
                         };
                     if( data.contact_phone )
                         return {
-                            session_id    : sessionId,
-                            phone_number  : data.contact_phone,
-                            instructions  : `Call tool "transfer_to_number" passing "${data.contact_phone}" in "${ELabConsts.phoneTransferDestinationVarName}" dynamic variable.`
+                            session_id          : sessionId,
+                            contact_phone_number: data.contact_phone,
+                            instructions        : `Call tool "transfer_to_number" passing "${data.contact_phone}" in "${ELabConsts.phoneTransferDestinationVarName}" dynamic variable.`
                         };
                 }
                 // Adding special word "Immediately" here to be able to tell this case from
@@ -270,21 +272,30 @@ export default () => {
                 return _callVapeApiWithBan('getUserByPhone', () => {
                     return VapeApi.getUserByPhone(sessionId,phoneNumber);
                 }).then( user => {
-                      return {
-                          session_id    : sessionId,
-                          instructions  : `Immediately follow the instructions in ${user.user?"QUESTIONS_AND_ANSWERS":"UNKNONW_CALLER"} section`
-                      };
+                    return {
+                        session_id          : sessionId,
+                        user_first_name     : (user.user?.first_name||''),
+                        user_last_name      : (user.user?.last_name||''),
+                        contact_phone_number: user.contact_phone,
+                        instructions        : `Immediately follow the instructions in ${user.user?"QUESTIONS_AND_ANSWERS":"UNKNONW_CALLER"} section`
+                    };
                 }).catch( err => {
-                      return {
-                          session_id    : sessionId,
-                          instructions  : "Follow the instructions in UNKNOWN_CALLER section"
-                      };
+                    return {
+                        session_id          : sessionId,
+                        first_name          : '',
+                        last_name           : '',
+                        contact_phone_number: '',
+                        instructions        : "Immediately follow the instructions in UNKNOWN_CALLER section"
+                    };
                 });
             }
             catch( err ) {
                 return {
-                    session_id   : req.body.sessionId,
-                    instructions : "Follow the instructions in UNKNOWN_CALLER section."
+                    session_id          : req.body.sessionId,
+                    user_first_name     : '',
+                    user_last_name      : '',
+                    contact_phone_number: '',
+                    instructions        : "Follow the instructions in UNKNOWN_CALLER section."
                 }  
             }
         });

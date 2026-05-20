@@ -208,8 +208,6 @@ export default () => {
                 return {
                     session_id              : sessionId,
                     contact_phone_number    : '',
-                    user_first_name         : '',
-                    user_last_name          : '',
                     instructions            : instructions,
                     // Testing has discovered that if a name of an agent is returned in the instructions then 
                     // ElevenLabs fails to redirect the to that agent. It says that hte agent is "unknown", 

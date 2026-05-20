@@ -152,6 +152,7 @@ const _completeAgent = (
                     toolIds     : agent.conversationConfig?.agent?.prompt?.toolIds,
                     builtInTools: agent.conversationConfig?.agent?.prompt?.builtInTools,
                     ignoreDefaultPersonality: true,
+                    timezone    : "America/Los_Angeles"
                 },
             },
             tts: {
@@ -160,7 +161,7 @@ const _completeAgent = (
             },
             ...(agent.conversationConfig?.asr ? { asr: agent.conversationConfig.asr } : {}),
             ...(agent.conversationConfig?.languagePresets ? { languagePresets: agent.conversationConfig.languagePresets } : {}),
-            ...(agent.conversationConfig?.turn ? { turn: agent.conversationConfig.turn } : {})
+            ...(agent.conversationConfig?.turn ? { turn: agent.conversationConfig.turn } : {}),
         },
     };
 };
@@ -201,6 +202,7 @@ export const getMain = (
 ${elevenLabsConsts.systemPromptHeader}
 
 <QUESTIONS_AND_ANSWERS>
+* Ask the caller "How may I help you?"
 * Monitor the caller's speech for the keywords mentioned in KEYWORDS_AND_ACTIONS section. If at any point during the call (even if you are in the middle of a speech) the caller mentions a keyword defined in the KEYWORDS_AND_ACTIONS section then stop the script immediately and execute the action of the keyword.
 * When user asks a question, then check if the user is asking to be connected with the property manager or with Intempus customer service. If so then follow the instructions in CONNECTING_WITH_INTEMPUS section.
 * For all other questions:

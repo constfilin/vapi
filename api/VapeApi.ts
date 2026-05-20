@@ -93,7 +93,7 @@ export const getFAQAnswer = async ( sessionId:string, question:string ): Promise
             text        : question
         }
     );
-    if (resp.error || !resp.data || !resp.data.user || (!resp.data.verified && server.config.vapeApi.requireVerified) || !resp.data.reply)
+    if (resp.error || !resp.data || !resp.data.user || /*(!resp.data.verified && server.config.vapeApi.requireVerified) ||*/ !resp.data.reply)
         throw Error(`Cannot get FAQ answer for session '${sessionId}' on question '${question}': ${JSON.stringify(resp)}`);
     return resp.data;
 };

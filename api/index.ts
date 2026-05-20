@@ -270,12 +270,14 @@ export default () => {
                 return _callVapeApiWithBan('getUserByPhone', () => {
                     return VapeApi.getUserByPhone(sessionId,phoneNumber);
                 }).then( user => {
+                    if( !user.user )
+                        throw Error(`User is empty`);
                     return {
                         session_id          : sessionId,
-                        user_first_name     : (user.user?.first_name||''),
-                        user_last_name      : (user.user?.last_name||''),
+                        user_first_name     : (user.user.first_name||''),
+                        user_last_name      : (user.user.last_name||''),
                         contact_phone_number: user.contact_phone,
-                        instructions        : `Immediately follow the instructions in ${user.user?"QUESTIONS_AND_ANSWERS":"UNKNONW_CALLER"} section`
+                        instructions        : `Greet the user by saying "Hi, ${user.user.first_name||'there'}!". Then follow the instructions in "QUESTIONS_AND_ANSWERS" section.`
                     };
                 }).catch( err => {
                     return {
@@ -283,7 +285,7 @@ export default () => {
                         first_name          : '',
                         last_name           : '',
                         contact_phone_number: '',
-                        instructions        : "Immediately follow the instructions in UNKNOWN_CALLER section"
+                        instructions        : `Greet the user by saying "Hi, there!". Then follow the instructions in UNKNOWN_CALLER section.`
                     };
                 });
             }
@@ -293,7 +295,7 @@ export default () => {
                     user_first_name     : '',
                     user_last_name      : '',
                     contact_phone_number: '',
-                    instructions        : "Follow the instructions in UNKNOWN_CALLER section."
+                    instructions        : `Greet the user by saying "Hi, there!". Then immediately follow the instructions in UNKNOWN_CALLER section.`
                 }  
             }
         });

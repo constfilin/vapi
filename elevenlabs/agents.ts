@@ -234,7 +234,7 @@ ${elevenLabsConsts.systemPromptFooter}`,
                                 transferType : "blind",
                                 transferDestination : {
                                     type        : "phone_dynamic_variable",
-                                    phoneNumber : elevenLabsConsts.phoneTransferDetinationVarName
+                                    phoneNumber : elevenLabsConsts.phoneTransferDestinationVarName
                                 },
                                 condition    : ''
                             }]))

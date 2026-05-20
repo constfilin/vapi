@@ -237,6 +237,7 @@ export const getInstructionsByPropertyId = () : ElevenLabs.ToolRequestModel => {
                         sessionId: {
                             type            : "string",
                             dynamicVariable : "system__conversation_id",
+                            //description     : "user session identifier"
                         },
                         propertyId : {
                             type        : "string",
@@ -250,8 +251,14 @@ export const getInstructionsByPropertyId = () : ElevenLabs.ToolRequestModel => {
                     // If `propertyId` is not passed then the backend API uses
                     // information that was stored in the session earlier.
                     required : ["sessionId"]
-                }
-            }
+                },
+            },
+            assignments : [{
+                source      : "response",
+                dynamicVariable : elevenLabsConsts.phoneTransferDestinationVarName,
+                valuePath   : "phone_number",
+                sanitize    : false
+            }]
         }
     };  
 }

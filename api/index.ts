@@ -359,9 +359,11 @@ export default () => {
                             },
                             conversation_config_override : {
                                 agent : {
+                                    /*
                                     prompt : {
                                         prompt : `*Immediately* redirect the caller to the "Intempus Introduction" agent`
                                     },
+                                    */
                                     first_message : ``,
                                 }
                             }

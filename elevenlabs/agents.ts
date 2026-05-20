@@ -136,6 +136,8 @@ const _completeAgent = (
     // Build a complete ElevenLabs agent config from partial overrides.
     // This is the ElevenLabs counterpart of intempus/assistants.ts `_completeAssistant`.
     const config = Config.get();
+    //console.log(JSON.stringify(agent,null,4));
+    //throw Error("!");
     return {
         name                : agent.name,
         conversationConfig  : {

@@ -219,8 +219,9 @@ export default () => {
             const sectionName = req.body.sectionName as string;
             const getRedirectToIntempusIntroductionResult = ( instructions:string ) => {
                 return {
-                    session_id  : sessionId,
-                    instructions: instructions,
+                    session_id      : sessionId,
+                    phone_number    : '',
+                    instructions    : instructions,
                     // Testing has discovered that if a name of an agent is returned in the instructions then 
                     // ElevenLabs fails to redirect the to that agent. It says that hte agent is "unknown", 
                     // see https://github.com/constfilin/intempus/issues/15#issuecomment-4492663954
@@ -241,6 +242,7 @@ export default () => {
                     if( data.contact_phone )
                         return {
                             session_id   : sessionId,
+                            phone_number : data.contact_phone,
                             instructions : `Follow the instructions in ${sectionName} section.`
                         };
                 } 
@@ -332,16 +334,19 @@ export default () => {
                         return {
                             type : "conversation_initiation_client_data",
                             dynamic_variables : {
-                                user_first_name : userInfo.user.first_name,
-                                user_last_name  : userInfo.user.last_name,
+                                user_first_name                              : userInfo.user.first_name,
+                                user_last_name                               : userInfo.user.last_name,
+                                [ELabConsts.phoneTransferDestinationVarName] : ''
                             },
                             conversation_config_override : {
                                 agent : {
+                                    /*
                                     prompt : {
                                         prompt : `When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
                                                     - Provide the answer to the user.
                                                     - Repeat this process until user hangs up or says that it wants to end the call.`,
                                     },
+                                    */
                                     first_message : `Hi ${userInfo.user.first_name||'there'}, how can I help you today?`,
                                 }
                             }
@@ -349,6 +354,9 @@ export default () => {
                     }).catch( err => {
                         return {
                             type : "conversation_initiation_client_data",
+                            dynamic_variables : {
+                                [ELabConsts.phoneTransferDestinationVarName] : ''
+                            },
                             conversation_config_override : {
                                 agent : {
                                     prompt : {

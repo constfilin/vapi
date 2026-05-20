@@ -228,7 +228,7 @@ ${_getKeywordActionTable('Follow the instructions in CONNECTING_WITH_INTEMPUS se
 </CONNECTING_WITH_INTEMPUS>
 
 ${elevenLabsConsts.systemPromptFooter}`,
-                        toolIds     : _getToolIds(toolsByName,['getFAQAnswer','getInstructionsByPhone','getTransferInstructions']),
+                        toolIds     : _getToolIds(toolsByName,['getInstructionsByPhone','getTransferInstructions','getFAQAnswer']),
                         builtInTools: {
                             // "Intempus Main" transfers only to "Intempus Introduction"
                             transferToAgent: _getTransferToAgent(_getAgentIds(agentsByName||{},['Intempus Introduction'])),

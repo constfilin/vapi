@@ -21,6 +21,19 @@ export interface User {
     contact_phone?  : string;
 }
 
+export interface FAQAnswer {
+    session_id      : string;
+    flow?           : string;
+    role            : string;
+    user?: {
+        phone       : string;
+        first_name  : string;
+        last_name   : string;
+    };
+    verified        : boolean;
+    reply           : string;
+}
+
 export interface TransferTarget {
     session_id      : string;
     verified        : boolean;
@@ -71,7 +84,7 @@ export const getUserByPhone = async (sessionId: string, phoneNumber: string): Pr
     return resp.data;
 };
 
-export const getFAQAnswer = async ( sessionId:string, question:string ): Promise<Record<string,any>> => {
+export const getFAQAnswer = async ( sessionId:string, question:string ): Promise<FAQAnswer> => {
     const apiUrl = `https://api.insynergyapp.com/ai-voice-chat-message`;
     const resp = await _callApi(
         apiUrl,

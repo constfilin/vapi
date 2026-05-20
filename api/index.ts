@@ -12,7 +12,7 @@ import * as ELabConsts      from '../elevenlabs/consts';
 import stateByAreaCode      from './stateByAreaCode';
 import * as VapeApi         from './VapeApi';
 
-const callVapeApiWithBan = <T>( callName: string, call: () => Promise<T> ) : Promise<T> => {
+const _callVapeApiWithBan = <T>( callName: string, call: () => Promise<T> ) : Promise<T> => {
     const now = new Date();
     if( server.ban_vape_api_until_date && (now<(server.ban_vape_api_until_date||now)) ) {
         const remainingSec = Math.ceil((server.ban_vape_api_until_date.getTime() - now.getTime()) / 1000);
@@ -187,7 +187,7 @@ export default () => {
             const question = req.body.question as string;
             if( !question )
                 throw Error(`Invalid arguments`);
-            return callVapeApiWithBan('getFAQAnswer',() => {
+            return _callVapeApiWithBan('getFAQAnswer',() => {
                 return VapeApi.getFAQAnswer(sessionId,question);
             }).catch( err => {
                 return {
@@ -220,7 +220,7 @@ export default () => {
                     err         : instructions  
                 };
             };
-            return callVapeApiWithBan('getTransferTarget',() => {
+            return _callVapeApiWithBan('getTransferTarget',() => {
                 return VapeApi.getTransferTarget(sessionId,propertyId);
             }).then( data => {
                 if( sectionName ) {
@@ -267,7 +267,7 @@ export default () => {
                 const sessionId = req.body.sessionId as string;
                 if ( !sessionId )
                     throw Error(`Invalid session ID`);
-                return callVapeApiWithBan('getUserByPhone', () => {
+                return _callVapeApiWithBan('getUserByPhone', () => {
                     return VapeApi.getUserByPhone(sessionId,phoneNumber);
                 }).then( user => {
                       return {
@@ -295,12 +295,6 @@ export default () => {
                 throw Error(`Access denied`);
             if( typeof req.body !== 'object' || req.body===null )
                 throw Error(`Invalid request body`);
-            const phoneNumber = server.config.simulatedPhoneNumber || (req.body.caller_id as string);
-            if( !phoneNumber )
-                throw Error(`Invalid caller_id`);
-            const sessionId = req.body.conversation_id as string;
-            if( !sessionId )
-                throw Error(`Invalid conversation_id`);
             const agentsById = await server.elevenLabsApi.getAgents().list().then( res => {
                 return res.agents.reduce( (acc,a) => {
                     acc[a.agentId] = a;
@@ -312,50 +306,25 @@ export default () => {
                 throw Error(`Agent with id '${req.body.agent_id}' not found`);
             switch( agent.name ) {
                 case "Intempus Main":
+                case "Intempus Introduction":
                     // See https://elevenlabs.io/docs/eleven-agents/customization/personalization/twilio-personalization
                     // We need to customize the first prompt
-                    return callVapeApiWithBan('getUserByPhone',()=>VapeApi.getUserByPhone(sessionId,phoneNumber)).then( userInfo => {
-                        if( !userInfo?.user )
-                            throw Error(`VapeApi.getUserByPhone did not find a user for phone number '${phoneNumber}' and sessionId '${sessionId}'`);
-                        server.module_log(module.filename,1,`Found user for phone number '${phoneNumber}'`,{ userInfo });
-                        return {
-                            type : "conversation_initiation_client_data",
-                            dynamic_variables : {
-                                user_first_name                              : userInfo.user.first_name,
-                                user_last_name                               : userInfo.user.last_name,
-                                [ELabConsts.phoneTransferDestinationVarName] : ''
-                            },
-                            conversation_config_override : {
-                                agent : {
-                                    /*
-                                    prompt : {
-                                        prompt : `When user asks a question call "getFAQAnswer" tool with the question asked by the user in order to get the answer from the FAQ database.
-                                                    - Provide the answer to the user.
-                                                    - Repeat this process until user hangs up or says that it wants to end the call.`,
-                                    },
-                                    */
-                                    first_message : `Hi ${userInfo.user.first_name||'there'}, how can I help you today?`,
-                                }
-                            }
-                        };
-                    }).catch( err => {
-                        return {
-                            type : "conversation_initiation_client_data",
-                            dynamic_variables : {
-                                [ELabConsts.phoneTransferDestinationVarName] : ''
-                            },
-                            conversation_config_override : {
-                                agent : {
-                                    /*
-                                    prompt : {
-                                        prompt : `*Immediately* redirect the caller to the "Intempus Introduction" agent`
-                                    },
-                                    */
-                                    first_message : ``,
-                                }
+                    return {
+                        type : "conversation_initiation_client_data",
+                        dynamic_variables : {
+                            [ELabConsts.phoneTransferDestinationVarName] : ''
+                        },
+                        conversation_config_override : {
+                            agent : {
+                                /*
+                                prompt : {
+                                    prompt : `*Immediately* redirect the caller to the "Intempus Introduction" agent`
+                                },
+                                */
+                                first_message : ``,
                             }
                         }
-                    });
+                    }
             }
             server.module_log(module.filename,1,`No specific pre-call handling for agent '${agent.name}'`);
             return {
